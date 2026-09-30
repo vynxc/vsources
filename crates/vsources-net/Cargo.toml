@@ -1,0 +1,25 @@
+[package]
+name = "vsources-net"
+description = "Chrome-impersonating HTTP fetcher for vsources with Cloudflare integration"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+vsources-core = { workspace = true }
+vsources-cloudflare = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+wreq = { workspace = true }
+wreq-util = { workspace = true }
+
+[dev-dependencies]
+wiremock = { workspace = true }
+
+[lints]
+workspace = true

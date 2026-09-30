@@ -1,0 +1,2898 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-09-26",
+  "scope": "One short video-and-audio decode through each registered SDK provider route; shared upstream fallbacks count as that route, not an independent backend.",
+  "registered_providers": 47,
+  "verified_providers": 41,
+  "verified_without_additional_provider_configuration": 40,
+  "unverified_providers": 6,
+  "pass_criteria": {
+    "ffmpeg_exit": 0,
+    "minimum_frames": 24,
+    "requested_media_seconds": 8,
+    "minimum_media_seconds": 7.8,
+    "audio_decoded": true
+  },
+  "ffmpeg": "ffmpeg version n9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "evidence_inputs": [
+    "2026-09-26-playback-final.jsonl",
+    "2026-09-26-playback-followup.jsonl",
+    "2026-09-26-playback-mobile.jsonl"
+  ],
+  "provenance": "Full 47-provider pass, then targeted NikaStream/PlayIMDB rerun after fixes, then MovieBox with runtime mobile signing key. Older phase files remain historical evidence.",
+  "validation": {
+    "all_target_tests_passed": 808,
+    "doctests_passed": 6,
+    "format_check": "passed",
+    "clippy_warnings_denied": "passed",
+    "rustdoc_warnings_denied": "passed"
+  },
+  "providers": [
+    {
+      "provider": "2dhive",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:32.177201+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 2.275,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "ad1c90d7932e9e19",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.202,
+              "log": "/tmp/vsources-playback-final/2dhive-209867-0-ad1c90d7932e9e19.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.275,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "ad1c90d7932e9e19",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.202,
+        "log": "/tmp/vsources-playback-final/2dhive-209867-0-ad1c90d7932e9e19.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "acermovies",
+      "verified": false,
+      "checked_at": "2026-09-26T06:52:35.282379+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 1.313,
+          "decodes": []
+        },
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 1.789,
+          "decodes": []
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "blocker": {
+        "category": "Empty source responses",
+        "observed": "Current api2 search and quality endpoints respond, but source requests return only fromCache:false. A returned Modpro link is parked. No playable result found across the sampled titles.",
+        "next_step": "Recheck source resolution when its upstream links recover; changing the API hostname alone does not fix it."
+      }
+    },
+    {
+      "provider": "allwish",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:39.617738+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 2.923,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "ad1c90d7932e9e19",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.109,
+              "log": "/tmp/vsources-playback-final/allwish-209867-0-ad1c90d7932e9e19.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.923,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "ad1c90d7932e9e19",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.109,
+        "log": "/tmp/vsources-playback-final/allwish-209867-0-ad1c90d7932e9e19.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "anibd",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:43.151379+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 2.154,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "playeng.animeapps.top",
+              "stream_hash": "5a683da54dbbd067",
+              "format": "hls",
+              "frames": 479,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.077,
+              "log": "/tmp/vsources-playback-final/anibd-209867-0-5a683da54dbbd067.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.154,
+        "status": "played",
+        "exit": 0,
+        "host": "playeng.animeapps.top",
+        "stream_hash": "5a683da54dbbd067",
+        "format": "hls",
+        "frames": 479,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.077,
+        "log": "/tmp/vsources-playback-final/anibd-209867-0-5a683da54dbbd067.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 00:26:00.92, start: 1.412000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 60 fps, 60 tbr, 90k tbn, start 1.433333",
+          "Stream #0:1[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.412000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 60 fps, 60 tbn",
+          "Stream #0:1(jpn): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:198KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "anichan",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:57.345008+00:00",
+      "attempts": [
+        {
+          "tmdb": 37854,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 5,
+          "resolve_seconds": 10.199,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "c.toroplay.cymru",
+              "stream_hash": "80bc1207f8abc26a",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.014,
+              "audio_decoded": true,
+              "wall_seconds": 3.692,
+              "log": "/tmp/vsources-playback-final/anichan-37854-0-80bc1207f8abc26a.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 37854,
+        "title": "One Piece",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 10.199,
+        "status": "played",
+        "exit": 0,
+        "host": "c.toroplay.cymru",
+        "stream_hash": "80bc1207f8abc26a",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.014,
+        "audio_decoded": true,
+        "wall_seconds": 3.692,
+        "log": "/tmp/vsources-playback-final/anichan-37854-0-80bc1207f8abc26a.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 00:24:37.97, start: 0.184422, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1440x1080 [SAR 1:1 DAR 4:3], 23.98 fps, 23.98 tbr, 90k tbn, start 0.184422",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.073000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x240 [SAR 1:1 DAR 4:3], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:80KiB audio:1336KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "anidoor",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:48.488195+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 2.674,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "ad1c90d7932e9e19",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.168,
+              "log": "/tmp/vsources-playback-final/anidoor-209867-0-ad1c90d7932e9e19.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.674,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "ad1c90d7932e9e19",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.168,
+        "log": "/tmp/vsources-playback-final/anidoor-209867-0-ad1c90d7932e9e19.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "anikage",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:57.801606+00:00",
+      "attempts": [
+        {
+          "tmdb": 95479,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 5,
+          "resolve_seconds": 6.802,
+          "decodes": [
+            {
+              "status": "decode_failed",
+              "exit": 8,
+              "host": "og.bakayaro.live",
+              "stream_hash": "c44419f9bd6bf931",
+              "format": "hls",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.403,
+              "log": "/tmp/vsources-playback-final/anikage-95479-0-c44419f9bd6bf931.log",
+              "error_kind": "decoder_error"
+            },
+            {
+              "status": "decode_failed",
+              "exit": 8,
+              "host": "og.bakayaro.live",
+              "stream_hash": "877108dee337e544",
+              "format": "hls",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.399,
+              "log": "/tmp/vsources-playback-final/anikage-95479-1-877108dee337e544.log",
+              "error_kind": "decoder_error"
+            },
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "og.bakayaro.live",
+              "stream_hash": "2a2c107beb63fb46",
+              "format": "hls",
+              "frames": 479,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 0.806,
+              "log": "/tmp/vsources-playback-final/anikage-95479-2-2a2c107beb63fb46.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 6.802,
+        "status": "played",
+        "exit": 0,
+        "host": "og.bakayaro.live",
+        "stream_hash": "2a2c107beb63fb46",
+        "format": "hls",
+        "frames": 479,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 0.806,
+        "log": "/tmp/vsources-playback-final/anikage-95479-2-2a2c107beb63fb46.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:23:56.02, start: 1.412000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 60 fps, 60 tbr, 90k tbn, start 1.433333",
+          "Stream #0:1[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.412000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 60 fps, 60 tbn",
+          "Stream #0:1(jpn): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:198KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "anikoto",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:02.865510+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 2.707,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "ad1c90d7932e9e19",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.239,
+              "log": "/tmp/vsources-playback-final/anikoto-209867-0-ad1c90d7932e9e19.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.707,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "ad1c90d7932e9e19",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.239,
+        "log": "/tmp/vsources-playback-final/anikoto-209867-0-ad1c90d7932e9e19.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "anikototv",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:01.326819+00:00",
+      "attempts": [
+        {
+          "tmdb": 37854,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 2.133,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "a5a9f51cc0bff8a5",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.014,
+              "audio_decoded": true,
+              "wall_seconds": 1.087,
+              "log": "/tmp/vsources-playback-final/anikototv-37854-0-a5a9f51cc0bff8a5.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 37854,
+        "title": "One Piece",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.133,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "a5a9f51cc0bff8a5",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.014,
+        "audio_decoded": true,
+        "wall_seconds": 1.087,
+        "log": "/tmp/vsources-playback-final/anikototv-37854-0-a5a9f51cc0bff8a5.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 00:24:37.97, start: 0.184422, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1440x1080 [SAR 1:1 DAR 4:3], 23.98 fps, 23.98 tbr, 90k tbn, start 0.184422",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.073000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x240 [SAR 1:1 DAR 4:3], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:80KiB audio:1336KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "animeflix",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:08.042243+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 4.175,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "fa907e4e910c8ed5",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 2.236,
+              "log": "/tmp/vsources-playback-final/animeflix-209867-0-fa907e4e910c8ed5.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 4.175,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "fa907e4e910c8ed5",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 2.236,
+        "log": "/tmp/vsources-playback-final/animeflix-209867-0-fa907e4e910c8ed5.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:23:59.96, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:3[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:4[0x1]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:6[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 640x360 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:7[0x2]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:82KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "animegg",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:13.488959+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 8,
+          "resolve_seconds": 6.776,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "www.animegg.org",
+              "stream_hash": "972b637c48d0c253",
+              "format": "mp4",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 3.544,
+              "log": "/tmp/vsources-playback-final/animegg-209867-0-972b637c48d0c253.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 6.776,
+        "status": "played",
+        "exit": 0,
+        "host": "www.animegg.org",
+        "stream_hash": "972b637c48d0c253",
+        "format": "mp4",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 3.544,
+        "log": "/tmp/vsources-playback-final/animegg-209867-0-972b637c48d0c253.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.99, start: 0.000000, bitrate: 715 kb/s",
+          "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 581 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+          "Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "animekai",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:11.686425+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 2.169,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "hls2.aniwatchtv.uk",
+              "stream_hash": "5e2b1db3ed409e4e",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.171,
+              "log": "/tmp/vsources-playback-final/animekai-209867-0-5e2b1db3ed409e4e.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 2.169,
+        "status": "played",
+        "exit": 0,
+        "host": "hls2.aniwatchtv.uk",
+        "stream_hash": "5e2b1db3ed409e4e",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.171,
+        "log": "/tmp/vsources-playback-final/animekai-209867-0-5e2b1db3ed409e4e.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 1.400000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 640x360 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 1.480000",
+          "Stream #0:1[0x0](und): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+          "Stream #0:2[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 1.480000",
+          "Stream #0:3[0x1](und): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+          "Stream #0:4[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 1.480000",
+          "Stream #0:5[0x2](und): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "animesuge",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:17.467563+00:00",
+      "attempts": [
+        {
+          "tmdb": 37854,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 3.525,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "faf69adfc8911348",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.953,
+              "log": "/tmp/vsources-playback-final/animesuge-37854-0-faf69adfc8911348.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 37854,
+        "title": "One Piece",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 3.525,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "faf69adfc8911348",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.953,
+        "log": "/tmp/vsources-playback-final/animesuge-37854-0-faf69adfc8911348.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:23:48.14, start: 1.483422, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+          "Stream #0:1[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.483422",
+          "Stream #0:2[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+          "Stream #0:3[0x1](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.483422",
+          "Stream #0:4[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 854x480 [SAR 1280:1281 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+          "Stream #0:5[0x2](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.483422",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1(jpn): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:80KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "animezey",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:24.123673+00:00",
+      "attempts": [
+        {
+          "tmdb": 95479,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 3.448,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "1.animezeydl.workers.dev",
+              "stream_hash": "6b2a5ebd14763d18",
+              "format": "unknown",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 6.883,
+              "log": "/tmp/vsources-playback-final/animezey-95479-0-6b2a5ebd14763d18.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 3.448,
+        "status": "played",
+        "exit": 0,
+        "host": "1.animezeydl.workers.dev",
+        "stream_hash": "6b2a5ebd14763d18",
+        "format": "unknown",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 6.883,
+        "log": "/tmp/vsources-playback-final/animezey-95479-0-6b2a5ebd14763d18.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:23:56.65, start: 0.000000, bitrate: 13888 kb/s",
+          "Stream #0:0(jpn): Video: hevc (Main 10), yuv420p10le(tv, bt709/unknown/unknown), 1920x1080, SAR 1:1 DAR 16:9, 23.98 fps, 23.98 tbr, 1k tbn (default)",
+          "Stream #0:1(jpn): Audio: flac, 48000 Hz, stereo, s32 (24 bit) (default)",
+          "Stream #0:2(por): Audio: aac (LC), 48000 Hz, stereo, fltp (forced)",
+          "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (flac (native) -> pcm_s16le (native))",
+          "Stream #0:0(jpn): Video: wrapped_avframe, yuv420p10le(tv, bt709/unknown/unknown, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(jpn): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:80KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "animotvslash",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:25.236455+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 6.167,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "ad1c90d7932e9e19",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.298,
+              "log": "/tmp/vsources-playback-final/animotvslash-209867-0-ad1c90d7932e9e19.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 6.167,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "ad1c90d7932e9e19",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.298,
+        "log": "/tmp/vsources-playback-final/animotvslash-209867-0-ad1c90d7932e9e19.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "atlantic",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:28.639634+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 3,
+          "resolve_seconds": 3.179,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "peraspera.nbsycfzrpa4.workers.dev",
+              "stream_hash": "cdd4ce198628772c",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.034,
+              "log": "/tmp/vsources-playback-final/atlantic-1423191-0-cdd4ce198628772c.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1423191,
+        "title": "Resident Evil (2026)",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 3.179,
+        "status": "played",
+        "exit": 0,
+        "host": "peraspera.nbsycfzrpa4.workers.dev",
+        "stream_hash": "cdd4ce198628772c",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.034,
+        "log": "/tmp/vsources-playback-final/atlantic-1423191-0-cdd4ce198628772c.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:26:30.73, start: 0.000000, bitrate: 1 kb/s",
+          "Stream #0:0[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:1[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x840 [SAR 1:1 DAR 16:7], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:1 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x140 [SAR 1:1 DAR 16:7], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "cineby",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:42.252712+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 7,
+          "resolve_seconds": 15.273,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "3c1d7d01f6292310",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.44,
+              "log": "/tmp/vsources-playback-final/cineby-1288445-0-3c1d7d01f6292310.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 15.273,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "3c1d7d01f6292310",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.44,
+        "log": "/tmp/vsources-playback-final/cineby-1288445-0-3c1d7d01f6292310.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "cinebyrocks",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:45.674129+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 3,
+          "resolve_seconds": 4.705,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "scraper.vidbolt.xyz",
+              "stream_hash": "d1d8f500f4d3164b",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 12.026,
+              "log": "/tmp/vsources-playback-final/cinebyrocks-1288445-0-d1d8f500f4d3164b.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 4.705,
+        "status": "played",
+        "exit": 0,
+        "host": "scraper.vidbolt.xyz",
+        "stream_hash": "d1d8f500f4d3164b",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 12.026,
+        "log": "/tmp/vsources-playback-final/cinebyrocks-1288445-0-d1d8f500f4d3164b.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:03.87, start: 0.000000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:1[0x0]: Video: h264 (Constrained Baseline) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 640x320 [SAR 1:1 DAR 2:1], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:2[0x1]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:3[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x640 [SAR 1:1 DAR 2:1], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:4[0x2]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:5[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x960 [SAR 1:1 DAR 2:1], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:1 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x160 [SAR 1:1 DAR 2:1], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "cinejoyaio",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:47.261911+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 3,
+          "resolve_seconds": 3.049,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "nebula.bright67.online",
+              "stream_hash": "cc2097f1c5dfed48",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.656,
+              "log": "/tmp/vsources-playback-final/cinejoyaio-1423191-0-cc2097f1c5dfed48.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1423191,
+        "title": "Resident Evil (2026)",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 3.049,
+        "status": "played",
+        "exit": 0,
+        "host": "nebula.bright67.online",
+        "stream_hash": "cc2097f1c5dfed48",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.656,
+        "log": "/tmp/vsources-playback-final/cinejoyaio-1423191-0-cc2097f1c5dfed48.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 01:26:29.08, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](en): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 18 kb/s (default)",
+          "Stream #0:1[0x1](spa): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 190 kb/s (default)",
+          "Stream #0:2[0x2](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 2290 kb/s, 24 fps, 24 tbr, 12288 tbn (default)",
+          "Stream #0:0[0x0](en): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 18 kb/s (default)",
+          "Stream #0:1[0x1](spa): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 190 kb/s (default)",
+          "Stream #0:3[0x3](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 1576 kb/s, 24 fps, 24 tbr, 12288 tbn (default)",
+          "Stream #0:2 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 24 fps, 24 tbn (default)",
+          "Stream #0:1(en): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:80KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "cinewave",
+      "verified": true,
+      "checked_at": "2026-09-26T06:52:44.343224+00:00",
+      "attempts": [
+        {
+          "tmdb": 27205,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 6,
+          "resolve_seconds": 16.676,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "c9e15d450361f755",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.331,
+              "log": "/tmp/vsources-playback-final/cinewave-27205-0-c9e15d450361f755.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 27205,
+        "title": "Inception",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 16.676,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "c9e15d450361f755",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.331,
+        "log": "/tmp/vsources-playback-final/cinewave-27205-0-c9e15d450361f755.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 02:28:06.25, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3488 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 115 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "framextv",
+      "verified": true,
+      "checked_at": "2026-09-26T06:54:12.064226+00:00",
+      "attempts": [
+        {
+          "tmdb": 37854,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 7,
+          "resolve_seconds": 24.867,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "b6adcf0a39b2edb3",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.22,
+              "log": "/tmp/vsources-playback-final/framextv-37854-0-b6adcf0a39b2edb3.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 37854,
+        "title": "One Piece",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 24.867,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "b6adcf0a39b2edb3",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.22,
+        "log": "/tmp/vsources-playback-final/framextv-37854-0-b6adcf0a39b2edb3.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:04:26.65, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 1936 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 90 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "hianime",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:50.622382+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 1.904,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "hls2.aniwatchtv.uk",
+              "stream_hash": "5e2b1db3ed409e4e",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.153,
+              "log": "/tmp/vsources-playback-final/hianime-209867-0-5e2b1db3ed409e4e.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 1.904,
+        "status": "played",
+        "exit": 0,
+        "host": "hls2.aniwatchtv.uk",
+        "stream_hash": "5e2b1db3ed409e4e",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.153,
+        "log": "/tmp/vsources-playback-final/hianime-209867-0-5e2b1db3ed409e4e.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 1.400000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 640x360 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 1.480000",
+          "Stream #0:1[0x0](und): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+          "Stream #0:2[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 1.480000",
+          "Stream #0:3[0x1](und): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+          "Stream #0:4[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 1.480000",
+          "Stream #0:5[0x2](und): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "imdbplay",
+      "verified": false,
+      "checked_at": "2026-09-26T06:53:53.021022+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 1.429,
+          "decodes": []
+        },
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 0.966,
+          "decodes": []
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "blocker": {
+        "category": "Cloudflare blocks token mint",
+        "observed": "Raw WASM loading/decryption is repaired. The subsequent generate.php request to peregrinepalaver.space receives a real Cloudflare 403 block, including direct curl checks.",
+        "next_step": "Retest from an allowed connection or a configured solver, then verify the token and media chain."
+      }
+    },
+    {
+      "provider": "itachi",
+      "verified": true,
+      "checked_at": "2026-09-26T06:53:57.647732+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 3.032,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "ad1c90d7932e9e19",
+              "format": "hls",
+              "frames": 198,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.29,
+              "log": "/tmp/vsources-playback-final/itachi-209867-0-ad1c90d7932e9e19.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 3.032,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "ad1c90d7932e9e19",
+        "format": "hls",
+        "frames": 198,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.29,
+        "log": "/tmp/vsources-playback-final/itachi-209867-0-ad1c90d7932e9e19.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:25:59.92, start: 0.101000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 25 fps, 25 tbr, 90k tbn, start 0.181000",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "moviebox",
+      "verified": true,
+      "checked_at": "2026-09-26T07:50:00.084314+00:00",
+      "attempts": [
+        {
+          "tmdb": 27205,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 2.149,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "sbcdn3.hakunaymatata.com",
+              "stream_hash": "57d50f7c07b706cc",
+              "format": "unknown",
+              "frames": 191,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 39.143,
+              "log": "/tmp/vsources-playback-mobile/moviebox-27205-0-57d50f7c07b706cc.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "9b6444b63729ae831a4d6daddd977c3ad25a95224d0a074cf9e6f480fb7b0108",
+      "evidence_file": "2026-09-26-playback-mobile.jsonl",
+      "successful_sample": {
+        "tmdb": 27205,
+        "title": "Inception",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 2.149,
+        "status": "played",
+        "exit": 0,
+        "host": "sbcdn3.hakunaymatata.com",
+        "stream_hash": "57d50f7c07b706cc",
+        "format": "unknown",
+        "frames": 191,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 39.143,
+        "log": "/tmp/vsources-playback-mobile/moviebox-27205-0-57d50f7c07b706cc.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 02:28:08.00, start: -0.021333, bitrate: 0 kb/s",
+          "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 5879 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+          "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 4251 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+          "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 2087 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+          "Stream #0:3(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)",
+          "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+          "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1492KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": [
+        "MOVIEBOX_MOBILE_SIGNING_KEY"
+      ]
+    },
+    {
+      "provider": "necro",
+      "verified": true,
+      "checked_at": "2026-09-26T06:54:17.616450+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 4.154,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "25c4c3ef70db4ec0",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.396,
+              "log": "/tmp/vsources-playback-final/necro-1288445-0-25c4c3ef70db4ec0.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 4.154,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "25c4c3ef70db4ec0",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.396,
+        "log": "/tmp/vsources-playback-final/necro-1288445-0-25c4c3ef70db4ec0.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "netlio",
+      "verified": true,
+      "checked_at": "2026-09-26T06:54:15.214727+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 1.733,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "pfabiwmfmeza.harborcrestdesignstudio.store",
+              "stream_hash": "4e4497b5cb57240b",
+              "format": "hls",
+              "frames": 217,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.113,
+              "log": "/tmp/vsources-playback-final/netlio-1423191-0-4e4497b5cb57240b.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1423191,
+        "title": "Resident Evil (2026)",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 1.733,
+        "status": "played",
+        "exit": 0,
+        "host": "pfabiwmfmeza.harborcrestdesignstudio.store",
+        "stream_hash": "4e4497b5cb57240b",
+        "format": "hls",
+        "frames": 217,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.113,
+        "log": "/tmp/vsources-playback-final/netlio-1423191-0-4e4497b5cb57240b.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:26:16.43, start: 0.101000, bitrate: N/A",
+          "Stream #0:0[0x0](hi): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, 97 kb/s, start 0.101000 (default)",
+          "Stream #0:2[0x1](en): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, 98 kb/s, start 0.101000",
+          "Stream #0:4[0x2](ta): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, 97 kb/s, start 0.101000",
+          "Stream #0:6[0x3]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1152x480 [SAR 1:1 DAR 12:5], 30 fps, 30 tbr, 90k tbn, start 0.167667",
+          "Stream #0:7[0x3]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:0[0x0](hi): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, 97 kb/s, start 0.101000 (default)",
+          "Stream #0:2[0x1](en): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, 98 kb/s, start 0.101000",
+          "Stream #0:4[0x2](ta): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, 97 kb/s, start 0.101000",
+          "Stream #0:9[0x4]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1728x720 [SAR 1:1 DAR 12:5], 30 fps, 30 tbr, 90k tbn, start 0.167667",
+          "Stream #0:10[0x4]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 0.101000",
+          "Stream #0:6 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x134 [SAR 201:200 DAR 12:5], q=2-31, 200 kb/s, 30 fps, 30 tbn",
+          "Stream #0:1(hi): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+          "[out#0/null] video:90KiB audio:1258KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "nikastream",
+      "verified": true,
+      "checked_at": "2026-09-26T07:12:46.397057+00:00",
+      "attempts": [
+        {
+          "tmdb": 37854,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 5,
+          "resolve_seconds": 26.762,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch.nexabloom.top",
+              "stream_hash": "62466371b489be37",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.014,
+              "audio_decoded": true,
+              "wall_seconds": 1.031,
+              "log": "/tmp/vsources-playback-followup/nikastream-37854-0-62466371b489be37.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "eb97559fb36ba9aa0c26e7c2650da5679cb3042f7806561a8c1b6f3049f942c9",
+      "evidence_file": "2026-09-26-playback-followup.jsonl",
+      "successful_sample": {
+        "tmdb": 37854,
+        "title": "One Piece",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 26.762,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch.nexabloom.top",
+        "stream_hash": "62466371b489be37",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.014,
+        "audio_decoded": true,
+        "wall_seconds": 1.031,
+        "log": "/tmp/vsources-playback-followup/nikastream-37854-0-62466371b489be37.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 00:24:37.97, start: 0.184422, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1440x1080 [SAR 1:1 DAR 4:3], 23.98 fps, 23.98 tbr, 90k tbn, start 0.184422",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.073000",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x240 [SAR 1:1 DAR 4:3], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:80KiB audio:1336KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "nowhdtime",
+      "verified": false,
+      "checked_at": "2026-09-26T06:55:07.767890+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 25.07,
+          "decodes": []
+        },
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 25.078,
+          "decodes": []
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "blocker": {
+        "category": "API timeouts; alternate hosts fail",
+        "observed": "nhdapi.com times out in both SDK and curl. The live frontend’s VidNest alternative was researched; sampled backends returned 404/502 or GoodStream embeds blocked by Cloudflare.",
+        "next_step": "Restore API access or find a genuinely playable alternate backend before adding a fallback."
+      }
+    },
+    {
+      "provider": "peckle",
+      "verified": false,
+      "checked_at": "2026-09-26T06:55:07.910029+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 0.071,
+          "decodes": []
+        },
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "empty",
+          "cards": 0,
+          "resolve_seconds": 0.069,
+          "decodes": []
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "blocker": {
+        "category": "Missing caller cookie",
+        "observed": "PECKLE_FEBBOX_COOKIE is absent. Anonymous metadata lookup works, but the authenticated quality response cannot be verified. The provider deliberately returns NotFound without its required cookie.",
+        "next_step": "Configure the caller’s own FebBox ui= cookie and rerun Peckle."
+      }
+    },
+    {
+      "provider": "playimdb",
+      "verified": true,
+      "checked_at": "2026-09-26T07:12:50.853347+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 3,
+          "resolve_seconds": 2.197,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "onlinevisibilitysystem.site",
+              "stream_hash": "9856db6c3fe831da",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.956,
+              "log": "/tmp/vsources-playback-followup/playimdb-1423191-0-9856db6c3fe831da.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "eb97559fb36ba9aa0c26e7c2650da5679cb3042f7806561a8c1b6f3049f942c9",
+      "evidence_file": "2026-09-26-playback-followup.jsonl",
+      "successful_sample": {
+        "tmdb": 1423191,
+        "title": "Resident Evil (2026)",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 2.197,
+        "status": "played",
+        "exit": 0,
+        "host": "onlinevisibilitysystem.site",
+        "stream_hash": "9856db6c3fe831da",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.956,
+        "log": "/tmp/vsources-playback-followup/playimdb-1423191-0-9856db6c3fe831da.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:26:30.73, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:1[0x0]: Video: h264 (Constrained Baseline) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 640x280 [SAR 1:1 DAR 16:7], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:2[0x1]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:3[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x560 [SAR 1:1 DAR 16:7], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:4[0x2]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:5[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x840 [SAR 1:1 DAR 16:7], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:1 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x140 [SAR 1:1 DAR 16:7], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "primeshows",
+      "verified": true,
+      "checked_at": "2026-09-26T06:55:14.322027+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 3.826,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "25c4c3ef70db4ec0",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.421,
+              "log": "/tmp/vsources-playback-final/primeshows-1288445-0-25c4c3ef70db4ec0.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 3.826,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "25c4c3ef70db4ec0",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.421,
+        "log": "/tmp/vsources-playback-final/primeshows-1288445-0-25c4c3ef70db4ec0.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "raflix",
+      "verified": true,
+      "checked_at": "2026-09-26T06:55:20.211291+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 3.428,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "lun.genesis-b23.workers.dev",
+              "stream_hash": "a7a453dfeb826408",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 2.158,
+              "log": "/tmp/vsources-playback-final/raflix-209867-0-a7a453dfeb826408.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 3.428,
+        "status": "played",
+        "exit": 0,
+        "host": "lun.genesis-b23.workers.dev",
+        "stream_hash": "a7a453dfeb826408",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 2.158,
+        "log": "/tmp/vsources-playback-final/raflix-209867-0-a7a453dfeb826408.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:26:00.89, start: 0.000000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:1[0x0]: Video: h264 (Constrained Baseline) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 640x360 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:2[0x1]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:3[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:4[0x2]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:5[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:1 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "reanime",
+      "verified": true,
+      "checked_at": "2026-09-26T06:55:26.563110+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 3.749,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch8.flixcloud.cc",
+              "stream_hash": "4aea325852d7e147",
+              "format": "mp4",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 2.3,
+              "log": "/tmp/vsources-playback-final/reanime-209867-0-4aea325852d7e147.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 209867,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 3.749,
+        "status": "played",
+        "exit": 0,
+        "host": "fetch8.flixcloud.cc",
+        "stream_hash": "4aea325852d7e147",
+        "format": "mp4",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 2.3,
+        "log": "/tmp/vsources-playback-final/reanime-209867-0-4aea325852d7e147.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:26:00.94, start: 0.000000, bitrate: 5705 kb/s",
+          "Stream #0:0: Video: h264 (High), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 1k tbn",
+          "Stream #0:1(jpn): Audio: aac (LC), 44100 Hz, stereo, fltp",
+          "Stream #0:2(eng): Audio: aac (LC), 44100 Hz, stereo, fltp",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1(jpn): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "rivestream",
+      "verified": true,
+      "checked_at": "2026-09-26T06:55:43.674593+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 11,
+          "resolve_seconds": 15.638,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "img1.mocwm.com",
+              "stream_hash": "69ed24f287eaed80",
+              "format": "hls",
+              "frames": 240,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 1.169,
+              "log": "/tmp/vsources-playback-final/rivestream-1423191-0-69ed24f287eaed80.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1423191,
+        "title": "Resident Evil (2026)",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 15.638,
+        "status": "played",
+        "exit": 0,
+        "host": "img1.mocwm.com",
+        "stream_hash": "69ed24f287eaed80",
+        "format": "hls",
+        "frames": 240,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 1.169,
+        "log": "/tmp/vsources-playback-final/rivestream-1423191-0-69ed24f287eaed80.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:24:39.47, start: 1.466667, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1728x720 [SAR 1:1 DAR 12:5], 30 fps, 30 tbr, 90k tbn, start 1.466667",
+          "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.466667",
+          "Stream #0:2[0x0](tam): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.466667",
+          "Stream #0:3[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.466667",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x134 [SAR 201:200 DAR 12:5], q=2-31, 200 kb/s, 30 fps, 30 tbn",
+          "Stream #0:1(hin): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+          "[out#0/null] video:99KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "stellar",
+      "verified": false,
+      "checked_at": "2026-09-26T06:55:58.968454+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 5.321,
+          "decodes": [
+            {
+              "status": "decode_failed",
+              "exit": 234,
+              "host": "cdn.reallyfast.ch",
+              "stream_hash": "da19eb01d21b71d8",
+              "format": "unknown",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 1.7,
+              "log": "/tmp/vsources-playback-final/stellar-1423191-0-da19eb01d21b71d8.log",
+              "error_kind": "upstream_5xx"
+            },
+            {
+              "status": "decode_failed",
+              "exit": 234,
+              "host": "h.themepark.workers.dev",
+              "stream_hash": "618b2de6a2721a9b",
+              "format": "unknown",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.51,
+              "log": "/tmp/vsources-playback-final/stellar-1423191-1-618b2de6a2721a9b.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        },
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 2,
+          "resolve_seconds": 4.061,
+          "decodes": [
+            {
+              "status": "decode_failed",
+              "exit": 234,
+              "host": "h.themepark.workers.dev",
+              "stream_hash": "5b1cfc20eaf5da01",
+              "format": "unknown",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.508,
+              "log": "/tmp/vsources-playback-final/stellar-1288445-0-5b1cfc20eaf5da01.log",
+              "error_kind": "decoder_error"
+            },
+            {
+              "status": "decode_failed",
+              "exit": 234,
+              "host": "cdn.reallyfast.ch",
+              "stream_hash": "3591b8976ccd8271",
+              "format": "unknown",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 1.988,
+              "log": "/tmp/vsources-playback-final/stellar-1288445-1-3591b8976ccd8271.log",
+              "error_kind": "upstream_5xx"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "blocker": {
+        "category": "CDN 502",
+        "observed": "The API returns signed HLS masters. Child playlists at cdn.reallyfast.ch repeatedly return HTTP 502 across sampled titles/variants, also reproduced with curl.",
+        "next_step": "Retest after CDN recovery or from another working connection; do not permanently ban the host."
+      }
+    },
+    {
+      "provider": "streamxtv",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:21.696133+00:00",
+      "attempts": [
+        {
+          "tmdb": 37854,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 9,
+          "resolve_seconds": 24.752,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "b6adcf0a39b2edb3",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.296,
+              "log": "/tmp/vsources-playback-final/streamxtv-37854-0-b6adcf0a39b2edb3.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 37854,
+        "title": "One Piece",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 24.752,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "b6adcf0a39b2edb3",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.296,
+        "log": "/tmp/vsources-playback-final/streamxtv-37854-0-b6adcf0a39b2edb3.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:04:26.65, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 1936 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 90 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "videasy",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:13.375419+00:00",
+      "attempts": [
+        {
+          "tmdb": 27205,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 5,
+          "resolve_seconds": 12.82,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "520069f8b6b473b1",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.282,
+              "log": "/tmp/vsources-playback-final/videasy-27205-0-520069f8b6b473b1.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 27205,
+        "title": "Inception",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 12.82,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "520069f8b6b473b1",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.282,
+        "log": "/tmp/vsources-playback-final/videasy-27205-0-520069f8b6b473b1.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 02:28:06.25, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3488 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 115 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "videasyto",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:27.453242+00:00",
+      "attempts": [
+        {
+          "tmdb": 27205,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 5,
+          "resolve_seconds": 12.299,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "520069f8b6b473b1",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.475,
+              "log": "/tmp/vsources-playback-final/videasyto-27205-0-520069f8b6b473b1.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 27205,
+        "title": "Inception",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 12.299,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "520069f8b6b473b1",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.475,
+        "log": "/tmp/vsources-playback-final/videasyto-27205-0-520069f8b6b473b1.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 02:28:06.25, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3488 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 115 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "vidfast",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:25.145541+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 1.723,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "25c4c3ef70db4ec0",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.423,
+              "log": "/tmp/vsources-playback-final/vidfast-1288445-0-25c4c3ef70db4ec0.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 1.723,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "25c4c3ef70db4ec0",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.423,
+        "log": "/tmp/vsources-playback-final/vidfast-1288445-0-25c4c3ef70db4ec0.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "vidking",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:28.694677+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 1.714,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "25c4c3ef70db4ec0",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 0.941,
+              "log": "/tmp/vsources-playback-final/vidking-1288445-0-25c4c3ef70db4ec0.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 1.714,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "25c4c3ef70db4ec0",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 0.941,
+        "log": "/tmp/vsources-playback-final/vidking-1288445-0-25c4c3ef70db4ec0.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "vidlink2",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:30.583466+00:00",
+      "attempts": [
+        {
+          "tmdb": 1396,
+          "season": 1,
+          "episode": 1,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 1.918,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "bcdn.hakunaymatata.com",
+              "stream_hash": "b20ca675087f6977",
+              "format": "mp4",
+              "frames": 200,
+              "media_seconds": 8.0,
+              "audio_decoded": true,
+              "wall_seconds": 0.909,
+              "log": "/tmp/vsources-playback-final/vidlink2-1396-0-b20ca675087f6977.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "season": 1,
+        "episode": 1,
+        "resolve_seconds": 1.918,
+        "status": "played",
+        "exit": 0,
+        "host": "bcdn.hakunaymatata.com",
+        "stream_hash": "b20ca675087f6977",
+        "format": "mp4",
+        "frames": 200,
+        "media_seconds": 8.0,
+        "audio_decoded": true,
+        "wall_seconds": 0.909,
+        "log": "/tmp/vsources-playback-final/vidlink2-1396-0-b20ca675087f6977.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 00:58:21.78, start: 0.000000, bitrate: 852 kb/s",
+          "Stream #0:0[0x1](und): Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 720 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+          "Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 125 kb/s (default)",
+          "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+          "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+          "[out#0/null] video:83KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "vidsrcsbs",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:32.146649+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 1.783,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "25c4c3ef70db4ec0",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.365,
+              "log": "/tmp/vsources-playback-final/vidsrcsbs-1288445-0-25c4c3ef70db4ec0.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 1.783,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "25c4c3ef70db4ec0",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.365,
+        "log": "/tmp/vsources-playback-final/vidsrcsbs-1288445-0-25c4c3ef70db4ec0.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "vidzee",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:35.641602+00:00",
+      "attempts": [
+        {
+          "tmdb": 438631,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 3.069,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "cdn2.ngcorp.dad",
+              "stream_hash": "930684a9f609dfca",
+              "format": "hls",
+              "frames": 191,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.687,
+              "log": "/tmp/vsources-playback-final/vidzee-438631-0-930684a9f609dfca.log",
+              "error_kind": "decoder_error"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 438631,
+        "title": "Dune",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 3.069,
+        "status": "played",
+        "exit": 0,
+        "host": "cdn2.ngcorp.dad",
+        "stream_hash": "930684a9f609dfca",
+        "format": "hls",
+        "frames": 191,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.687,
+        "log": "/tmp/vsources-playback-final/vidzee-438631-0-930684a9f609dfca.log",
+        "error_kind": "decoder_error",
+        "codec_evidence": [
+          "Duration: 02:35:26.64, start: 1.440411, bitrate: N/A",
+          "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x800 [SAR 1:1 DAR 12:5], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+          "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, 5.1, fltp, start 1.440411",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x134 [SAR 201:200 DAR 12:5], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 48000 Hz, 5.1, s16, 4608 kb/s",
+          "[out#0/null] video:79KiB audio:4500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "vixsrc",
+      "verified": false,
+      "checked_at": "2026-09-26T06:52:28.396862+00:00",
+      "attempts": [
+        {
+          "tmdb": 1423191,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 0.773,
+          "decodes": [
+            {
+              "status": "decode_failed",
+              "exit": 8,
+              "host": "vixsrc.to",
+              "stream_hash": "24d0ef7f399edb18",
+              "format": "hls",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.112,
+              "log": "/tmp/vsources-playback-final/vixsrc-1423191-0-24d0ef7f399edb18.log",
+              "error_kind": "http_403"
+            }
+          ]
+        },
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 0.767,
+          "decodes": [
+            {
+              "status": "decode_failed",
+              "exit": 8,
+              "host": "vixsrc.to",
+              "stream_hash": "0839a6d7dc888421",
+              "format": "hls",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.109,
+              "log": "/tmp/vsources-playback-final/vixsrc-1288445-0-0839a6d7dc888421.log",
+              "error_kind": "http_403"
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "blocker": {
+        "category": "Cloudflare challenge",
+        "observed": "Site, API and playlist requests encounter real Cloudflare 403 challenges. The current signed-playlist extraction reference was found, but could not be validated from this connection.",
+        "next_step": "Configure a working solver/connection, adapt the current signed-playlist path if required, and decode it."
+      }
+    },
+    {
+      "provider": "watchseries",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:37.397563+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 4,
+          "resolve_seconds": 3.577,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "moon.quietridge.top",
+              "stream_hash": "25c4c3ef70db4ec0",
+              "format": "hls",
+              "frames": 190,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 1.369,
+              "log": "/tmp/vsources-playback-final/watchseries-1288445-0-25c4c3ef70db4ec0.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 3.577,
+        "status": "played",
+        "exit": 0,
+        "host": "moon.quietridge.top",
+        "stream_hash": "25c4c3ef70db4ec0",
+        "format": "hls",
+        "frames": 190,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 1.369,
+        "log": "/tmp/vsources-playback-final/watchseries-1288445-0-25c4c3ef70db4ec0.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:02.03, start: 0.000000, bitrate: N/A",
+          "Stream #0:0[0x0](eng): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 3514 kb/s, 23.98 fps, 23.98 tbr, 90k tbn, start 0.083411 (default)",
+          "Stream #0:1[0x0](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 117 kb/s (default)",
+          "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+          "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+          "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    },
+    {
+      "provider": "zxcstream",
+      "verified": true,
+      "checked_at": "2026-09-26T06:56:43.405416+00:00",
+      "attempts": [
+        {
+          "tmdb": 1288445,
+          "season": null,
+          "episode": null,
+          "status": "resolved",
+          "cards": 7,
+          "resolve_seconds": 3.272,
+          "decodes": [
+            {
+              "status": "decode_failed",
+              "exit": 183,
+              "host": "late-meadow-f5cf.icarus042.workers.dev",
+              "stream_hash": "264a23e5a0197774",
+              "format": "unknown",
+              "frames": 0,
+              "media_seconds": 0.0,
+              "audio_decoded": false,
+              "wall_seconds": 0.479,
+              "log": "/tmp/vsources-playback-final/zxcstream-1288445-0-264a23e5a0197774.log",
+              "error_kind": "invalid_media"
+            },
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "hidden-moon-0989.orion0002.workers.dev",
+              "stream_hash": "5467399537268282",
+              "format": "hls",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "wall_seconds": 3.408,
+              "log": "/tmp/vsources-playback-final/zxcstream-1288445-1-5467399537268282.log",
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "594c01de9ee7ee62b05c99ec2610b13ef41ba981118eee5caab7a1974c29af8b",
+      "evidence_file": "2026-09-26-playback-final.jsonl",
+      "successful_sample": {
+        "tmdb": 1288445,
+        "title": "Mutiny",
+        "season": null,
+        "episode": null,
+        "resolve_seconds": 3.272,
+        "status": "played",
+        "exit": 0,
+        "host": "hidden-moon-0989.orion0002.workers.dev",
+        "stream_hash": "5467399537268282",
+        "format": "hls",
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "wall_seconds": 3.408,
+        "log": "/tmp/vsources-playback-final/zxcstream-1288445-1-5467399537268282.log",
+        "error_kind": null,
+        "codec_evidence": [
+          "Duration: 01:35:03.87, start: 0.000000, bitrate: 0 kb/s",
+          "Stream #0:0[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:1[0x0]: Video: h264 (Constrained Baseline) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 640x320 [SAR 1:1 DAR 2:1], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:2[0x1]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:3[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x640 [SAR 1:1 DAR 2:1], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:4[0x2]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp",
+          "Stream #0:5[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x960 [SAR 1:1 DAR 2:1], 23.98 fps, 23.98 tbr, 90k tbn",
+          "Stream #0:1 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+          "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+          "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x160 [SAR 1:1 DAR 2:1], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+          "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+          "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+        ]
+      },
+      "extra_configuration": []
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+[package]
+name = "vsources-cli"
+description = "Example CLI application for the vsources SDK"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "vsources"
+path = "src/main.rs"
+# The public SDK owns target/doc/vsources; the CLI is documented in README.
+doc = false
+
+[dependencies]
+vsources = { workspace = true }
+vsources-core = { workspace = true }
+vsources-tt = { workspace = true }
+vsources-extractors = { workspace = true }
+vsources-net = { workspace = true }
+vsources-cloudflare = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = { workspace = true }
+
+[lints]
+workspace = true

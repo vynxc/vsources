@@ -1,0 +1,30 @@
+[package]
+name = "vsources"
+description = "The vsources streaming SDK facade: Engine, providers, extractors, and utilities"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+vsources-core = { workspace = true }
+vsources-cloudflare = { workspace = true }
+vsources-net = { workspace = true }
+vsources-extractors = { workspace = true }
+vsources-providers = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+moka = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+
+[lints]
+workspace = true

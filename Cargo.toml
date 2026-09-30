@@ -1,0 +1,80 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/vsources-tt",
+    "crates/vsources-core",
+    "crates/vsources-cloudflare",
+    "crates/vsources-net",
+    "crates/vsources-extractors",
+    "crates/vsources-providers",
+    "crates/vsources",
+    "crates/vsources-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/vynxc/vsources"
+rust-version = "1.98"
+
+[workspace.dependencies]
+vsources-tt = { path = "crates/vsources-tt", version = "0.1.0" }
+vsources-core = { path = "crates/vsources-core", version = "0.1.0" }
+vsources-cloudflare = { path = "crates/vsources-cloudflare", version = "0.1.0" }
+vsources-net = { path = "crates/vsources-net", version = "0.1.0" }
+vsources-extractors = { path = "crates/vsources-extractors", version = "0.1.0" }
+vsources-providers = { path = "crates/vsources-providers", version = "0.1.0" }
+vsources = { path = "crates/vsources", version = "0.1.0" }
+
+aes = "0.8"
+async-trait = "0.1"
+base64 = "0.22"
+cbc = "0.1"
+sha2 = "0.10"
+num-bigint = "0.4"
+hmac = "0.12"
+md-5 = "0.10"
+fancy-regex = "0.19"
+futures = "0.3"
+moka = { version = "0.12", default-features = false, features = ["sync", "future"] }
+scraper = "0.27"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"] }
+url = { version = "2", features = ["serde"] }
+wreq = { version = "0.16", features = ["cookies", "gzip", "brotli", "deflate", "zstd", "charset", "socks", "stream"] }
+wreq-util = { version = "0.2", features = ["emulation"] }
+tracing = "0.1"
+
+ratatui = "0.29"
+crossterm = "0.28"
+
+# Testing
+wiremock = "0.6"
+tokio-test = "0.4"
+
+# CLI-only
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+dbg_macro = "deny"
+todo = "warn"
+# Pedantic lints that are too noisy for this codebase.
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
+struct_field_names = "allow"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
