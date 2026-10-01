@@ -39,6 +39,10 @@ def run(command, timeout, log, env):
 
 def resolve(provider, media_id, args, env):
     command = [str(args.binary), "resolve", f"tmdb:{media_id}", "--provider", provider, "--json", "--timeout", str(args.source_timeout)]
+    if args.english_dub:
+        command.append("--english-dub")
+    if args.fast:
+        command.append("--fast")
     if media_id in SERIES:
         command += ["--kind", "series", "--season", str(args.season), "--episode", str(args.episode)]
     else:
@@ -74,7 +78,12 @@ def decode(provider, media_id, card, index, args, env):
         # Several real CDNs serve MPEG-TS at .jpg URLs. Keep network protocols
         # restricted while permitting those names in FFmpeg's HLS demuxer.
         command += ["-allowed_extensions", "ALL", "-allowed_segment_extensions", "ALL", "-extension_picky", "0"]
-    command += ["-i", card["url"], "-t", str(args.seconds), "-map", "0:v:0", "-map", "0:a:0?",
+    selection = card.get("meta", {}).get("audio_selection")
+    audio_index = selection["audio_index"] if selection else None
+    if audio_index is not None and (not isinstance(audio_index, int) or isinstance(audio_index, bool) or audio_index < 0):
+        raise ValueError("invalid required audio index")
+    audio_map = f"0:a:{audio_index}" if audio_index is not None else "0:a:0?"
+    command += ["-i", card["url"], "-t", str(args.seconds), "-map", "0:v:0", "-map", audio_map,
                 "-vf", "scale=320:-2", "-threads", "2", "-filter_threads", "1", "-f", "null", "-"]
     host = urlsplit(card["url"]).hostname
     with HOST_LOCKS_LOCK:
@@ -94,6 +103,7 @@ def decode(provider, media_id, card, index, args, env):
     return {"status": "played" if passed else "decode_failed", "exit": code,
             "host": urlsplit(card["url"]).hostname, "stream_hash": stamp, "format": card.get("format"),
             "frames": frames, "media_seconds": round(media_seconds, 3), "audio_decoded": audio_decoded,
+            "required_audio_selection": selection,
             "wall_seconds": elapsed, "log": str(log), "error_kind": summarize(errors)}
 
 
@@ -157,6 +167,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, default=ROOT / "target/debug/vsources")
     parser.add_argument("--providers", help="comma-separated IDs; default all registered providers")
+    parser.add_argument("--english-dub", action="store_true", help="resolve English spoken audio and honor embedded track selection")
+    parser.add_argument("--fast", action="store_true", help="test the fast English-dub path (defaults to its three shortlisted providers)")
     parser.add_argument("--media", help="comma-separated TMDB IDs; series IDs listed in this script use S1E1")
     parser.add_argument("--season", type=int, default=1)
     parser.add_argument("--episode", type=int, default=1)
@@ -169,6 +181,8 @@ def main():
     parser.add_argument("--logs", type=Path, default=Path("/tmp/vsources-playback-logs"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    if args.fast and not args.english_dub:
+        parser.error("--fast requires --english-dub")
     if not os.environ.get("TMDB_API_KEY") and not os.environ.get("TMDB_ACCESS_TOKEN"):
         parser.error("set TMDB_API_KEY or TMDB_ACCESS_TOKEN")
     args.logs.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -176,6 +190,8 @@ def main():
     env = {**os.environ, "RUST_LOG": "off", "LC_ALL": "C"}
     if args.providers:
         providers = args.providers.split(",")
+    elif args.fast:
+        providers = ["aniwaves", "reanime", "animekai"]
     else:
         catalog = subprocess.check_output([str(args.binary), "providers", "--json"], env=env, text=True)
         providers = [p["id"] for p in json.loads(catalog)]

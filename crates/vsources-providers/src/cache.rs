@@ -73,6 +73,7 @@ impl Expiry<CacheKey, ()> for EmptyTtl {
 struct CacheKey {
     provider: Arc<str>,
     media: MediaRef,
+    english_dub: bool,
 }
 
 /// A [`Source`] whose resolve outcomes are cached.
@@ -112,20 +113,17 @@ impl CachedSource {
     }
 }
 
-#[async_trait]
-impl Source for CachedSource {
-    fn info(&self) -> &SourceInfo {
-        self.inner.info()
-    }
-
-    async fn resolve(
+impl CachedSource {
+    async fn resolve_cached(
         &self,
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
+        english_dub: bool,
     ) -> Result<Vec<Stream>, SourceError> {
         let key = CacheKey {
             provider: Arc::from(self.inner.info().id.as_str()),
             media: media.clone(),
+            english_dub,
         };
         // A recent miss answers immediately, without touching the
         // provider.
@@ -138,7 +136,12 @@ impl Source for CachedSource {
         let outcome = self
             .results
             .try_get_with(key.clone(), async move {
-                match inner.resolve(ctx, media).await {
+                let result = if english_dub {
+                    inner.resolve_english_dub(ctx, media).await
+                } else {
+                    inner.resolve(ctx, media).await
+                };
+                match result {
                     // An empty answer is a miss: it belongs in the
                     // fifteen-second negative window, not the
                     // five-minute result cache, so it is reported as a
@@ -166,6 +169,29 @@ impl Source for CachedSource {
                 other => Err(other.clone()),
             },
         }
+    }
+}
+
+#[async_trait]
+impl Source for CachedSource {
+    fn info(&self) -> &SourceInfo {
+        self.inner.info()
+    }
+
+    async fn resolve(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        self.resolve_cached(ctx, media, false).await
+    }
+
+    async fn resolve_english_dub(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        self.resolve_cached(ctx, media, true).await
     }
 }
 
@@ -225,6 +251,64 @@ mod tests {
         assert_eq!(first.len(), 1);
         assert_eq!(second.len(), 1);
         assert_eq!(first[0].url, second[0].url);
+        assert_eq!(calls.calls.load(Ordering::SeqCst), 1);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn dub_misses_and_normal_results_have_separate_cache_keys() -> Result<(), SourceError> {
+        let (calls, cached) = cached(Outcome::OneStream);
+        let ctx = stub_ctx();
+        let media = stub_media();
+        assert_eq!(cached.resolve(&ctx, &media).await?.len(), 1);
+        assert!(cached.resolve_english_dub(&ctx, &media).await?.is_empty());
+        assert!(cached.resolve_english_dub(&ctx, &media).await?.is_empty());
+        assert_eq!(cached.resolve(&ctx, &media).await?.len(), 1);
+        assert_eq!(calls.calls.load(Ordering::SeqCst), 2);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn positive_dub_cache_preserves_required_audio_selection() -> Result<(), SourceError> {
+        use vsources_core::types::{AudioSelection, CountryCode};
+        struct EnglishSource(Arc<CountingSource>);
+        #[async_trait]
+        impl Source for EnglishSource {
+            fn info(&self) -> &SourceInfo {
+                self.0.info()
+            }
+            async fn resolve(
+                &self,
+                ctx: &ResolveCtx<'_>,
+                media: &MediaRef,
+            ) -> Result<Vec<Stream>, SourceError> {
+                let mut streams = self.0.resolve(ctx, media).await?;
+                for stream in &mut streams {
+                    stream.meta.dubbed = Some(true);
+                    stream.meta.languages = vec![CountryCode::En];
+                    stream.meta.audio_selection = Some(AudioSelection {
+                        language: CountryCode::En,
+                        audio_index: 1,
+                    });
+                }
+                Ok(streams)
+            }
+        }
+        let (calls, _) = cached(Outcome::OneStream);
+        let cached = CachedSource::new(Arc::new(EnglishSource(calls.clone())));
+        let ctx = stub_ctx();
+        let media = stub_media();
+        let first = cached.resolve_english_dub(&ctx, &media).await?;
+        let second = cached.resolve_english_dub(&ctx, &media).await?;
+        assert_eq!(first, second);
+        assert_eq!(
+            second[0]
+                .meta
+                .audio_selection
+                .as_ref()
+                .map(|audio| audio.audio_index),
+            Some(1)
+        );
         assert_eq!(calls.calls.load(Ordering::SeqCst), 1);
         Ok(())
     }

@@ -390,9 +390,25 @@ pub struct SubtitleTrack {
     pub url: Url,
 }
 
+/// A required selection within the file's audio streams.
+///
+/// Players must select this audio stream rather than silently falling back to
+/// the container's default language. The index counts audio streams only,
+/// matching `FFmpeg`'s `0:a:N` and the order reported by a native player's tracks.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AudioSelection {
+    /// The selected spoken language (not a subtitle language).
+    pub language: CountryCode,
+    /// Zero-based index among the file's audio streams.
+    pub audio_index: u32,
+}
+
 /// Metadata describing a resolved stream.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct StreamMeta {
+    /// Required embedded audio selection, when a file defaults to another language.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audio_selection: Option<AudioSelection>,
     /// Source quality label (e.g. `BluRay`, `WEB-DL`).
     pub quality: Option<String>,
     /// Vertical resolution in pixels (e.g. 1080).

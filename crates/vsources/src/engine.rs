@@ -25,7 +25,7 @@ use vsources_core::enrich::enrich_stream;
 use vsources_core::error::SourceError;
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{Fetcher, ResolveCtx, ResolvedMedia, Source};
-use vsources_core::types::{MediaRef, SourceInfo, Stream};
+use vsources_core::types::{CountryCode, MediaRef, SourceInfo, Stream};
 use vsources_net::ChromeFetcher;
 use vsources_providers::SourceRegistry;
 
@@ -42,6 +42,20 @@ type SourceJob<'a> = Pin<Box<dyn Future<Output = SourceOutcome> + Send + 'a>>;
 const DEFAULT_SOURCE_TIMEOUT: Duration = Duration::from_secs(35);
 /// How many providers scrape concurrently.
 const DEFAULT_CONCURRENCY: usize = 6;
+const FAST_DUB_PROVIDERS: &[&str] = &["aniwaves", "reanime", "animekai"];
+const FAST_DUB_BUDGET: Duration = Duration::from_secs(12);
+
+fn english_dub(stream: &Stream) -> bool {
+    !stream.is_external
+        && stream.meta.dubbed == Some(true)
+        && stream.meta.languages.contains(&CountryCode::En)
+        && stream
+            .meta
+            .audio_selection
+            .as_ref()
+            .is_none_or(|audio| audio.language == CountryCode::En)
+        && !stream.behavior_hints.contains_key("reanimeXorKey")
+}
 
 /// The current merged view of `entries`, in final display order:
 /// resolution descending, then registry index (provider priority),
@@ -65,6 +79,9 @@ fn ordered_snapshot(entries: &[(usize, u32, Stream)]) -> Vec<Stream> {
 /// Errors produced by the engine facade.
 #[derive(Debug, thiserror::Error)]
 pub enum EngineError {
+    /// The opt-in fast English-dub race exceeded its total budget.
+    #[error("fast English-dub resolution exceeded its 12-second budget")]
+    FastDubTimeout,
     /// The default fetcher could not be constructed.
     #[error("the default fetcher could not be built: {0}")]
     Fetcher(String),
@@ -193,7 +210,7 @@ impl EngineBuilder {
         self
     }
 
-    /// Resolve through the built-in provider catalog — all 47
+    /// Resolve through the built-in provider catalog — all 48
     /// English providers (wave 1 + wave 2).
     ///
     /// The set is assembled with the engine's TMDB client, so
@@ -313,6 +330,87 @@ pub struct Engine {
 }
 
 impl Engine {
+    /// Resolve selected providers for English spoken audio, including verified
+    /// embedded track selection when supported. SUB/English subtitle flags alone
+    /// do not qualify. Keeps the normal quality-sorted, all-provider behavior.
+    pub async fn resolve_english_dub(&self, media: &MediaRef) -> Result<Vec<Stream>, EngineError> {
+        let (progress, discarded) = mpsc::unbounded_channel();
+        drop(discarded);
+        self.resolve_progressive_with_audio(media, progress, true)
+            .await
+    }
+
+    /// Return the first direct English-dub result from the tested fast shortlist.
+    ///
+    /// Races `AniWaves`, `ReAnime` and `AnimeKai` within the configured provider
+    /// allowlist. Shares metadata/caches and cancels unfinished work on success.
+    /// The 12-second total budget includes metadata and bounded liveness checks.
+    /// This chooses first resolution completion, not measured player startup or
+    /// maximum quality. Reuse the returned stream's required audio selection.
+    pub async fn resolve_fast_english_dub(
+        &self,
+        media: &MediaRef,
+    ) -> Result<Option<Stream>, EngineError> {
+        tokio::time::timeout(FAST_DUB_BUDGET, self.fast_dub_inner(media))
+            .await
+            .map_err(|_| EngineError::FastDubTimeout)?
+    }
+
+    async fn fast_dub_inner(&self, media: &MediaRef) -> Result<Option<Stream>, EngineError> {
+        let sources: Vec<_> = self
+            .registry
+            .all()
+            .into_iter()
+            .filter(|source| FAST_DUB_PROVIDERS.contains(&source.info().id.as_str()))
+            .collect();
+        if sources.is_empty() {
+            return Ok(None);
+        }
+        let resolved = match &self.tmdb {
+            Some(tmdb) => tmdb.resolve_media(media).await.ok(),
+            None => None,
+        };
+        let jobs: Vec<_> = sources
+            .into_iter()
+            .enumerate()
+            .map(|(index, source)| {
+                self.resolve_source(
+                    index,
+                    source,
+                    media,
+                    resolved.clone(),
+                    true,
+                    self.per_source_timeout.min(Duration::from_secs(8)),
+                )
+            })
+            .collect();
+        let mut pending = stream::iter(jobs).buffer_unordered(self.concurrency.max(1));
+        let mut failures = 0;
+        let mut answered = false;
+        while let Some((_, _, result)) = pending.next().await {
+            match result {
+                Ok(mut streams) => {
+                    answered = true;
+                    streams.retain(english_dub);
+                    streams.sort_by_key(|stream| {
+                        std::cmp::Reverse(stream.meta.resolution.unwrap_or(0))
+                    });
+                    if let Some(mut stream) = streams.into_iter().next() {
+                        let label = stream.label.clone().unwrap_or_default();
+                        enrich_stream(&mut stream, &label);
+                        return Ok(Some(stream));
+                    }
+                }
+                Err(_) => failures += 1,
+            }
+        }
+        if !answered && failures > 0 {
+            Err(EngineError::AllProvidersFailed { count: failures })
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Resolve `media` into a merged, deduplicated, quality-sorted
     /// stream list.
     ///
@@ -352,6 +450,16 @@ impl Engine {
         media: &MediaRef,
         progress: mpsc::UnboundedSender<Vec<Stream>>,
     ) -> Result<Vec<Stream>, EngineError> {
+        self.resolve_progressive_with_audio(media, progress, false)
+            .await
+    }
+
+    async fn resolve_progressive_with_audio(
+        &self,
+        media: &MediaRef,
+        progress: mpsc::UnboundedSender<Vec<Stream>>,
+        english_only: bool,
+    ) -> Result<Vec<Stream>, EngineError> {
         let resolved = match &self.tmdb {
             Some(tmdb) => match tmdb.resolve_media(media).await {
                 Ok(resolved) => Some(resolved),
@@ -378,7 +486,16 @@ impl Engine {
             .all()
             .into_iter()
             .enumerate()
-            .map(|(index, source)| self.resolve_source(index, source, media, resolved.clone()))
+            .map(|(index, source)| {
+                self.resolve_source(
+                    index,
+                    source,
+                    media,
+                    resolved.clone(),
+                    english_only,
+                    self.per_source_timeout,
+                )
+            })
             .collect();
 
         // Incremental merge state: (registry index, arrival sequence,
@@ -451,6 +568,8 @@ impl Engine {
         source: Arc<dyn Source>,
         media: &'a MediaRef,
         meta: Option<ResolvedMedia>,
+        english_only: bool,
+        timeout: Duration,
     ) -> SourceJob<'a> {
         Box::pin(async move {
             let id = source.info().id.clone();
@@ -460,10 +579,21 @@ impl Engine {
                 source_id: Some(id.as_str()),
                 referer: None,
             };
-            let bounded =
-                tokio::time::timeout(self.per_source_timeout, source.resolve(&ctx, media));
+            let resolve = async {
+                if english_only {
+                    source.resolve_english_dub(&ctx, media).await
+                } else {
+                    source.resolve(&ctx, media).await
+                }
+            };
+            let bounded = tokio::time::timeout(timeout, resolve);
             let result = match bounded.await {
-                Ok(Ok(streams)) => Ok(self.probes.filter(self.fetcher.as_ref(), streams).await),
+                Ok(Ok(mut streams)) => {
+                    if english_only {
+                        streams.retain(english_dub);
+                    }
+                    Ok(self.probes.filter(self.fetcher.as_ref(), streams).await)
+                }
                 Ok(Err(error)) => Err(error),
                 Err(_elapsed) => Err(SourceError::scrape(&id, "resolve timed out")),
             };
@@ -534,6 +664,7 @@ mod tests {
     }
 
     /// A provider that answers after an optional delay.
+    #[derive(Clone)]
     struct StubSource {
         info: SourceInfo,
         streams: Vec<Stream>,
@@ -636,6 +767,64 @@ mod tests {
             season: None,
             episode: None,
         }
+    }
+
+    #[tokio::test]
+    async fn fast_dub_race_does_not_wait_for_sub_or_slow_sources() -> Result<(), EngineError> {
+        let mut dub = (*StubSource::delayed(
+            "aniwaves",
+            0,
+            &["https://cdn.example/dub.m3u8"],
+            Duration::from_millis(10),
+        ))
+        .clone();
+        dub.streams[0].meta.dubbed = Some(true);
+        dub.streams[0].meta.languages = vec![CountryCode::En];
+        let engine = test_builder()
+            .sources(vec![
+                StubSource::streaming("animekai", 0, &["https://cdn.example/sub.m3u8"]),
+                StubSource::delayed(
+                    "reanime",
+                    0,
+                    &["https://cdn.example/slow.mp4"],
+                    Duration::from_secs(60),
+                ),
+                Arc::new(dub),
+            ])
+            .build()?;
+        let result = tokio::time::timeout(
+            Duration::from_millis(500),
+            engine.resolve_fast_english_dub(&media()),
+        )
+        .await
+        .unwrap_or_else(|e| panic!("fast race waited for slow provider: {e}"))?;
+        assert_eq!(
+            result.map(|stream| stream.url.to_string()).as_deref(),
+            Some("https://cdn.example/dub.m3u8")
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn english_subtitle_and_external_flags_do_not_qualify_as_dub() -> Result<(), EngineError>
+    {
+        let mut source = (*StubSource::streaming(
+            "animekai",
+            0,
+            &[
+                "https://cdn.example/sub.mp4",
+                "https://cdn.example/external",
+            ],
+        ))
+        .clone();
+        source.streams[0].meta.languages = vec![CountryCode::Ja, CountryCode::En];
+        source.streams[1].meta.languages = vec![CountryCode::En];
+        source.streams[1].meta.dubbed = Some(true);
+        source.streams[1].is_external = true;
+        let engine = test_builder().sources(vec![Arc::new(source)]).build()?;
+        assert!(engine.resolve_fast_english_dub(&media()).await?.is_none());
+        assert_eq!(engine.resolve(&media()).await?.len(), 2);
+        Ok(())
     }
 
     #[tokio::test]

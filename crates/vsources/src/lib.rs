@@ -24,7 +24,9 @@
 
 pub use engine::{Engine, EngineBuilder, EngineError};
 pub use vsources_core::traits::{Fetcher, ResolveCtx, Source};
-pub use vsources_core::types::{MediaId, MediaRef, MediaType, SourceInfo, Stream, StreamMeta};
+pub use vsources_core::types::{
+    AudioSelection, MediaId, MediaRef, MediaType, SourceInfo, Stream, StreamMeta,
+};
 pub use vsources_providers::{CachedSource, SourceRegistry};
 
 pub use vsources_core::{error, ids, traits, types};

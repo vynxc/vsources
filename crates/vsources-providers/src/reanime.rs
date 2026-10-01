@@ -21,6 +21,11 @@
 //!    Japanese (Sub) audio label, `x264`/`WebDL` markers, and the
 //!    `[multi, ja, en]` language flags.
 //!
+//! English-only resolution instead inspects at most 128 KiB of each progressive
+//! file's Matroska tracks and returns a required English audio index. Normal
+//! progressive results say "Multi-audio" because the default track may be Japanese
+//! even when the upstream embed category says DUB.
+//!
 //! Upstream oddities ported faithfully:
 //!
 //! - In the legacy HLS path, the wrapper's `isDub` check reads `s.language`/`s.lang`, which
@@ -70,7 +75,8 @@ use vsources_core::error::{FetchError, SourceError};
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{FetchRequest, FetchResponse, ResolveCtx, Source};
 use vsources_core::types::{
-    CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream, StreamMeta,
+    AudioSelection, CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream,
+    StreamMeta,
 };
 
 use crate::nuvio::flixcloud::{m3u8_token_fields, parse_flix_page, resolve_flix_stream};
@@ -225,6 +231,57 @@ impl Source for ReAnime {
         }
         Ok(build_cards(&raw, &title))
     }
+
+    async fn resolve_english_dub(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        let streams = self.resolve(ctx, media).await?;
+        let mut selected = Vec::new();
+        for mut stream in streams {
+            if stream.format != Format::Mp4 {
+                continue;
+            }
+            // These progressive files default to Japanese, even when the
+            // embed's server category says DUB. Verify the container tracks.
+            let mut request =
+                FetchRequest::get(stream.url.clone()).with_timeout(Duration::from_secs(3));
+            request.headers.clone_from(&stream.meta.request_headers);
+            request = request.with_header("Range", "bytes=0-131071");
+            let Ok(Some(prefix)) = ctx.fetcher.probe(request, 131_072).await else {
+                continue;
+            };
+            if !(200..300).contains(&prefix.status) {
+                continue;
+            }
+            let Some(index) = vsources_core::audio::matroska_english_audio_index(&prefix.body)
+            else {
+                continue;
+            };
+            stream.meta.audio_selection = Some(AudioSelection {
+                language: CountryCode::En,
+                audio_index: index,
+            });
+            stream.meta.dubbed = Some(true);
+            let title = stream
+                .label
+                .as_deref()
+                .and_then(|label| label.split_once(" — ").map(|(title, _)| title))
+                .unwrap_or("ReAnime");
+            stream.label = Some(format!(
+                "{title} — ReAnime · English DUB · {}p (audio {})",
+                stream.meta.resolution.unwrap_or(1080),
+                index + 1
+            ));
+            selected.push(stream);
+        }
+        if selected.is_empty() {
+            Err(SourceError::NotFound)
+        } else {
+            Ok(selected)
+        }
+    }
 }
 
 impl ReAnime {
@@ -260,6 +317,7 @@ impl ReAnime {
 
         let mut streams = Vec::new();
         let mut seen = HashSet::new();
+        let mut seen_access = HashSet::new();
         for server in servers {
             // HD-1 and HD-2 may share the same accessId.
             let Some(access_id) = ACCESS_ID
@@ -271,6 +329,9 @@ impl ReAnime {
             else {
                 continue;
             };
+            if !seen_access.insert(access_id.clone()) {
+                continue;
+            }
             // The current FlixCloud download route is directly playable and
             // avoids the legacy encrypted-playlist adapter requirement.
             if let Some((url, quality)) = resolve_flix_download(ctx, &access_id).await {
@@ -646,7 +707,9 @@ fn build_cards(streams: &[ReanimeStream], display_title: &str) -> Vec<Stream> {
             .language
             .as_deref()
             .is_some_and(|language| language.to_lowercase().contains("dub"));
-        let audio_label = if is_dub {
+        let audio_label = if stream.format == Format::Mp4 {
+            "Multi-audio (select a track)"
+        } else if is_dub {
             "English (Dub)"
         } else {
             "Japanese (Sub)"
@@ -1240,5 +1303,104 @@ mod tests {
         assert!(
             download_from_data(&serde_json::json!({"nodes":[{"data":[{"video":999}]}]})).is_none()
         );
+    }
+
+    #[tokio::test]
+    async fn english_resolution_verifies_embedded_audio_instead_of_server_labels()
+    -> Result<(), SourceError> {
+        use vsources_core::traits::ProbeResponse;
+        struct BinaryFetcher {
+            pages: ScriptedFetcher,
+            english: bool,
+        }
+        #[async_trait]
+        impl Fetcher for BinaryFetcher {
+            async fn request(&self, request: FetchRequest) -> Result<FetchResponse, FetchError> {
+                self.pages.request(request).await
+            }
+            async fn probe(
+                &self,
+                request: FetchRequest,
+                maximum: usize,
+            ) -> Result<Option<ProbeResponse>, FetchError> {
+                assert_eq!(maximum, 131_072);
+                assert_eq!(
+                    request.headers.get("Range").map(String::as_str),
+                    Some("bytes=0-131071")
+                );
+                assert_eq!(
+                    request.headers.get("Referer").map(String::as_str),
+                    Some("https://flixcloud.cc/")
+                );
+                assert_eq!(request.url.host_str(), Some("cdn.example"));
+                // Complete miniature Matroska Tracks: video, Japanese audio,
+                // English (or Japanese) audio. Subtitle language is irrelevant.
+                let audio = |language: &[u8]| -> Vec<u8> {
+                    [
+                        &[0xae, 0x8a, 0x83, 0x81, 2, 0x22, 0xb5, 0x9c, 0x83][..],
+                        language,
+                    ]
+                    .concat()
+                };
+                let tracks = [
+                    &[0xae, 0x83, 0x83, 0x81, 1][..],
+                    &audio(b"jpn"),
+                    &audio(if self.english { b"eng" } else { b"jpn" }),
+                ]
+                .concat();
+                let body = [
+                    &[
+                        0x1a, 0x45, 0xdf, 0xa3, 0x80, 0x18, 0x53, 0x80, 0x67, 0xff, 0x16, 0x54,
+                        0xae, 0x6b,
+                    ][..],
+                    &[0x80 | u8::try_from(tracks.len()).unwrap_or_default()],
+                    &tracks,
+                ]
+                .concat();
+                Ok(Some(ProbeResponse {
+                    url: request.url,
+                    status: 206,
+                    headers: BTreeMap::new(),
+                    body,
+                    truncated: false,
+                }))
+            }
+        }
+        for english in [true, false] {
+            let data=serde_json::json!({"nodes":[{"data":[{"video":1,"download":4},{"fileId":2,"resolution":3},"file","1080p",{"base":5,"token":6},"https://cdn.example","fixture"]}]}).to_string();
+            let fetcher = Arc::new(BinaryFetcher {
+                pages: pages(ScriptedFetcher::default()).page(
+                    "/d/vimu1sw5xonj/__data.json",
+                    200,
+                    data,
+                ),
+                english,
+            });
+            let provider = ReAnime::new(Arc::new(TmdbClient::new("fixture-key", fetcher.clone())));
+            let ctx = ResolveCtx {
+                fetcher: fetcher.as_ref(),
+                media: None,
+                source_id: Some("reanime"),
+                referer: None,
+            };
+            let result = provider
+                .resolve_english_dub(&ctx, &MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 1))
+                .await;
+            if english {
+                let streams = result?;
+                assert_eq!(streams.len(), 1);
+                assert_eq!(
+                    streams[0].meta.audio_selection,
+                    Some(AudioSelection {
+                        language: CountryCode::En,
+                        audio_index: 1
+                    })
+                );
+                assert_eq!(streams[0].meta.dubbed, Some(true));
+            } else {
+                assert!(matches!(result, Err(SourceError::NotFound)));
+            }
+        }
+        Ok(())
     }
 }

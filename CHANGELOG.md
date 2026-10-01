@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fast English-dub anime — 2026-09-29
+
+- Added native AniWaves and EchoVideo source extraction, with strict media
+  matching, bounded catalog caching, and a dub-only path that skips SUB servers.
+- Added `Source::resolve_english_dub`, `Engine::resolve_english_dub`, and the
+  12-second `Engine::resolve_fast_english_dub` race across AniWaves, ReAnime
+  and AnimeKai. CLI: `resolve ... --english-dub --fast`.
+- Isolated English-dub provider results and misses from ordinary resolve caches.
+- Added required `StreamMeta::audio_selection` for embedded multi-audio files.
+  ReAnime verifies English Matroska audio tracks from a bounded 128 KiB prefix;
+  files without explicit English track metadata do not qualify. Normal cards
+  describe multi-audio instead of assuming their default audio is dubbed.
+- Forwarded selected audio to the example mpv launcher. Recorded live source
+  research and native playback evidence under `docs/audits/`.
+
 ### Playback verification — 2026-09-26
 
 - Added an FFmpeg playback audit: 41 of 47 registered SDK provider routes

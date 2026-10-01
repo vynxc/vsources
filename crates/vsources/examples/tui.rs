@@ -334,6 +334,10 @@ fn mpv_args(stream: &Stream) -> Vec<String> {
     if let Some(label) = stream.label.as_deref() {
         args.push(format!("--title={label}"));
     }
+    if let Some(selection) = &stream.meta.audio_selection {
+        // mpv audio IDs are one-based; the SDK's audio index is zero-based.
+        args.push(format!("--aid={}", u64::from(selection.audio_index) + 1));
+    }
     for (name, value) in &stream.meta.request_headers {
         if name.eq_ignore_ascii_case("User-Agent") {
             args.push(format!("--user-agent={value}"));
@@ -538,7 +542,12 @@ mod playback_tests {
             .meta
             .request_headers
             .insert("Referer".into(), "https://origin.example/".into());
+        stream.meta.audio_selection = Some(vsources::AudioSelection {
+            language: vsources::types::CountryCode::En,
+            audio_index: 1,
+        });
         let args = mpv_args(&stream);
+        assert!(args.iter().any(|arg| arg == "--aid=2"));
         assert_eq!(
             args.iter()
                 .filter(|s| s.starts_with("--http-header-fields-append="))

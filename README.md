@@ -87,6 +87,36 @@ players should also inspect the URL or response format.
 
 ## The library
 
+Fast English-dub anime resolution:
+
+```sh
+TMDB_API_KEY=... cargo run -p vsources-cli -- resolve tmdb:209867 \
+  --kind series --season 1 --episode 2 --english-dub --fast --json
+```
+
+`Engine::resolve_fast_english_dub` races AniWaves, ReAnime and AnimeKai and
+returns the first direct dub within a 12-second total budget. It respects the
+configured provider allowlist, cancels unfinished work, and reuses per-provider
+five-minute caches without mixing SUB and DUB results. `resolve_english_dub`
+returns the complete filtered list instead. Normal `resolve` is unchanged.
+
+ReAnime's progressive files can default to Japanese. English resolution reads
+at most 128 KiB of Matroska track metadata and sets
+`meta.audio_selection = { language: "En", audio_index: 1 }` when the second
+audio stream is explicitly tagged English. The actual index is inspected, not
+assumed. Players **must honor that selection**: FFmpeg uses `-map 0:a:N`;
+native players should select the corresponding audio track. The example mpv
+launcher forwards the selection. A custom `Fetcher` needs a bounded binary
+`probe` implementation for this verification; missing or incomplete metadata
+cannot qualify as an English dub.
+
+AniWaves is a new native provider using the current EchoVideo API. Later seasons
+require explicit matching season titles; uncertain title/year/type matches are
+rejected. See the [source research](docs/audits/2026-09-29-anime-dub-speed.json)
+and [native implementation verification](docs/audits/2026-09-29-anime-dub-native.json)
+for measured startup, audio checks, and limitations. First resolution completion
+is not a guarantee of fastest player startup or highest resolution.
+
 ```rust
 use vsources::{EngineBuilder, MediaId, MediaRef, MediaType};
 
@@ -132,7 +162,7 @@ Downloads are skipped. Embedders using a custom fetcher can implement the
 optional `Fetcher::probe` method; its default performs no I/O and returns
 inconclusive. `StreamProbe` is also available for standalone checks.
 
-Coverage is still incomplete: 36 host modules, 32 registry entries, and four
+Coverage is still incomplete: 37 host modules, 33 registry entries, and four
 remaining stubs (`nuvio`, `vidsrcme`, `anipriv8`, `zxcstream`). The restored
 VidKing and generic embed fallbacks are implemented. See the
 [earlier liveness audit](docs/audits/2026-09-26.md) for provider-policy gaps and
@@ -162,14 +192,14 @@ trivially reversible — one module plus one registry entry.
 
 | Wave | Providers |
 |------|-----------|
-| 1 — self-contained scrapers (24) | AllWish, AniBD, AniDoor, AniKage, Anikoto, AnimeFlix, AnimeGG, AnimeKai, HiAnime, Itachi, TwoDhive, CineWave, IMDBPlay, MovieBox, Necro, Netlio, NowHDTime, Peckle, PrimeShows, VidFast, VidKing, VidSrcSbs, Vidzee, WatchSeries |
+| 1 — self-contained scrapers (25) | AniWaves, AllWish, AniBD, AniDoor, AniKage, Anikoto, AnimeFlix, AnimeGG, AnimeKai, HiAnime, Itachi, TwoDhive, CineWave, IMDBPlay, MovieBox, Necro, Netlio, NowHDTime, Peckle, PrimeShows, VidFast, VidKing, VidSrcSbs, Vidzee, WatchSeries |
 | 2a — Nuvio-backed anime (8) | AniChan, AnikotoTV, AnimeSuge, AnimeZeY, AniMoTVSlash, NikaStream, ReAnime, StreamXTV |
 | 2b — Nuvio-backed movies/TV (15) | AcerMovies, Atlantic, Cineby, CinebyRocks, CineJoyAllInOne, FrameX, PlayImdb, Raflix, RiveStream, Stellar, VidEasy, VideasyTo, VidLink, VixSrc, ZXCStream |
 
 The three provider waves are registered: `vsources_providers::wave1` assembles the
 self-contained scrapers and `vsources_providers::wave2` the 23
 Nuvio-backed providers (the engine assembles both via
-`EngineBuilder::with_default_providers()` — 47 providers total). The
+`EngineBuilder::with_default_providers()` — 48 providers total). The
 extractor registry resolves embeds through `vsources_extractors::hosts::all()`; the Nuvio VidKing-family providers share a speedracelight seed store.
 The registry’s VidKing fallback additionally coalesces results by media.
 ## Architecture

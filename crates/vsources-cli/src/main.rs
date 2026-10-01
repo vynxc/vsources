@@ -71,6 +71,12 @@ enum Command {
         /// Restrict to these provider ids (repeatable).
         #[arg(long = "provider")]
         providers: Vec<String>,
+        /// Request English spoken audio; multi-audio files carry a required selection.
+        #[arg(long)]
+        english_dub: bool,
+        /// Return the first English dub from AniWaves/ReAnime/AnimeKai.
+        #[arg(long, requires = "english_dub")]
+        fast: bool,
     },
     /// Parse a release/torrent title and print structured metadata.
     Tt {
@@ -156,7 +162,20 @@ async fn run(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
             season,
             episode,
             providers,
-        } => resolve(cli, id, *kind, *season, *episode, providers).await,
+            english_dub,
+            fast,
+        } => {
+            resolve(
+                cli,
+                id,
+                *kind,
+                *season,
+                *episode,
+                providers,
+                (*english_dub, *fast),
+            )
+            .await
+        }
         Command::Tt { title } => tt(title),
         Command::Extract { url } => extract(cli, url).await,
         Command::Fetch { url, head } => fetch_url(cli, url, *head).await,
@@ -228,6 +247,7 @@ async fn resolve(
     season: Option<u32>,
     episode: Option<u32>,
     provider_ids: &[String],
+    (english_dub, fast): (bool, bool),
 ) -> Result<(), Box<dyn std::error::Error>> {
     let media_id = MediaId::parse(id)
         .ok_or_else(|| format!("unrecognized media id `{id}` (want tmdb:27205 or tt1375666)"))?;
@@ -238,7 +258,17 @@ async fn resolve(
         episode,
     };
     let engine = build_engine(cli, provider_ids)?;
-    let streams = engine.resolve(&media).await?;
+    let streams = if fast {
+        engine
+            .resolve_fast_english_dub(&media)
+            .await?
+            .into_iter()
+            .collect()
+    } else if english_dub {
+        engine.resolve_english_dub(&media).await?
+    } else {
+        engine.resolve(&media).await?
+    };
 
     if cli.json {
         println!("{}", serde_json::to_string_pretty(&streams)?);

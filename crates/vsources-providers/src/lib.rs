@@ -12,7 +12,7 @@
 //! provider list and drops everything else. Adding a provider back is
 //! one module plus one registry entry.
 //!
-//! Wave 1 — the 24 self-contained scrapers — is assembled by
+//! Wave 1 — the 25 self-contained scrapers — is assembled by
 //! [`wave1`]; the Nuvio-backed waves 2a/2b follow.
 //!
 //! [`Source`]: vsources_core::traits::Source
@@ -31,6 +31,7 @@ pub mod animekai;
 pub mod animesuge;
 pub mod animezey;
 pub mod animotvslash;
+pub mod aniwaves;
 pub mod atlantic;
 pub mod cache;
 pub mod cineby;
@@ -80,7 +81,7 @@ use vsources_extractors::ExtractorRegistry;
 pub use cache::CachedSource;
 pub use registry::SourceRegistry;
 
-/// The wave-1 provider set: the 24 self-contained English scrapers.
+/// The wave-1 provider set: the 25 self-contained English scrapers.
 ///
 /// One TMDB client is shared by every provider that needs id or title
 /// metadata, and one extractor registry serves every embed resolution.
@@ -95,7 +96,8 @@ pub fn wave1(tmdb: Arc<TmdbClient>) -> Vec<Arc<dyn Source>> {
     let febbox_cookie = std::env::var("PECKLE_FEBBOX_COOKIE").ok();
 
     vec![
-        // Anime (11).
+        // Anime (12).
+        Arc::new(aniwaves::AniWaves::new()),
         Arc::new(allwish::AllWish::new(Arc::clone(&extractors))),
         Arc::new(anibd::AniBD::new()),
         Arc::new(anidoor::AniDoor::new(Arc::clone(&extractors))),
@@ -208,9 +210,9 @@ mod tests {
     }
 
     #[test]
-    fn wave1_registers_all_24_providers() {
+    fn wave1_registers_all_25_providers() {
         let sources = wave1(tmdb());
-        assert_eq!(sources.len(), 24);
+        assert_eq!(sources.len(), 25);
     }
 
     #[test]

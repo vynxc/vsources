@@ -295,6 +295,28 @@ pub trait Source: Send + Sync {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError>;
+
+    /// Resolve English spoken audio only.
+    ///
+    /// The default accepts explicit English-dub metadata; subtitle language
+    /// flags and display labels alone are insufficient. Multi-audio providers
+    /// can override this to verify and select an embedded English track.
+    async fn resolve_english_dub(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        let mut streams = self.resolve(ctx, media).await?;
+        streams.retain(|stream| {
+            !stream.is_external
+                && stream.meta.dubbed == Some(true)
+                && stream
+                    .meta
+                    .languages
+                    .contains(&crate::types::CountryCode::En)
+        });
+        Ok(streams)
+    }
 }
 
 /// An embed-URL extractor: resolves player URLs into direct streams.

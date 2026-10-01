@@ -1,0 +1,1450 @@
+{
+  "research_date": "2026-09-30",
+  "recorded_at_utc": "2026-09-30T19:57:41.477531+00:00",
+  "user_scope": "Prioritize large catalogs for movies/TV and English dubbed anime. Tubi is explicitly excluded by the user; small/region-limited AVOD catalogs are not shortlist candidates. Finish provider integration later; this batch is research only.",
+  "summary": {
+    "new_fully_verified_large_all_in_one_replacement": null,
+    "existing_verified_large_api_leaders": [
+      "Castle TV",
+      "MovieBox mobile"
+    ],
+    "strongest_new_catalog_protocol_lead": "ShowBox/SuperStream family, anonymous encrypted catalog at mbpapi.shegu.net plus FebBox JSON playback requiring caller session. Catalog is verified; current authenticated playback is not.",
+    "catalog_size_policy": "TMDB/AniList metadata coverage, maximum observed numeric ID, search-result totals, and landing-page marketing are not measured playable-catalog size. Actual total playable title counts were not established."
+  },
+  "candidates": [
+    {
+      "provider": "ShowBox/SuperStream family",
+      "classification": "Direct native app/catalog API; potentially broad catalog; conditional playback integration",
+      "api_origin": "https://mbpapi.shegu.net/api/api_client/index/",
+      "transport": "Encrypted POST form carrying Triple-DES/CBC JSON and application MD5 verification. Protocol constants from the published client; UID is empty/anonymous.",
+      "native_search_module": "Search5",
+      "catalog_evidence": "Anonymous search found exact movie/TV/year matches for all five benchmark titles, including all three anime. Calls observed roughly 0.15\u20130.3 seconds. This verifies selected catalog entries, not English dub availability or playback.",
+      "searches": [
+        {
+          "query": "Inception",
+          "response_code": 1,
+          "query_result_count": 20,
+          "candidates": [
+            {
+              "id": 4059,
+              "title": "Inception",
+              "year": 2010,
+              "kind": 1,
+              "audio_language_tags": "eng"
+            },
+            {
+              "id": 3211,
+              "title": "Looper",
+              "year": 2012,
+              "kind": 1,
+              "audio_language_tags": "eng"
+            },
+            {
+              "id": 3027,
+              "title": "Scary Movie 5",
+              "year": 2013,
+              "kind": 1,
+              "audio_language_tags": "eng"
+            },
+            {
+              "id": 61451,
+              "title": "Renaissance: A Film by Beyonc\u00e9",
+              "year": 2023,
+              "kind": 1,
+              "audio_language_tags": "und"
+            }
+          ]
+        },
+        {
+          "query": "Breaking Bad",
+          "response_code": 1,
+          "query_result_count": 26,
+          "candidates": [
+            {
+              "id": 125,
+              "title": "Breaking Bad",
+              "year": 2008,
+              "kind": 2,
+              "audio_language_tags": ""
+            },
+            {
+              "id": 19425,
+              "title": "El Camino: A Breaking Bad Movie",
+              "year": 2019,
+              "kind": 1,
+              "audio_language_tags": "eng"
+            },
+            {
+              "id": 69042,
+              "title": "ISMO \u2013 Breaking Bad English",
+              "year": 2024,
+              "kind": 1,
+              "audio_language_tags": "und"
+            },
+            {
+              "id": 34121,
+              "title": "Breaking Habits",
+              "year": 2018,
+              "kind": 1,
+              "audio_language_tags": "eng"
+            }
+          ]
+        },
+        {
+          "query": "Frieren",
+          "response_code": 1,
+          "query_result_count": 3,
+          "candidates": [
+            {
+              "id": 21088,
+              "title": "Frieren: Beyond Journey's End",
+              "year": 2023,
+              "kind": 2,
+              "audio_language_tags": ""
+            },
+            {
+              "id": 46092,
+              "title": "Storm Over Mont Blanc",
+              "year": 1930,
+              "kind": 1,
+              "audio_language_tags": ""
+            }
+          ]
+        },
+        {
+          "query": "Demon Slayer",
+          "response_code": 1,
+          "query_result_count": 9,
+          "candidates": [
+            {
+              "id": 32856,
+              "title": "Demon Slayer -Kimetsu no Yaiba- The Movie: Mugen Train",
+              "year": 2020,
+              "kind": 1,
+              "audio_language_tags": "eng,jpn,ita"
+            },
+            {
+              "id": 11718,
+              "title": "Demon Slayer: Kimetsu no Yaiba",
+              "year": 2019,
+              "kind": 2,
+              "audio_language_tags": ""
+            },
+            {
+              "id": 71828,
+              "title": "Demon Slayer: Kimetsu no Yaiba Infinity Castle",
+              "year": 2025,
+              "kind": 1,
+              "audio_language_tags": "jpn,eng,spa,ita"
+            },
+            {
+              "id": 23952,
+              "title": "Immortal Demon Slayer",
+              "year": 2017,
+              "kind": 1,
+              "audio_language_tags": "chi"
+            }
+          ]
+        },
+        {
+          "query": "Jujutsu Kaisen",
+          "response_code": 1,
+          "query_result_count": 4,
+          "candidates": [
+            {
+              "id": 13655,
+              "title": "Jujutsu Kaisen",
+              "year": 2020,
+              "kind": 2,
+              "audio_language_tags": ""
+            },
+            {
+              "id": 39746,
+              "title": "Jujutsu Kaisen 0",
+              "year": 2021,
+              "kind": 1,
+              "audio_language_tags": "und,spa,jpn"
+            },
+            {
+              "id": 74335,
+              "title": "JUJUTSU KAISEN: Execution",
+              "year": 2025,
+              "kind": 1,
+              "audio_language_tags": "und"
+            },
+            {
+              "id": 72393,
+              "title": "JUJUTSU KAISEN: Hidden Inventory / Premature Death - The Movie",
+              "year": 2025,
+              "kind": 1,
+              "audio_language_tags": ""
+            }
+          ]
+        }
+      ],
+      "strict_verified_native_ids": {
+        "tmdb:27205": 4059,
+        "tmdb:1396": 125,
+        "tmdb:209867": 21088,
+        "tmdb:85937": 11718,
+        "tmdb:95479": 13655
+      },
+      "current_playback_chain": [
+        {
+          "method": "GET",
+          "path": "https://www.showbox.media/index/share_link",
+          "query_fields": [
+            "id",
+            "type"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "https://www.febbox.com/file/file_share_list",
+          "query_fields": [
+            "share_key",
+            "pwd",
+            "parent_id",
+            "page",
+            "is_html"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "https://www.febbox.com/file/player",
+          "body_fields": [
+            "fid",
+            "share_key"
+          ],
+          "requires": "Caller-owned FebBox ui session cookie in the current primary client reference."
+        }
+      ],
+      "live_evidence": [
+        "Public share and file-list APIs worked for Inception, Breaking Bad and Frieren. Exact season 1 folders and episode filenames were accessible without login.",
+        "Legacy Movie_downloadurl_v3 / TV_downloadurl_v3 requests returned an upgrade-required message. TV_detail_1 was likewise obsolete.",
+        "The older anonymous /hls/main/{oss_fid}.m3u8 construction returned HTTP 200 with a non-HLS body on all three sampled files; it is not a playback success.",
+        "The older showbox.shegu.net endpoint returned an HTML 403 in tests.",
+        "No FebBox user session was supplied, so current cookie-gated playback and English-track selection were not verified.",
+        "Current primary client path is cookie-gated file/player JSON. The public anonymous share/file-list stage is concrete and can be persisted by exact media/episode; no authenticated playback test was possible with the credentials available."
+      ],
+      "later_integration_requirements": [
+        "Strict title/type/year/season/episode mapping; do not choose first search result.",
+        "Persist exact catalog, share, folder and episode identity separately from signed playback URLs.",
+        "Caller session configuration; respect authentication failures and refresh sessions/URLs within bounded budgets.",
+        "Actual audio-language selection per returned file; UI language/localized title variants are not spoken dub metadata.",
+        "Treat ShowBox/Peckle/FebBox routes as shared storage family, not independent media redundancy."
+      ]
+    },
+    {
+      "provider": "MovieBlast",
+      "classification": "Direct Android-style JSON API, metadata works but selected playback failed",
+      "api_origin": "https://app.cloud-mb.xyz",
+      "request_paths": [
+        "/api/search/{keyword}/{applicationKey}",
+        "/api/media/detail/{nativeId}/{applicationKey}"
+      ],
+      "catalog_evidence": "Inception matched native ID 875 / year 2010 and returned four English-labelled quality cards in about one second through the reference client.",
+      "blockers": [
+        "All tested Inception files used move26.mbaccess.site, which failed hostname resolution; public DNS A query supplied no A answer. No movie sample decoded.",
+        "Reference lookups returned no cards for Breaking Bad, Frieren, Demon Slayer and JJK. Earlier full-title anime search returned server errors. More aliases could improve identity lookup, but media-host failure remains."
+      ],
+      "recommended": false
+    },
+    {
+      "provider": "DooFlix",
+      "classification": "Native app-style JSON API with direct TMDB links route, no successful current request",
+      "api_origin": "https://panel.watchkaroabhi.com",
+      "request_paths": [
+        "/api/3/movie/{tmdbId}/links",
+        "/api/3/tv/{tmdbId}/season/{season}/episode/{episode}/links"
+      ],
+      "blockers": [
+        "Native fetch failed for movie and TV tests before a response. Public DNS resolved the subdomain to its parent and parking-like addresses; this is not evidence of a functioning app backend.",
+        "The current pinned provider source still uses this host. No alternate current host was verified."
+      ],
+      "recommended": false
+    },
+    {
+      "provider": "Filmix",
+      "classification": "Broad native/API catalog candidate, no passing video test",
+      "api_origin": "https://api.filmix.tv",
+      "request_paths": [
+        "/api-fx/list?search={query}",
+        "/api-fx/request-token",
+        "/api-fx/post/{nativeId}/video-links"
+      ],
+      "catalog_evidence": "Inception 2010 and Breaking Bad 2008 were present; API search and anonymous request-token calls responded.",
+      "blockers": [
+        "Both selected video-links requests returned HTTP 403 with a blocked-video message despite the freshly supplied session hash. Exact cause/English availability not verified.",
+        "Frieren query returned a generic unrelated feed, not a strict match.",
+        "Legacy mobile/pro API paths may require caller tokens; no borrowed account token was used."
+      ],
+      "recommended": false
+    },
+    {
+      "provider": "Loklok",
+      "classification": "Native mobile API protocol found, current selected catalog/playback not usable on this connection",
+      "api_origins": [
+        "https://ga-mobile-api.loklok.tv",
+        "https://h5-api.loklok.site"
+      ],
+      "request_paths": [
+        "/cms/app/search/v2/searchWithKeyWord",
+        "/cms/app/search/v1/searchWithKeyWord",
+        "/cms/app/homePage/getHome",
+        "/cms/v2/h5/search/v1/searchWithKeyWord"
+      ],
+      "blockers": [
+        "Android-style v2 searches returned Success but zero results for all five test queries; homepage recommendation list was empty.",
+        "A v1 follow-up returned a nested non-result payload.",
+        "The current H5 client signing implementation produced HTTP 403 B0001 sign error in tests; no valid current signing handshake was recovered.",
+        "Other reference client headers encountered 403. Service/region/protocol compatibility remains unresolved."
+      ],
+      "recommended": false
+    },
+    {
+      "provider": "KickAssAnime / KAA",
+      "classification": "Anime-native JSON API, proper dub identity recovered; no passing media decode",
+      "api_origin": "https://kaa.lt",
+      "request_paths": [
+        "/api/fsearch",
+        "/api/show/{showSlug}",
+        "/api/show/{showSlug}/episodes?ep={episode}&lang=en-US",
+        "/api/show/{showSlug}/episode/{fullEpisodeSlug}"
+      ],
+      "identity_finding": "The reference Python extractor builds episode maps using ja-JP even when requested audio is dub, then labels the result dub. Correct en-US episode queries return different slugs; selected episode JSON explicitly confirmed language en-US and episode 2 for all three anime.",
+      "blockers": [
+        "Direct Krussdomi master and child playlists responded, but actual segments at st1.advancedairesearchlab.xyz returned HTTP 403 with and without the normal Referer.",
+        "All three initial ffmpeg attempts failed. A playlist 200 is not playback. Further checks were bounded to one segment instead of repeatedly attempting failed segments."
+      ],
+      "recommended": false
+    },
+    {
+      "provider": "Kurage",
+      "classification": "API aggregator for anime, not native independent hosting or all-in-one movie/TV catalog",
+      "api_origin": "https://kurage.live",
+      "request_path": "/api/trpc/episodes.source",
+      "request_fields": [
+        "batch=1",
+        "input.0.json.animeId",
+        "input.0.json.episode",
+        "input.0.json.language=dub"
+      ],
+      "live_evidence": [
+        "Frieren and JJK S1E2 actually played and dialogue detection found English at 0.9827 / 0.9841 confidence.",
+        "Demon Slayer reference lookup returned only a sub card, so no passing English dub sample.",
+        "The wider direct API test had seven dub-card responses among 13 requested titles, with three timeouts. This is metadata availability, not seven verified playbacks.",
+        "API response uses servers and a top-level available/url shape, not videos; the first shape-only scan was corrected.",
+        "Returned source headers identify AnimeGG upstream. This is a new API interface to existing source infrastructure, not independent media storage.",
+        "Latency varied up to roughly nine seconds; large AniList metadata matching does not establish a comparably large playable dub catalog."
+      ],
+      "recommended": "Secondary research lead only; does not meet the large all-in-one priority."
+    },
+    {
+      "provider": "OnStream / HDO Box / CinemaHQ / CineHD",
+      "classification": "App names/landing pages found, no validated current native API or playback in this batch",
+      "findings": [
+        "The similarly named MovieHD API GitHub repo is a Playwright browser-sniffing wrapper, not a direct mobile catalog API.",
+        "Inspected OnStream extension is a browser movie-finder extension, not an app API implementation.",
+        "CinemaHQ repository is a marketing frontend; no stream API or trusted current APK artifact was recovered.",
+        "Current reachable/download evidence for HDO/CineHD was insufficient to recover and verify their mobile backends. Do not infer large playable catalogs from screenshots or marketing."
+      ]
+    },
+    {
+      "provider": "CineFreak / AllMovieLand / FibWatch",
+      "classification": "Additional provider references screened; no new verified API-based playback",
+      "findings": [
+        "Reference cold lookup returned no streams for Frieren. CineFreak also returned no Inception result in the research harness.",
+        "Some implementations mix website parsing or unsupported runtime behavior; no pure API claim or permanent outage classification."
+      ]
+    }
+  ],
+  "excluded_by_latest_user_preference": {
+    "providers": [
+      "Tubi",
+      "Pluto TV"
+    ],
+    "reason": "User explicitly prioritizes larger broad catalogs and rejected Tubi. Their region/licensing-limited catalogs are excluded from the shortlist.",
+    "integration_added": false,
+    "evidence_note": "Anonymous token/catalog and bounded clips were researched before this clarification. No further integration or recommendation follows from that branch. Initial legacy Pluto stitcher calls omitted current JWT/v2 parameters and had no detected speech; those cannot prove the requested title/language. Correct current API construction was researched separately, but remains outside the target shortlist."
+  },
+  "phases": {
+    "movieblast-playback.jsonl": [
+      {
+        "provider": "movieblast-api",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "resolve_seconds": 0.246,
+        "cards": 4,
+        "decodes": [
+          {
+            "host": "move26.mbaccess.site",
+            "stream_hash": "da8f56169c373f45",
+            "label": "MovieBlast - 1080P (English)",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.056,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          },
+          {
+            "host": "move26.mbaccess.site",
+            "stream_hash": "b732d7830a583058",
+            "label": "MovieBlast - 720P (English)",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.032,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          },
+          {
+            "host": "move26.mbaccess.site",
+            "stream_hash": "077f7b2f3a3e009d",
+            "label": "MovieBlast - 720P - HEVC (English)",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.033,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "movieblast-api",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "resolve_seconds": 0.167,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "movieblast-api",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 0.527,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "movieblast-api",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 0.592,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "movieblast-api",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 0.508,
+        "cards": 0,
+        "decodes": []
+      }
+    ],
+    "kurage-playback.jsonl": [
+      {
+        "provider": "kurage-api",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.01,
+        "cards": 2,
+        "decodes": [
+          {
+            "host": "kurage.live",
+            "stream_hash": "d770d89af9566384",
+            "label": "\ud83c\udfac Frieren: Beyond Journey's End\n\ud83c\udfa5 S1E2 - It Didn't Have to Be Magic...\n\ud83c\udf9e\ufe0f MP4 | \u26a1 Auto | \ud83c\udf0d English (DUB) | \u23f1\ufe0f 25 min",
+            "first_decoded_frame_seconds": 2.333,
+            "decode_seconds": 2.385,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "kurage-api",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 3.302,
+        "cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-api",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 2.366,
+        "cards": 2,
+        "decodes": [
+          {
+            "host": "kurage.live",
+            "stream_hash": "d47dfd14b06a7c01",
+            "label": "\ud83c\udfac JUJUTSU KAISEN\n\ud83c\udfa5 S1E2 - For Myself\n\ud83c\udf9e\ufe0f MP4 | \u26a1 Auto | \ud83c\udf0d English (DUB) | \u23f1\ufe0f 24 min",
+            "first_decoded_frame_seconds": 1.185,
+            "decode_seconds": 1.543,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "kurage-breadth-corrected.jsonl": [
+      {
+        "provider": "kurage-direct",
+        "anilist": 20,
+        "title": "Naruto",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:41.106578+00:00",
+        "resolve_seconds": 2.575,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 21,
+        "title": "One Piece",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:41.106986+00:00",
+        "resolve_seconds": 6.909,
+        "status": 200,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 269,
+        "title": "Bleach",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:41.107200+00:00",
+        "resolve_seconds": 7.101,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 1,
+        "title": "Cowboy Bebop",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:43.682626+00:00",
+        "resolve_seconds": 6.915,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 5114,
+        "title": "Fullmetal Alchemist: Brotherhood",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:48.016424+00:00",
+        "resolve_seconds": 7.287,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 1575,
+        "title": "Code Geass",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:48.208606+00:00",
+        "resolve_seconds": 1.883,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 97940,
+        "title": "Black Clover",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:50.092009+00:00",
+        "resolve_seconds": 1.455,
+        "status": 200,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 11061,
+        "title": "Hunter x Hunter",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:50.598484+00:00",
+        "resolve_seconds": 2.773,
+        "status": 200,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 16498,
+        "title": "Attack on Titan",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:51.547943+00:00",
+        "resolve_seconds": 2.187,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 1535,
+        "title": "Death Note",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:53.371697+00:00",
+        "resolve_seconds": 2.975,
+        "status": 200,
+        "dub_cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:53.735586+00:00",
+        "error": "ReadTimeout",
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:55.304308+00:00",
+        "error": "ReadTimeout",
+        "decodes": []
+      },
+      {
+        "provider": "kurage-direct",
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T19:18:56.346989+00:00",
+        "error": "ReadTimeout",
+        "decodes": []
+      }
+    ],
+    "febbox-guest-playback.jsonl": [
+      {
+        "provider": "febbox-guest-main",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "resolve_seconds": 0.119,
+        "matching_files": 2,
+        "manifest_status": 200,
+        "manifest_is_hls": false,
+        "decodes": []
+      },
+      {
+        "provider": "febbox-guest-main",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "resolve_seconds": 0.206,
+        "matching_files": 2,
+        "manifest_status": 200,
+        "manifest_is_hls": false,
+        "decodes": []
+      },
+      {
+        "provider": "febbox-guest-main",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 0.235,
+        "matching_files": 1,
+        "manifest_status": 200,
+        "manifest_is_hls": false,
+        "decodes": []
+      }
+    ],
+    "kaa-playback.jsonl": [
+      {
+        "provider": "kaa-api",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T18:27:14.265867+00:00",
+        "resolve_seconds": 0.898,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "8eaeaa6394745a2c",
+            "label": "KAA English dub",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.007,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": -9
+          }
+        ]
+      },
+      {
+        "provider": "kaa-api",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T18:27:55.172065+00:00",
+        "resolve_seconds": 0.879,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "a84f9289d5c465ab",
+            "label": "KAA English dub",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.002,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": -9
+          }
+        ]
+      },
+      {
+        "provider": "kaa-api",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T18:28:36.053773+00:00",
+        "resolve_seconds": 0.786,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "c3e7ab6f8a5dcc56",
+            "label": "KAA English dub",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 37.794,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      }
+    ]
+  },
+  "language_observations": [
+    {
+      "provider": "kurage-api",
+      "tmdb": 209867,
+      "episode": 2,
+      "audio_map": "0:a:0",
+      "stream_hash": "d770d89af9566384",
+      "language": "en",
+      "probability": 0.9827,
+      "speech_seconds": 9.424
+    },
+    {
+      "provider": "kurage-api",
+      "tmdb": 95479,
+      "episode": 2,
+      "audio_map": "0:a:0",
+      "stream_hash": "d47dfd14b06a7c01",
+      "language": "en",
+      "probability": 0.9841,
+      "speech_seconds": 21.728
+    }
+  ],
+  "sources": [
+    {
+      "purpose": "ShowBox encrypted catalog protocol",
+      "url": "https://github.com/elsayed85/showbox-api-package/blob/9579b540a351902f72c2ecf8e47d383c22e2eec9/src/ShowBox.php"
+    },
+    {
+      "purpose": "ShowBox Search5 module",
+      "url": "https://github.com/elsayed85/showbox-api-package/blob/9579b540a351902f72c2ecf8e47d383c22e2eec9/src/Api/Search.php"
+    },
+    {
+      "purpose": "Current ShowBox file/player flow with caller-owned cookie",
+      "url": "https://github.com/J0hnBloodborne/Nautilus/blob/5f990b112d2acb32f3d64862358aee614b16eead/src/providers/sources/showbox.py"
+    },
+    {
+      "purpose": "Legacy anonymous HLS route tested and rejected",
+      "url": "https://github.com/J0hnBloodborne/Nautilus/blob/5f990b112d2acb32f3d64862358aee614b16eead/src/providers/embeds/febbox_hls.py"
+    },
+    {
+      "purpose": "SuperStream token requirement and native catalog",
+      "url": "https://github.com/abrogani/automatic-sniffle/blob/fc814c0d6bd181df4653ecba7d501e79041c3d3d/providers/SuperStream/src/main/kotlin/com/abrogani/superstream/api/SuperStreamApi.kt"
+    },
+    {
+      "purpose": "MovieBlast native API reference",
+      "url": "https://github.com/NuvioPlugin/All-in-One-Nuvio/blob/dec1987e7b3723d2753ed234adbdb211d0eab30b/providers/movieblast.js"
+    },
+    {
+      "purpose": "DooFlix app API reference",
+      "url": "https://github.com/NuvioPlugin/All-in-One-Nuvio/blob/dec1987e7b3723d2753ed234adbdb211d0eab30b/providers/dooflix.js"
+    },
+    {
+      "purpose": "Filmix native/API protocol",
+      "url": "https://github.com/Kirill9732/alpac_source/blob/5634e985e2127d02a8fde561cfc31b063df2e76e/internal/litesrc/filmix.go"
+    },
+    {
+      "purpose": "Filmix token and video-links protocol",
+      "url": "https://github.com/Kirill9732/alpac_source/blob/5634e985e2127d02a8fde561cfc31b063df2e76e/internal/litesrc/filmix_fx.go"
+    },
+    {
+      "purpose": "Loklok old mobile API",
+      "url": "https://github.com/hexated/cloudstream-extensions-hexated/blob/d540c0702c99837e47bc61450e341f9ed90915aa/Loklok/src/main/kotlin/com/hexated/Loklok.kt"
+    },
+    {
+      "purpose": "Loklok current H5 client",
+      "url": "https://github.com/Zivalez/zvlzPlay/blob/7ac37c3f942e67169c9f515db8342fda490a1a37/Loklok/src/main/kotlin/com/loklok/Loklok.kt"
+    },
+    {
+      "purpose": "KAA primary JSON API reference; Japanese episode-map issue found",
+      "url": "https://github.com/aryaniiil/anime-api/blob/main/src/providers/kaa.py"
+    },
+    {
+      "purpose": "Kurage tRPC interface reference",
+      "url": "https://github.com/NuvioPlugin/All-in-One-Nuvio/blob/dec1987e7b3723d2753ed234adbdb211d0eab30b/providers/kurage.js"
+    },
+    {
+      "purpose": "MovieHD name collision: browser scraping wrapper",
+      "url": "https://github.com/sniseekers454-netizen/moviehd-api/blob/3bae6ae7d279aa53a3fcf2fd525b86478792d411/m3u8.py"
+    }
+  ],
+  "method": {
+    "playback": "Bounded ffmpeg null-output samples require actual frames and decoded audio, exit 0 and >=7.8 media seconds. Playlist/catalog successes do not qualify. Speech identification uses bounded short clips and automated language detection, not a human listening claim.",
+    "credentials": "Only newly minted anonymous/device sessions and public application protocol were used. No existing account cookie, borrowed token, VIP bypass or DRM decryption.",
+    "scope_limit": "Selected titles and one connection; no whole-catalog count or multi-day uptime proof. No new fully verified large all-in-one playback provider emerged in this batch.",
+    "context7": "Loklok was not indexed; Pluto/Tubi lookup returned unrelated libraries. Public primary clients and live API calls supplied protocol evidence. AVOD research is excluded following user clarification.",
+    "integration": "Provider/SDK changes deferred at the user request. Only this JSON audit and handoff documentation are saved."
+  },
+  "privacy": "No account/anonymous tokens, cookies, real application/signing key values, signed URLs, share keys, raw response bodies, transcripts or WAV files are copied into the repo. Private prototypes/responses/logs remain under /tmp/vsources-mobile-api-20260930 (0700).",
+  "additional_aggregate_api_metadata_checks": [
+    {
+      "provider": "asiacloud",
+      "tmdb": 95479,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "primevids",
+      "tmdb": 95479,
+      "data_available": true,
+      "cards": 1
+    },
+    {
+      "provider": "asiacloud",
+      "tmdb": 85937,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "primevids",
+      "tmdb": 85937,
+      "data_available": true,
+      "cards": 1
+    },
+    {
+      "provider": "primevids",
+      "tmdb": 209867,
+      "data_available": true,
+      "cards": 2
+    },
+    {
+      "provider": "primevids",
+      "tmdb": 1396,
+      "data_available": true,
+      "cards": 1
+    },
+    {
+      "provider": "primevids",
+      "tmdb": 27205,
+      "data_available": true,
+      "cards": 1
+    },
+    {
+      "provider": "asiacloud",
+      "tmdb": 209867,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "asiacloud",
+      "tmdb": 1396,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "asiacloud",
+      "tmdb": 27205,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "apex",
+      "tmdb": 95479,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "apex",
+      "tmdb": 85937,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "apex",
+      "tmdb": 209867,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "apex",
+      "tmdb": 1396,
+      "data_available": false,
+      "cards": 0
+    },
+    {
+      "provider": "apex",
+      "tmdb": 27205,
+      "data_available": false,
+      "cards": 0
+    }
+  ],
+  "additional_aggregate_api_note": "Apex/AsiaCloud returned data:null for all five titles. PrimeVids returned HLS URLs for all five through the JSON API, but source URL availability is not validated English playback. Media prefix-chain follow-up is recorded separately.",
+  "primevids_followup": {
+    "classification": "API aggregator route; not a newly verified large native English-dub provider",
+    "playback": [
+      {
+        "provider": "primevids-api",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "manifest_status": 200,
+        "decodes": [
+          {
+            "passed": false,
+            "host": "cdn1.ngcorp.dad",
+            "stream_hash": "6ca45ff54e241d2e",
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.002,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "exit": -9
+          }
+        ]
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "manifest_status": 200,
+        "audio_tags": [
+          ""
+        ],
+        "decodes": [
+          {
+            "passed": true,
+            "host": "cdn1.ngcorp.dad",
+            "stream_hash": "4a583f62f933a898",
+            "first_decoded_frame_seconds": 26.267,
+            "decode_seconds": 29.936,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "manifest_status": 200,
+        "audio_tags": [
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "passed": true,
+            "host": "cdn.ngcorp.dad",
+            "stream_hash": "2b618f0bd36b940a",
+            "first_decoded_frame_seconds": 0.96,
+            "decode_seconds": 1.696,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "manifest_status": 200,
+        "audio_tags": [
+          ""
+        ],
+        "decodes": [
+          {
+            "passed": true,
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "bc14e99c3fd133be",
+            "first_decoded_frame_seconds": 1.296,
+            "decode_seconds": 1.403,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "manifest_status": 200,
+        "audio_tags": [
+          ""
+        ],
+        "decodes": [
+          {
+            "passed": true,
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "78dde430b5aa377e",
+            "first_decoded_frame_seconds": 1.152,
+            "decode_seconds": 1.237,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "prefix_chains": [
+      {
+        "tmdb": 27205,
+        "levels": [
+          {
+            "depth": 0,
+            "host": "cdn1.ngcorp.dad",
+            "status": 200,
+            "bytes": 144,
+            "is_playlist": true
+          },
+          {
+            "depth": 1,
+            "host": "cdn1.ngcorp.dad",
+            "status": 200,
+            "bytes": 65536,
+            "is_playlist": true
+          },
+          {
+            "depth": 2,
+            "host": "p16-ttam-va.ibyteimg.com",
+            "status": 403,
+            "bytes": 40,
+            "is_playlist": false
+          }
+        ]
+      },
+      {
+        "tmdb": 1396,
+        "levels": [
+          {
+            "depth": 0,
+            "host": "cdn1.ngcorp.dad",
+            "status": 200,
+            "bytes": 160,
+            "is_playlist": true
+          },
+          {
+            "depth": 1,
+            "host": "cdn1.ngcorp.dad",
+            "status": 200,
+            "bytes": 32244,
+            "is_playlist": true
+          },
+          {
+            "depth": 2,
+            "host": "p1.ipstatp.com",
+            "status": 403,
+            "bytes": 40,
+            "is_playlist": false
+          }
+        ]
+      },
+      {
+        "tmdb": 209867,
+        "levels": [
+          {
+            "depth": 0,
+            "host": "cdn.ngcorp.dad",
+            "status": 206,
+            "bytes": 40537,
+            "is_playlist": true
+          },
+          {
+            "depth": 1,
+            "host": "p16-sg.tiktokcdn.com",
+            "status": 206,
+            "bytes": 65536,
+            "is_playlist": false
+          }
+        ]
+      },
+      {
+        "tmdb": 85937,
+        "levels": [
+          {
+            "depth": 0,
+            "host": "cdn2.ngcorp.dad",
+            "status": 200,
+            "bytes": 11815,
+            "is_playlist": true
+          },
+          {
+            "depth": 1,
+            "host": "sprintspeedlight.lol",
+            "status": 206,
+            "bytes": 65536,
+            "is_playlist": false
+          }
+        ]
+      },
+      {
+        "tmdb": 95479,
+        "levels": [
+          {
+            "depth": 0,
+            "host": "cdn2.ngcorp.dad",
+            "status": 200,
+            "bytes": 11815,
+            "is_playlist": true
+          },
+          {
+            "depth": 1,
+            "host": "sprintspeedlight.lol",
+            "status": 206,
+            "bytes": 65536,
+            "is_playlist": false
+          }
+        ]
+      }
+    ],
+    "spoken_language": [
+      {
+        "provider": "primevids-api",
+        "tmdb": 1396,
+        "error": "TimeoutExpired"
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 209867,
+        "language": "ja",
+        "probability": 0.9786,
+        "speech_seconds": 9.616
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 85937,
+        "language": "ja",
+        "probability": 0.9873,
+        "speech_seconds": 18.432
+      },
+      {
+        "provider": "primevids-api",
+        "tmdb": 95479,
+        "language": "ja",
+        "probability": 0.9857,
+        "speech_seconds": 20.639
+      }
+    ],
+    "finding": "Four short video/audio samples decoded, but all three anime dialogue samples were Japanese. Inception failed; Breaking Bad startup was about 26 seconds and speech sampling timed out. Not recommended for the requested fast/stable dub coverage."
+  },
+  "fresh_existing_provider_baselines": {
+    "castle-fresh-baseline.jsonl": {
+      "attempts": 5,
+      "passed": 5,
+      "median_api_resolve_seconds": 1.595,
+      "median_first_frame_after_url_seconds": 1.013,
+      "rows": [
+        {
+          "provider": "castle-all-media",
+          "tmdb": 27205,
+          "title": "Inception",
+          "episode": null,
+          "checked_at": "2026-09-30T19:53:23.749330+00:00",
+          "resolve_seconds": 1.41,
+          "required_audio_index": 0,
+          "audio_tags": [
+            "eng"
+          ],
+          "decodes": [
+            {
+              "host": "img1.hlnom.com",
+              "stream_hash": "2a8de1b187e30907",
+              "label": "CastleTV [English] | 1080p",
+              "first_decoded_frame_seconds": 0.938,
+              "decode_seconds": 1.271,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "castle-all-media",
+          "tmdb": 1396,
+          "title": "Breaking Bad",
+          "episode": 1,
+          "checked_at": "2026-09-30T19:53:26.459910+00:00",
+          "resolve_seconds": 0.934,
+          "required_audio_index": 1,
+          "audio_tags": [
+            "hin",
+            "eng"
+          ],
+          "decodes": [
+            {
+              "host": "img1.klnwm.com",
+              "stream_hash": "c40b86e2bdd880de",
+              "label": "CastleTV [English] | 1080p",
+              "first_decoded_frame_seconds": 1.013,
+              "decode_seconds": 1.204,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "castle-all-media",
+          "tmdb": 209867,
+          "title": "Frieren",
+          "episode": 2,
+          "checked_at": "2026-09-30T19:53:30.228558+00:00",
+          "resolve_seconds": 1.595,
+          "required_audio_index": 0,
+          "audio_tags": [
+            "eng"
+          ],
+          "decodes": [
+            {
+              "host": "img1.hlnom.com",
+              "stream_hash": "a3966341efb13e1d",
+              "label": "CastleTV [English] | 720p",
+              "first_decoded_frame_seconds": 1.392,
+              "decode_seconds": 1.841,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "castle-all-media",
+          "tmdb": 85937,
+          "title": "Demon Slayer",
+          "episode": 2,
+          "checked_at": "2026-09-30T19:53:33.694585+00:00",
+          "resolve_seconds": 1.614,
+          "required_audio_index": 1,
+          "audio_tags": [
+            "hin",
+            "eng",
+            "jpn"
+          ],
+          "decodes": [
+            {
+              "host": "img1.hlnom.com",
+              "stream_hash": "dddfed7c720b65bb",
+              "label": "CastleTV [English] | 1080p",
+              "first_decoded_frame_seconds": 1.163,
+              "decode_seconds": 1.819,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "castle-all-media",
+          "tmdb": 95479,
+          "title": "Jujutsu Kaisen",
+          "episode": 2,
+          "checked_at": "2026-09-30T19:53:38.849946+00:00",
+          "resolve_seconds": 1.664,
+          "required_audio_index": 3,
+          "audio_tags": [
+            "hin",
+            "tam",
+            "tel",
+            "eng",
+            "jpn"
+          ],
+          "decodes": [
+            {
+              "host": "img1.hlnom.com",
+              "stream_hash": "9ca60bae7cc7a2ea",
+              "label": "CastleTV [English] | 1080p",
+              "first_decoded_frame_seconds": 0.909,
+              "decode_seconds": 1.475,
+              "media_seconds": 8.016,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        }
+      ]
+    },
+    "moviebox-fresh-baseline.jsonl": {
+      "attempts": 5,
+      "passed": 5,
+      "median_api_resolve_seconds": 0.122,
+      "median_first_frame_after_url_seconds": 1.952,
+      "rows": [
+        {
+          "provider": "moviebox-fresh-480p",
+          "tmdb": 27205,
+          "title": "Inception",
+          "episode": null,
+          "checked_at": "2026-09-30T19:53:25.325925+00:00",
+          "resolve_seconds": 0.124,
+          "decodes": [
+            {
+              "host": "sbcdn3.hakunaymatata.com",
+              "stream_hash": "bd5125ab1dd526a0",
+              "label": "MovieBox validated English subject, 480p",
+              "first_decoded_frame_seconds": 2.521,
+              "decode_seconds": 14.915,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "moviebox-fresh-480p",
+          "tmdb": 1396,
+          "title": "Breaking Bad",
+          "episode": 1,
+          "checked_at": "2026-09-30T19:53:40.365470+00:00",
+          "resolve_seconds": 0.122,
+          "decodes": [
+            {
+              "host": "sbcdn3.hakunaymatata.com",
+              "stream_hash": "1f795f794659dab7",
+              "label": "MovieBox validated English subject, 480p",
+              "first_decoded_frame_seconds": 1.901,
+              "decode_seconds": 4.853,
+              "media_seconds": 8.011,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "moviebox-fresh-480p",
+          "tmdb": 209867,
+          "title": "Frieren",
+          "episode": 2,
+          "checked_at": "2026-09-30T19:53:45.340802+00:00",
+          "resolve_seconds": 0.119,
+          "decodes": [
+            {
+              "host": "sbcdn3.hakunaymatata.com",
+              "stream_hash": "04f329d44a8b6c46",
+              "label": "MovieBox validated English subject, 480p",
+              "first_decoded_frame_seconds": 1.931,
+              "decode_seconds": 6.868,
+              "media_seconds": 8.021,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "moviebox-fresh-480p",
+          "tmdb": 85937,
+          "title": "Demon Slayer",
+          "episode": 2,
+          "checked_at": "2026-09-30T19:53:52.328150+00:00",
+          "resolve_seconds": 0.134,
+          "decodes": [
+            {
+              "host": "sbcdn3.hakunaymatata.com",
+              "stream_hash": "7c810d61cd21f05b",
+              "label": "MovieBox validated English subject, 480p",
+              "first_decoded_frame_seconds": 1.952,
+              "decode_seconds": 3.964,
+              "media_seconds": 8.011,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        },
+        {
+          "provider": "moviebox-fresh-480p",
+          "tmdb": 95479,
+          "title": "Jujutsu Kaisen",
+          "episode": 2,
+          "checked_at": "2026-09-30T19:53:56.426597+00:00",
+          "resolve_seconds": 0.121,
+          "decodes": [
+            {
+              "host": "sbcdn3.hakunaymatata.com",
+              "stream_hash": "09c54e907e97eb77",
+              "label": "MovieBox validated English subject, 480p",
+              "first_decoded_frame_seconds": 2.083,
+              "decode_seconds": 3.907,
+              "media_seconds": 8.011,
+              "audio_decoded": true,
+              "passed": true,
+              "exit": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "fresh_baseline_findings": [
+    "Both prior large-catalog API leaders passed all five selected titles again at the end of this research batch.",
+    "Castle returned new media hosts img1.hlnom.com / img1.klnwm.com instead of the earlier hscow/fcxmb hosts. Follow API-returned URLs; do not hardcode storage domains or preserve expired stream URLs forever.",
+    "These are repeat spot checks separated by hours, not continuous uptime monitoring. MovieBox fresh tests explicitly selected the 480p representation; Castle tests selected tagged English audio per actual returned file."
+  ]
+}

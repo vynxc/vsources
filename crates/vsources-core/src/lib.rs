@@ -8,6 +8,7 @@
 //! packer unpacker — everything a provider or extractor needs except the
 //! concrete HTTP stack (in `vsources-net`).
 
+pub mod audio;
 pub mod domain;
 pub mod enrich;
 pub mod error;
@@ -27,5 +28,6 @@ pub use traits::{
     fetch_json, fetch_text,
 };
 pub use types::{
-    CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream, StreamMeta,
+    AudioSelection, CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream,
+    StreamMeta,
 };

@@ -1,0 +1,5702 @@
+{
+  "research_date": "2026-09-30",
+  "recorded_at_utc": "2026-09-30T06:09:23.603553+00:00",
+  "scope": "Research only: additional free/no-paid-login sources for movies, television, and real English anime dub. VIPTV migration remains paused. No new UI or provider integration in this task.",
+  "best_new_result": {
+    "provider": "Castle TV",
+    "api_origin": "https://api.hlowb.com",
+    "recommendation": "First new all-in-one provider to prioritize for a strict native English implementation; MovieBox remains the independent-CDN backup. Sample stability is not uptime/SLA evidence.",
+    "login_or_captcha_observed": false,
+    "initial_burst": {
+      "attempts": 15,
+      "passed": 15,
+      "median_resolve_seconds": 1.086,
+      "median_first_decoded_frame_seconds_after_url": 0.34,
+      "median_decode_wall_seconds": 0.444,
+      "first_check_utc": "2026-09-30T05:49:52.399976+00:00",
+      "last_check_utc": "2026-09-30T05:50:17.902421+00:00"
+    },
+    "corrected_all_returned_media_burst": {
+      "attempts": 15,
+      "passed": 15,
+      "median_resolve_seconds": 0.784,
+      "median_first_decoded_frame_seconds_after_url": 0.337,
+      "median_decode_wall_seconds": 0.448,
+      "first_check_utc": "2026-09-30T06:05:16.541764+00:00",
+      "last_check_utc": "2026-09-30T06:05:40.691343+00:00"
+    },
+    "label_miss_recovery": {
+      "attempts": 1,
+      "passed": 1,
+      "median_resolve_seconds": null,
+      "median_first_decoded_frame_seconds_after_url": 0.318,
+      "median_decode_wall_seconds": 0.423,
+      "first_check_utc": "2026-09-30T06:06:56.078591+00:00",
+      "last_check_utc": "2026-09-30T06:06:56.078591+00:00"
+    },
+    "spaced_retests": {
+      "attempts": 30,
+      "passed": 29,
+      "median_resolve_seconds": 1.075,
+      "median_first_decoded_frame_seconds_after_url": 0.342,
+      "median_decode_wall_seconds": 0.458,
+      "first_check_utc": "2026-09-30T05:51:20.361929+00:00",
+      "last_check_utc": "2026-09-30T06:07:19.864752+00:00"
+    },
+    "sixty_second_playback": {
+      "attempts": 5,
+      "passed": 5,
+      "median_resolve_seconds": null,
+      "median_first_decoded_frame_seconds_after_url": 0.342,
+      "median_decode_wall_seconds": 4.303,
+      "first_check_utc": "2026-09-30T05:51:21.492459+00:00",
+      "last_check_utc": "2026-09-30T05:51:39.087939+00:00"
+    },
+    "audio_indices_by_title": {
+      "Inception": 0,
+      "Breaking Bad": 1,
+      "Frieren": 0,
+      "Demon Slayer": 1,
+      "Jujutsu Kaisen": 3
+    },
+    "cache": {
+      "advertised_url_expiry_seconds_from_issuance": 10800,
+      "expiry_source": "Expires query parameter of the actual signed HLS URL, approximately three hours after issuance in sampled Castle requests. It is an upper bound, not guaranteed availability.",
+      "related_cdn_reused_url_checks": {
+        "attempts": 5,
+        "passed": 5,
+        "median_resolve_seconds": null,
+        "median_first_decoded_frame_seconds_after_url": 0.346,
+        "median_decode_wall_seconds": 0.458,
+        "first_check_utc": null,
+        "last_check_utc": null
+      },
+      "related_cdn_url_age_seconds": {
+        "Inception": 4828,
+        "Breaking Bad": 3621,
+        "Frieren": 4828,
+        "Demon Slayer": 4827,
+        "Jujutsu Kaisen": 4825
+      },
+      "caveat": "One label-only spaced selection missed Demon Slayer English; the exact already-returned file contained eng audio index 1 and was decoded after selecting it. Preserve the raw miss plus recovery rather than relabeling the phase perfect. Castle and Citadel both use img1.hscow.com/img1.fcxmb.com. These provide resolver alternatives, not independent CDN redundancy."
+    }
+  },
+  "castle_api": {
+    "transport": "Native HTTP with AES-128-CBC encrypted JSON. The anonymous API returns its current security key; derive/decrypt in memory using the referenced implementation. No account cookie or Cloudflare solver was needed in these tests.",
+    "steps": [
+      {
+        "method": "GET",
+        "path": "/v0.1/system/getSecurityKey/1",
+        "query_fields": [
+          "channel",
+          "clientType",
+          "lang"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/film-api/v1.1.0/movie/searchByKeyword",
+        "query_fields": [
+          "channel",
+          "clientType",
+          "keyword",
+          "lang",
+          "mode",
+          "packageName",
+          "page",
+          "size"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/film-api/v1.9.9/movie",
+        "query_fields": [
+          "channel",
+          "clientType",
+          "lang",
+          "movieId",
+          "packageName"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/film-api/v2.0.1/movie/getVideo2",
+        "body_fields": [
+          "mode",
+          "appMarket",
+          "clientType",
+          "woolUser",
+          "apkSignKey",
+          "androidVersion",
+          "movieId",
+          "episodeId",
+          "isNewUser",
+          "resolution",
+          "packageName",
+          "languageId (individual-language files only)"
+        ]
+      }
+    ],
+    "pitfalls": [
+      "Do not drop English tracks merely because another track has existIndividualVideo=true.",
+      "For shared multi-audio files, a language label or languageId request does not force the player audio. Read actual HLS/muxed language metadata and choose English audio explicitly.",
+      "Language variants can share a media URL; URL deduplication must retain language/required-audio metadata.",
+      "Request the exact season movieId and episodeId. The reference JS matcher falls back to its first search row; a production adapter must reject unrelated titles/types/years instead.",
+      "Keep 16-digit catalog identifiers as strings: JSON floating-point rounding can corrupt them.",
+      "The research prototype corrects track filtering and inspects decoded media audio tags; it is not an SDK production adapter."
+    ]
+  },
+  "baseline_comparison": {
+    "moviebox": {
+      "attempts": 30,
+      "passed": 30,
+      "median_resolve_seconds": 0.13,
+      "median_first_decoded_frame_seconds_after_url": 2.321,
+      "median_decode_wall_seconds": 12.951,
+      "first_check_utc": "2026-09-30T05:11:48.968856+00:00",
+      "last_check_utc": "2026-09-30T05:36:27.311479+00:00"
+    },
+    "citadel": {
+      "attempts": 30,
+      "passed": 24,
+      "median_resolve_seconds": 1.415,
+      "median_first_decoded_frame_seconds_after_url": 0.407,
+      "median_decode_wall_seconds": 0.565,
+      "first_check_utc": "2026-09-30T05:13:16.024068+00:00",
+      "last_check_utc": "2026-09-30T05:36:43.012944+00:00"
+    },
+    "moviebox_cached_urls": {
+      "attempts": 5,
+      "passed": 5,
+      "median_resolve_seconds": null,
+      "median_first_decoded_frame_seconds_after_url": 2.5,
+      "median_decode_wall_seconds": 13.087,
+      "first_check_utc": "2026-09-30T05:38:41.253495+00:00",
+      "last_check_utc": "2026-09-30T05:40:01.840446+00:00"
+    },
+    "moviebox_cached_url_age_seconds": {
+      "Inception": 4148,
+      "Breaking Bad": 4147,
+      "Frieren": 4147,
+      "Demon Slayer": 4146,
+      "Jujutsu Kaisen": 4145
+    },
+    "moviebox_long_default_highest_video": {
+      "attempts": 5,
+      "passed": 4,
+      "median_resolve_seconds": null,
+      "median_first_decoded_frame_seconds_after_url": 2.529,
+      "median_decode_wall_seconds": 80.691,
+      "first_check_utc": "2026-09-30T05:46:45.679532+00:00",
+      "last_check_utc": "2026-09-30T05:53:12.742929+00:00"
+    },
+    "moviebox_long_480p": {
+      "attempts": 5,
+      "passed": 5,
+      "median_resolve_seconds": null,
+      "median_first_decoded_frame_seconds_after_url": 2.5,
+      "median_decode_wall_seconds": 31.299,
+      "first_check_utc": "2026-09-30T05:47:54.473225+00:00",
+      "last_check_utc": "2026-09-30T05:50:01.451752+00:00"
+    },
+    "throughput_findings": [
+      "MovieBox 30/30 short decodes do not imply smooth highest-quality playback. A 60-second default-quality Breaking Bad test timed out after 125 seconds at 57.493 seconds decoded. Inception/Frieren took about 96/101 seconds for 60 seconds of media.",
+      "Selecting the actual 480p representation passed 5/5 60-second clips in approximately 21\u201336 seconds. Players should adapt quality to measured throughput.",
+      "Castle passed all five 60-second clips in approximately 1\u20136 seconds wall time, with English audio selected. ffmpeg null output measures transfer/decode, not on-device rendering."
+    ]
+  },
+  "other_new_candidates": [
+    {
+      "provider": "CinemaOS v6",
+      "status": "Current JSON API recovered; not recommended for primary playback stability",
+      "api_path": "/api/providerv6/scrape",
+      "query_fields": [
+        "type",
+        "tmdbId",
+        "imdbId",
+        "seasonId",
+        "episodeId",
+        "t",
+        "ry",
+        "secret",
+        "_ck",
+        "scraper"
+      ],
+      "sources_tested": [
+        "mb2",
+        "ntm",
+        "z2",
+        "va",
+        "q4",
+        "vn",
+        "vf",
+        "s3"
+      ],
+      "findings": [
+        "GitHub /api/cinemaosv2 references returned 404; actual deployed nested/lazy player chunks revealed v6.",
+        "mb2 returns separate English dub subjects and MP4/DASH ladders. However Demon Slayer had no English mb2 result; proxies frequently failed and JJK transfer stopped prematurely.",
+        "Unwrapping the public proxy path to its original MovieBox progressive media URL yielded unplayable direct URLs.",
+        "z2 relays Citadel sources, not independent storage."
+      ]
+    },
+    {
+      "provider": "NetMirror net27",
+      "status": "Useful anonymous dub JSON metadata, media playback failed 5/5",
+      "api_paths": [
+        "/api/variants-tmdb/tv/{tmdbId}?se={season}&ep={episode}",
+        "/api/embed-tmdb/{tmdbId}?type={type}&se={season}&ep={episode}"
+      ],
+      "dub_fields": [
+        "dub",
+        "dubdp",
+        "sid",
+        "dp"
+      ],
+      "findings": [
+        "variants now returns detailPath directly; choose exactly English dub, not English sub.",
+        "All five selected metadata calls succeeded. All tested bcdnw/bcdnxw media returned HTTP 426. A metadata 200 is not playable success.",
+        "Media uses the MovieBox storage family."
+      ]
+    },
+    {
+      "provider": "VaPlayer",
+      "status": "5/5 video/audio, but only a partial anime-dub candidate",
+      "api_path": "https://streamdata.vaplayer.ru/api.php",
+      "query_fields": [
+        "imdb",
+        "type",
+        "season",
+        "episode"
+      ],
+      "findings": [
+        "Fast anonymous JSON and actual playback for all five titles.",
+        "Frieren and Demon Slayer dialogue was Japanese; JJK was English. No proven audio-dub parameter or English variants for the two misses.",
+        "Not accepted as an all-in-one English-dub provider."
+      ]
+    },
+    {
+      "provider": "Movix/Purstream",
+      "status": "Played Frieren, but French dub only in sampled stream; not independent backends",
+      "findings": [
+        "Movix resolved in roughly 0.45\u20130.78 seconds; Purstream roughly 0.50\u20130.53 seconds.",
+        "Audio tags were fr/ja and speech detected French at 0.9761 confidence."
+      ]
+    },
+    {
+      "provider": "StreamFlix",
+      "status": "Public 5114-entry JSON catalog/config; no passing selected playback",
+      "findings": [
+        "TMDB keys found for four test titles, no Frieren entry.",
+        "Sample Inception media did not decode; selected TV episode metadata lacked a usable link."
+      ]
+    },
+    {
+      "provider": "Flixer/Hexa",
+      "status": "Unverified direct playback",
+      "findings": [
+        "Current player/API identified; native prototype instantiated referenced WASM but key generation failed E24.",
+        "The older enc-dec.app helper timed out. No success or stability claim."
+      ]
+    },
+    {
+      "provider": "Cinextream/Cinetaro",
+      "status": "Unverified direct playback",
+      "findings": [
+        "Movie/TV/anime embed pages return 200 and publish JSON source API routes.",
+        "API routes returned Forbidden/502 in same-origin-header/session tests. The public decrypt.wasm downloads, but no working stream API response was obtained."
+      ]
+    },
+    {
+      "provider": "Ani.pm",
+      "status": "New anime candidate discovered, not verified",
+      "findings": [
+        "Primary homepage advertises sub/dub; direct requests hit a Cloudflare challenge. New launch claims alone cannot establish stability."
+      ]
+    },
+    {
+      "provider": "Mapple, VidLove, Moonflix, Nakios, Xpass, Goated, ZinkMovies, CinemaCity, 1Shows, MovieBlast, Peachify, VidRock",
+      "status": "No newly verified English-dub playback",
+      "findings": [
+        "See corrected screen phase for no results, blocked APIs, outdated registries, or media failures on this connection.",
+        "Do not classify them permanently dead. The first VM screen lacked AbortSignal; it was corrected and rerun, and a separate readable Castle adapter was required."
+      ]
+    }
+  ],
+  "cache_guidance": {
+    "persistent_metadata": [
+      "Strict TMDB/AniList/MAL to provider title/season/episode IDs, with source version and language variant identifiers. Retain until a mismatch/not-found triggers revalidation.",
+      "Verified English-track identity tied to the exact file/manifest version, not just the show or provider. Revalidate if the file changes.",
+      "Per-provider latency/success history, updated and aged over time.",
+      "Protocol/domain configuration version; refresh on service errors because hosts change."
+    ],
+    "signed_media": "Persist full playback URL, required request headers/cookies, exact media identity, required English audio selection and observed expiry together. Reuse until the earliest known expiry minus a safety margin, then refresh that exact media/provider entry. HTTP/network failure still needs bounded revalidation.",
+    "observed_not_guaranteed": [
+      "MovieBox fixed original URLs passed at approximately 69 minutes.",
+      "Older Citadel signed URLs on Castle-shared CDN passed at approximately 60\u201380 minutes.",
+      "Castle signed URL Expires advertised approximately three hours. Actual playback at the full three-hour boundary has not been tested.",
+      "No permanent stream-URL validity, universal five-minute guarantee, next-episode prefetch, or persistent SDK cache was implemented."
+    ]
+  },
+  "method": {
+    "cases": [
+      {
+        "tmdb": 27205,
+        "title": "Inception",
+        "season": null,
+        "episode": null
+      },
+      {
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "season": 1,
+        "episode": 1
+      },
+      {
+        "tmdb": 209867,
+        "title": "Frieren",
+        "season": 1,
+        "episode": 2
+      },
+      {
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "season": 1,
+        "episode": 2
+      },
+      {
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "season": 1,
+        "episode": 2
+      }
+    ],
+    "short_pass": "ffmpeg exit 0, >=24 frames, >=7.8 seconds decoded, nonzero decoded audio. English Castle results additionally select actual eng/en audio tags, followed by speech classification.",
+    "long_pass": "ffmpeg exit 0, >=59.8 seconds decoded, nonzero decoded selected audio.",
+    "language": "faster-whisper tiny CPU/int8, bounded 22-second dialogue clips. Anime and Breaking Bad at 480 seconds; Inception supplemented at 720 seconds due sparse earlier dialogue. Classification is automated, not a human listening claim.",
+    "limitations": [
+      "Five selected popular titles, one connection, bounded clips and short repeat windows; no whole-catalog, full-episode, multi-day uptime or other-device verification.",
+      "Some independent research processes overlapped, so transfer timings include concurrent load and are not universal speed rankings.",
+      "SDK work remains unchanged by this research task. No production/API integration, deployment, UI or Cloudflare plugin added.",
+      "Context7 lookup returned unrelated tracking/TV services for Castle TV; protocol evidence comes from current primary extractor implementations and live calls."
+    ]
+  },
+  "sources": [
+    {
+      "purpose": "Castle JS protocol and track-filtering reference",
+      "url": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/aacac098f25db5f6fe0614670987c54ae32fc2eb/providers/castletv.js"
+    },
+    {
+      "purpose": "Castle Kotlin native protocol and shared/individual audio branch",
+      "url": "https://github.com/salmanbappi/sb-extensions-source/blob/e99dc6634e70325452f51e3f827499b8a8e26560/src/all/castletv/src/eu/kanade/tachiyomi/animeextension/all/castletv/CastleTv.kt"
+    },
+    {
+      "purpose": "Additional provider implementations screened",
+      "url": "https://github.com/NuvioPlugin/All-in-One-Nuvio/tree/dec1987e7b3723d2753ed234adbdb211d0eab30b/providers"
+    },
+    {
+      "purpose": "NetMirror primary public frontend",
+      "url": "https://net27.cc/"
+    },
+    {
+      "purpose": "Net27 explicit dub mapping parameters",
+      "url": "https://github.com/nirmaleeswar30/Nivio/blob/6104831af979356a8ddf2626cdd820e776e44709/lib/services/scrapers/newtv/newtv_scraper.dart"
+    },
+    {
+      "purpose": "CinemaOS deployed current v6 player discovery",
+      "url": "https://cinemaos.live/"
+    },
+    {
+      "purpose": "CinemaOS older endpoint reference; stale at test time",
+      "url": "https://github.com/nsfwhusnain-coder/absolute-cinema/blob/cce12cb67441925439d26986f44ffbc8958005b1/mini-services/stream-scraper/providers/cinemaos.ts"
+    },
+    {
+      "purpose": "Flixer native WASM protocol reference; key generation not successful in prototype",
+      "url": "https://github.com/labi1240/flyx/blob/0ff01ab22979d7a1bf94df04caa7e34e5626413d/cloudflare-proxy/src/flixer-proxy.ts"
+    },
+    {
+      "purpose": "VaPlayer API implementation reference",
+      "url": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/aacac098f25db5f6fe0614670987c54ae32fc2eb/providers/vaplayer.js"
+    },
+    {
+      "purpose": "StreamFlix public catalog implementation reference",
+      "url": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/aacac098f25db5f6fe0614670987c54ae32fc2eb/providers/streamflix.js"
+    },
+    {
+      "purpose": "Ani.pm primary sub/dub homepage; direct stream not verified",
+      "url": "https://ani.pm/"
+    }
+  ],
+  "language_observations": [
+    {
+      "provider": "castle-verified",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "7717e09415ea7186",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.8463,
+      "speech_seconds": 3.296,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "5ca9c3bbbb216b2e",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9906,
+      "speech_seconds": 18.832,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "e5d6245d5024d360",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 22.001,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "e1171e23479a1e86",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 7.712,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "33281c83d318f28e",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9954,
+      "speech_seconds": 17.76,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "505b351d91fca106",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.8463,
+      "speech_seconds": 3.296,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "1071c3c8e1192f3f",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9906,
+      "speech_seconds": 18.832,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "353edc79b3f5620c",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 22.001,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "e8296317eada0f91",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9705,
+      "speech_seconds": 9.088,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "ae5f0a495c8c14d1",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9954,
+      "speech_seconds": 17.76,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "cdff58d930d71d69",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.8463,
+      "speech_seconds": 3.296,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "04a8db892224c103",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9906,
+      "speech_seconds": 18.832,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "829102bc459db94b",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 22.001,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "dbda77fc186e1204",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 7.712,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "377a485622f51df4",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9954,
+      "speech_seconds": 17.76,
+      "sample_offset_seconds": 480
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "7717e09415ea7186",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9799,
+      "speech_seconds": 21.888,
+      "sample_offset_seconds": 720
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "505b351d91fca106",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9799,
+      "speech_seconds": 21.888,
+      "sample_offset_seconds": 720
+    },
+    {
+      "provider": "castle-verified",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "cdff58d930d71d69",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9799,
+      "speech_seconds": 21.888,
+      "sample_offset_seconds": 720
+    },
+    {
+      "provider": "new-movix",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "964ab6f259012e8f",
+      "audio_map": "0:a:0",
+      "language": "fr",
+      "probability": 0.9761,
+      "speech_seconds": 10.688,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "new-purstream",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "c5010d002c75ba26",
+      "audio_map": "0:a:0",
+      "language": "fr",
+      "probability": 0.9761,
+      "speech_seconds": 10.688,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "8b2dea46192ee7b5",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9875,
+      "speech_seconds": 9.423,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "8aeb5e352df4eae6",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9791,
+      "speech_seconds": 18.496,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "11726468b68ce368",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9771,
+      "speech_seconds": 22.0,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "19d7382d814bbdfe",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9875,
+      "speech_seconds": 9.423,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "0eb376a2bc9ce064",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9791,
+      "speech_seconds": 18.496,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "e9d7a56b401096de",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9771,
+      "speech_seconds": 22.0,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "288a938a50652717",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9875,
+      "speech_seconds": 9.423,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "845e838b0c87ec50",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9843,
+      "speech_seconds": 18.496,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "82383f45e9e88114",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9771,
+      "speech_seconds": 22.0,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "dd4ce231d0ae16c4",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.7524,
+      "speech_seconds": 6.96,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "4bfb598b81d09a1d",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9875,
+      "speech_seconds": 9.423,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "cfc7856cebaacd0d",
+      "audio_map": "0:a:1",
+      "language": "en",
+      "probability": 0.9791,
+      "speech_seconds": 18.496,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "castle-direct",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "74f048b1701c6db9",
+      "audio_map": "0:a:3",
+      "language": "en",
+      "probability": 0.9771,
+      "speech_seconds": 22.0,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "vaplayer",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "8d5062fa832c15b6",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.8783,
+      "speech_seconds": 7.536,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "vaplayer",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "3af3546859750929",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "vaplayer",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "7a7c6c746e2fd6b7",
+      "audio_map": "0:a:0",
+      "language": "ja",
+      "probability": 0.9841,
+      "speech_seconds": 9.456,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "vaplayer",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "245d977b9e2868cc",
+      "audio_map": "0:a:0",
+      "language": "ja",
+      "probability": 0.9899,
+      "speech_seconds": 18.368,
+      "sample_offset_seconds": 240
+    },
+    {
+      "provider": "vaplayer",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "c21de25d89bb1d6d",
+      "audio_map": "0:a:0",
+      "language": "en",
+      "probability": 0.9836,
+      "speech_seconds": 21.856,
+      "sample_offset_seconds": 240
+    }
+  ],
+  "phases": {
+    "repeat-stability": [
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 1,
+        "checked_at": "2026-09-30T05:11:48.968856+00:00",
+        "resolve_seconds": 0.131,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6f60d465ad93839e",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.198,
+            "decode_seconds": 39.448,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 1,
+        "checked_at": "2026-09-30T05:12:28.549190+00:00",
+        "resolve_seconds": 0.165,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "febc1bc8da50c735",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.901,
+            "decode_seconds": 12.824,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:12:41.539325+00:00",
+        "resolve_seconds": 0.144,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "2002f8002131ed4d",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.009,
+            "decode_seconds": 16.05,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:12:57.733915+00:00",
+        "resolve_seconds": 0.133,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "91d8f2e25aa8ed22",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.131,
+            "decode_seconds": 10.859,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:13:08.727158+00:00",
+        "resolve_seconds": 0.13,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "34c2c55093065757",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.08,
+            "decode_seconds": 7.167,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 1,
+        "checked_at": "2026-09-30T05:13:16.024068+00:00",
+        "resolve_seconds": 1.269,
+        "cards": 4,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "42cdfe740c3072d4",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.493,
+            "decode_seconds": 0.633,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 1,
+        "checked_at": "2026-09-30T05:13:17.926665+00:00",
+        "resolve_seconds": 1.258,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:13:19.184402+00:00",
+        "resolve_seconds": 1.365,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "c9fa066b682a18a1",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.403,
+            "decode_seconds": 0.551,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:13:21.100433+00:00",
+        "resolve_seconds": 1.512,
+        "cards": 2,
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "b54f45eafb4ba24d",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.42,
+            "decode_seconds": 0.621,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:13:24.350178+00:00",
+        "resolve_seconds": 1.684,
+        "cards": 2,
+        "required_audio_index": 3,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "ebf0a3dff03e40ca",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.395,
+            "decode_seconds": 0.577,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 2,
+        "checked_at": "2026-09-30T05:16:27.194917+00:00",
+        "resolve_seconds": 0.404,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6f60d465ad93839e",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.079,
+            "decode_seconds": 39.045,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:06.643683+00:00",
+        "resolve_seconds": 0.125,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6dbd1ea2c7ed4965",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.961,
+            "decode_seconds": 12.829,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:19.598331+00:00",
+        "resolve_seconds": 0.131,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.979,
+            "decode_seconds": 16.883,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:36.612050+00:00",
+        "resolve_seconds": 0.133,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "3ff1a8dc01faa920",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.907,
+            "decode_seconds": 10.956,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:47.701178+00:00",
+        "resolve_seconds": 0.121,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "34c2c55093065757",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.063,
+            "decode_seconds": 7.136,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:54.958531+00:00",
+        "resolve_seconds": 0.993,
+        "cards": 4,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "4ade0309b692a9cc",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.471,
+            "decode_seconds": 0.583,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:56.534476+00:00",
+        "resolve_seconds": 0.824,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:57.358073+00:00",
+        "resolve_seconds": 1.29,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "b8f4f0af4dd40395",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.379,
+            "decode_seconds": 0.505,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:17:59.153276+00:00",
+        "resolve_seconds": 1.506,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:18:00.659569+00:00",
+        "resolve_seconds": 1.746,
+        "cards": 2,
+        "required_audio_index": 3,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "6a292ab3e486dbbe",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.371,
+            "decode_seconds": 0.541,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 3,
+        "checked_at": "2026-09-30T05:21:03.582490+00:00",
+        "resolve_seconds": 0.374,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.11,
+            "decode_seconds": 39.035,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 3,
+        "checked_at": "2026-09-30T05:21:42.991918+00:00",
+        "resolve_seconds": 0.122,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6dbd1ea2c7ed4965",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.878,
+            "decode_seconds": 12.829,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:21:55.943451+00:00",
+        "resolve_seconds": 0.123,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.014,
+            "decode_seconds": 16.916,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:12.983192+00:00",
+        "resolve_seconds": 0.12,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "2e7010b90c29be17",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.887,
+            "decode_seconds": 10.822,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:23.925494+00:00",
+        "resolve_seconds": 0.121,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "34c2c55093065757",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.054,
+            "decode_seconds": 7.163,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:31.209883+00:00",
+        "resolve_seconds": 1.466,
+        "cards": 4,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "cc7deb6f3902117f",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.52,
+            "decode_seconds": 0.656,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:33.332217+00:00",
+        "resolve_seconds": 1.285,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:34.617333+00:00",
+        "resolve_seconds": 1.342,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "178e4eabb18675c3",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.412,
+            "decode_seconds": 0.706,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:36.665200+00:00",
+        "resolve_seconds": 1.786,
+        "cards": 1,
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "cce73235fd6639ad",
+            "label": "480p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.352,
+            "decode_seconds": 0.406,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:22:40.035474+00:00",
+        "resolve_seconds": 1.95,
+        "cards": 2,
+        "required_audio_index": 3,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "1e4f7100726da42d",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.358,
+            "decode_seconds": 0.474,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 4,
+        "checked_at": "2026-09-30T05:25:42.981673+00:00",
+        "resolve_seconds": 0.396,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6f60d465ad93839e",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.71,
+            "decode_seconds": 39.341,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 4,
+        "checked_at": "2026-09-30T05:26:22.719109+00:00",
+        "resolve_seconds": 0.124,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.474,
+            "decode_seconds": 13.087,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T05:26:35.930322+00:00",
+        "resolve_seconds": 0.136,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "2002f8002131ed4d",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.539,
+            "decode_seconds": 17.14,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T05:26:53.206569+00:00",
+        "resolve_seconds": 0.125,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b21649b0becff5a5",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.521,
+            "decode_seconds": 11.084,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T05:27:04.415655+00:00",
+        "resolve_seconds": 0.126,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "34c2c55093065757",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.545,
+            "decode_seconds": 7.443,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 4,
+        "checked_at": "2026-09-30T05:27:11.984940+00:00",
+        "resolve_seconds": 1.472,
+        "cards": 4,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "862de3bfccdd8f85",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.468,
+            "decode_seconds": 0.584,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 4,
+        "checked_at": "2026-09-30T05:27:14.041073+00:00",
+        "resolve_seconds": 1.087,
+        "cards": 1,
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "939b6021f0cff6b1",
+            "label": "480p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.32,
+            "decode_seconds": 0.355,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T05:27:15.831230+00:00",
+        "resolve_seconds": 1.329,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "244f297d0deaf09d",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.437,
+            "decode_seconds": 0.579,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T05:27:17.739244+00:00",
+        "resolve_seconds": 1.732,
+        "cards": 2,
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "7824622f4ba90c35",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.372,
+            "decode_seconds": 0.552,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T05:27:20.626082+00:00",
+        "resolve_seconds": 1.754,
+        "cards": 2,
+        "required_audio_index": 3,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "dff952b005f9710e",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.323,
+            "decode_seconds": 0.427,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 5,
+        "checked_at": "2026-09-30T05:30:23.240830+00:00",
+        "resolve_seconds": 0.414,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "1930453e500023a7",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.62,
+            "decode_seconds": 39.256,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:02.911375+00:00",
+        "resolve_seconds": 0.129,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "5ae1f1354ac687f5",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.474,
+            "decode_seconds": 13.073,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:16.113607+00:00",
+        "resolve_seconds": 0.126,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "fb6e03312deeb27b",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.538,
+            "decode_seconds": 17.137,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:33.377595+00:00",
+        "resolve_seconds": 0.139,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "c43ee85f5322bafd",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.477,
+            "decode_seconds": 11.084,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:44.601126+00:00",
+        "resolve_seconds": 0.124,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "20b69cd11847f72a",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.529,
+            "decode_seconds": 7.43,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:52.155014+00:00",
+        "resolve_seconds": 1.266,
+        "cards": 4,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "1705a390a0b277e3",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.427,
+            "decode_seconds": 0.546,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:53.968144+00:00",
+        "resolve_seconds": 1.292,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:55.260033+00:00",
+        "resolve_seconds": 1.297,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "0cd57ca7a6fb82fb",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.158,
+            "decode_seconds": 1.602,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T05:31:58.159496+00:00",
+        "resolve_seconds": 1.728,
+        "cards": 1,
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "68c7266a7facffb6",
+            "label": "480p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.399,
+            "decode_seconds": 1.453,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T05:32:03.200977+00:00",
+        "resolve_seconds": 1.697,
+        "cards": 2,
+        "required_audio_index": 3,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "711af4efd0ad12c2",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.339,
+            "decode_seconds": 0.471,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 6,
+        "checked_at": "2026-09-30T05:35:05.834121+00:00",
+        "resolve_seconds": 0.353,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "1930453e500023a7",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.618,
+            "decode_seconds": 39.341,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 6,
+        "checked_at": "2026-09-30T05:35:45.528781+00:00",
+        "resolve_seconds": 0.122,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "febc1bc8da50c735",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.444,
+            "decode_seconds": 13.086,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T05:35:58.737810+00:00",
+        "resolve_seconds": 0.131,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "fb6e03312deeb27b",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.532,
+            "decode_seconds": 17.144,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:16.013685+00:00",
+        "resolve_seconds": 0.126,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "91d8f2e25aa8ed22",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.47,
+            "decode_seconds": 11.171,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:27.311479+00:00",
+        "resolve_seconds": 0.124,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "34c2c55093065757",
+            "label": "MovieBox validated English subject",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.543,
+            "decode_seconds": 7.511,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:34.946831+00:00",
+        "resolve_seconds": 1.479,
+        "cards": 4,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "3093e5fb721044a8",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.53,
+            "decode_seconds": 0.634,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:37.060386+00:00",
+        "resolve_seconds": 1.341,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:38.401825+00:00",
+        "resolve_seconds": 1.253,
+        "cards": 1,
+        "required_audio_index": 0,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "f05177317d1599e3",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.454,
+            "decode_seconds": 0.657,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:40.311680+00:00",
+        "resolve_seconds": 1.743,
+        "cards": 1,
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "959820598de57c38",
+            "label": "480p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.347,
+            "decode_seconds": 0.404,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-repeat",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T05:36:43.012944+00:00",
+        "resolve_seconds": 1.96,
+        "cards": 2,
+        "required_audio_index": 3,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "c7b935d1dfa337c4",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.355,
+            "decode_seconds": 0.52,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "castle-verified-sweep": [
+      {
+        "provider": "castle-verified",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 1,
+        "checked_at": "2026-09-30T05:49:52.399976+00:00",
+        "resolve_seconds": 1.295,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "7717e09415ea7186",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.458,
+            "decode_seconds": 0.676,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 1,
+        "checked_at": "2026-09-30T05:49:54.403998+00:00",
+        "resolve_seconds": 1.086,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "5ca9c3bbbb216b2e",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.322,
+            "decode_seconds": 0.404,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:49:56.338338+00:00",
+        "resolve_seconds": 1.318,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "e5d6245d5024d360",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.378,
+            "decode_seconds": 0.562,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:49:58.249224+00:00",
+        "resolve_seconds": 1.45,
+        "english_cards": 1,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "e1171e23479a1e86",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.315,
+            "decode_seconds": 0.371,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:50:00.854329+00:00",
+        "resolve_seconds": 1.308,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "33281c83d318f28e",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.326,
+            "decode_seconds": 0.435,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 2,
+        "checked_at": "2026-09-30T05:50:03.052391+00:00",
+        "resolve_seconds": 1.211,
+        "english_cards": 7,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "505b351d91fca106",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.348,
+            "decode_seconds": 0.561,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 2,
+        "checked_at": "2026-09-30T05:50:04.853934+00:00",
+        "resolve_seconds": 0.788,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "1071c3c8e1192f3f",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.352,
+            "decode_seconds": 0.422,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:50:06.496900+00:00",
+        "resolve_seconds": 1.256,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "353edc79b3f5620c",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.39,
+            "decode_seconds": 0.511,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:50:08.296495+00:00",
+        "resolve_seconds": 1.049,
+        "english_cards": 1,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "e8296317eada0f91",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.363,
+            "decode_seconds": 0.582,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:50:10.439498+00:00",
+        "resolve_seconds": 1.264,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "ae5f0a495c8c14d1",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.327,
+            "decode_seconds": 0.471,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 3,
+        "checked_at": "2026-09-30T05:50:12.662976+00:00",
+        "resolve_seconds": 0.546,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "cdff58d930d71d69",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.374,
+            "decode_seconds": 0.599,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 3,
+        "checked_at": "2026-09-30T05:50:13.845208+00:00",
+        "resolve_seconds": 0.577,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "04a8db892224c103",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.321,
+            "decode_seconds": 0.394,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:50:15.247262+00:00",
+        "resolve_seconds": 0.773,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "829102bc459db94b",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.322,
+            "decode_seconds": 0.444,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:50:16.492880+00:00",
+        "resolve_seconds": 0.573,
+        "english_cards": 1,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "dbda77fc186e1204",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.34,
+            "decode_seconds": 0.399,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-verified",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:50:17.902421+00:00",
+        "resolve_seconds": 0.553,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "377a485622f51df4",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.328,
+            "decode_seconds": 0.427,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "castle-all-media-verified": [
+      {
+        "provider": "castle-all-media",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 1,
+        "checked_at": "2026-09-30T06:05:16.541764+00:00",
+        "resolve_seconds": 0.771,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "e6a3b1537c2f0afa",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.338,
+            "decode_seconds": 0.518,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 1,
+        "checked_at": "2026-09-30T06:05:17.864553+00:00",
+        "resolve_seconds": 0.803,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "93586a4f430606df",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.321,
+            "decode_seconds": 0.393,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T06:05:19.508092+00:00",
+        "resolve_seconds": 1.25,
+        "english_cards": 4,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "915d4a358c8d6572",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.346,
+            "decode_seconds": 0.569,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T06:05:21.360478+00:00",
+        "resolve_seconds": 1.148,
+        "english_cards": 4,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "9f278c97f7e3bd78",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.321,
+            "decode_seconds": 0.406,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T06:05:23.361735+00:00",
+        "resolve_seconds": 1.042,
+        "english_cards": 4,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "efe09ee6bc00643f",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.881,
+            "decode_seconds": 0.989,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 2,
+        "checked_at": "2026-09-30T06:05:25.983686+00:00",
+        "resolve_seconds": 0.739,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "142df30039cb0142",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.382,
+            "decode_seconds": 0.508,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 2,
+        "checked_at": "2026-09-30T06:05:27.262889+00:00",
+        "resolve_seconds": 0.792,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "89703a9a77011606",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.329,
+            "decode_seconds": 0.406,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T06:05:28.892678+00:00",
+        "resolve_seconds": 0.768,
+        "english_cards": 4,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "5788c8ceb577e07a",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.352,
+            "decode_seconds": 0.502,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T06:05:30.199159+00:00",
+        "resolve_seconds": 0.775,
+        "english_cards": 3,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "292acd3f91d0250f",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.382,
+            "decode_seconds": 0.574,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T06:05:32.004582+00:00",
+        "resolve_seconds": 0.813,
+        "english_cards": 4,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "39ff34259c9ee24c",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.337,
+            "decode_seconds": 0.448,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 3,
+        "checked_at": "2026-09-30T06:05:35.094001+00:00",
+        "resolve_seconds": 0.73,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "af8f100cf30f3f40",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.35,
+            "decode_seconds": 0.508,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 3,
+        "checked_at": "2026-09-30T06:05:36.366973+00:00",
+        "resolve_seconds": 0.779,
+        "english_cards": 3,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "90c56e0ff2bcc675",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.324,
+            "decode_seconds": 0.421,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T06:05:38.008748+00:00",
+        "resolve_seconds": 0.555,
+        "english_cards": 4,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "40eac0ef99359fed",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.327,
+            "decode_seconds": 0.436,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T06:05:39.032694+00:00",
+        "resolve_seconds": 0.816,
+        "english_cards": 4,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "3c98fabbbb9b0ae2",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.319,
+            "decode_seconds": 0.407,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-all-media",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T06:05:40.691343+00:00",
+        "resolve_seconds": 0.784,
+        "english_cards": 3,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "c740335192e07228",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.328,
+            "decode_seconds": 0.434,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "castle-label-miss-recovery": [
+      {
+        "provider": "castle-label-miss-recovered",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T06:06:56.078591+00:00",
+        "required_audio_index": 1,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "9fea3054e3f93287",
+            "label": "Castle unlabeled English recovered by actual muxed audio",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.318,
+            "decode_seconds": 0.423,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "castle-spaced-stability": [
+      {
+        "provider": "castle-spaced",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 1,
+        "checked_at": "2026-09-30T05:51:20.361929+00:00",
+        "resolve_seconds": 0.793,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "9fe6dcc1277d2438",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.346,
+            "decode_seconds": 0.462,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 1,
+        "checked_at": "2026-09-30T05:51:21.648655+00:00",
+        "resolve_seconds": 1.051,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "233f2fe04fd93a20",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.336,
+            "decode_seconds": 0.458,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:51:23.623022+00:00",
+        "resolve_seconds": 0.826,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "bd05f98aee0dcc80",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.342,
+            "decode_seconds": 0.5,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:51:24.981973+00:00",
+        "resolve_seconds": 0.57,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "15d99c4dbfcf222c",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.377,
+            "decode_seconds": 0.519,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 1,
+        "checked_at": "2026-09-30T05:51:26.598083+00:00",
+        "resolve_seconds": 0.792,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "0693537576781e01",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.378,
+            "decode_seconds": 0.55,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 2,
+        "checked_at": "2026-09-30T05:54:28.652032+00:00",
+        "resolve_seconds": 0.794,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "209b7614059cfdd5",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.1,
+            "decode_seconds": 1.207,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 2,
+        "checked_at": "2026-09-30T05:54:30.681848+00:00",
+        "resolve_seconds": 1.257,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "dc25b0148f795868",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.694,
+            "decode_seconds": 1.034,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:54:33.432139+00:00",
+        "resolve_seconds": 0.874,
+        "english_cards": 2,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "adfcce8dd89ff9f4",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.329,
+            "decode_seconds": 0.444,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:54:34.784987+00:00",
+        "resolve_seconds": 0.827,
+        "english_cards": 1,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "5607dd31e3b11c0b",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.335,
+            "decode_seconds": 0.473,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 2,
+        "checked_at": "2026-09-30T05:54:36.542083+00:00",
+        "resolve_seconds": 1.092,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "fe230d4317674204",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.329,
+            "decode_seconds": 0.445,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 3,
+        "checked_at": "2026-09-30T05:57:38.549101+00:00",
+        "resolve_seconds": 1.217,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "f139e9740327015c",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.349,
+            "decode_seconds": 0.449,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 3,
+        "checked_at": "2026-09-30T05:57:40.247377+00:00",
+        "resolve_seconds": 1.258,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "231be0385672b505",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.324,
+            "decode_seconds": 0.391,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:57:42.411168+00:00",
+        "resolve_seconds": 1.532,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "6f97cf07d4234d4d",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.33,
+            "decode_seconds": 0.443,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:57:44.416204+00:00",
+        "resolve_seconds": 1.556,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "e9609622d51df52d",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.32,
+            "decode_seconds": 0.407,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 3,
+        "checked_at": "2026-09-30T05:57:47.989226+00:00",
+        "resolve_seconds": 1.519,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "1bb3ea9b83e74608",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.366,
+            "decode_seconds": 0.477,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 4,
+        "checked_at": "2026-09-30T06:00:50.440957+00:00",
+        "resolve_seconds": 1.023,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "8eca9da226a29288",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.536,
+            "decode_seconds": 0.699,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 4,
+        "checked_at": "2026-09-30T06:00:52.192100+00:00",
+        "resolve_seconds": 1.548,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "8179336ff2dd7482",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.358,
+            "decode_seconds": 0.447,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T06:00:54.759054+00:00",
+        "resolve_seconds": 1.057,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "f3d05aacf2affee3",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.392,
+            "decode_seconds": 0.572,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T06:00:56.422783+00:00",
+        "resolve_seconds": 1.255,
+        "english_cards": 1,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "393c150d018f608b",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.398,
+            "decode_seconds": 0.527,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 4,
+        "checked_at": "2026-09-30T06:00:59.912648+00:00",
+        "resolve_seconds": 1.053,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "d1e4f6b79de8442c",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.324,
+            "decode_seconds": 0.436,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 5,
+        "checked_at": "2026-09-30T06:04:01.879865+00:00",
+        "resolve_seconds": 1.229,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "9820ac41e9c93796",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.597,
+            "decode_seconds": 0.764,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 5,
+        "checked_at": "2026-09-30T06:04:03.924089+00:00",
+        "resolve_seconds": 1.239,
+        "english_cards": 4,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "8f57bab98ca64c51",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.318,
+            "decode_seconds": 0.41,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T06:04:05.995770+00:00",
+        "resolve_seconds": 1.533,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "dfe079590d6cd577",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.33,
+            "decode_seconds": 0.438,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T06:04:07.997732+00:00",
+        "resolve_seconds": 1.642,
+        "english_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 5,
+        "checked_at": "2026-09-30T06:04:09.668726+00:00",
+        "resolve_seconds": 1.271,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "f23ae6496be48dcf",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.334,
+            "decode_seconds": 0.44,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "round": 6,
+        "checked_at": "2026-09-30T06:07:11.960944+00:00",
+        "resolve_seconds": 0.987,
+        "english_cards": 6,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "108f01c7bf04e329",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.49,
+            "decode_seconds": 0.636,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "round": 6,
+        "checked_at": "2026-09-30T06:07:13.620148+00:00",
+        "resolve_seconds": 0.977,
+        "english_cards": 2,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "b50637888f8a7cd9",
+            "label": "CastleTV [Hindi] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.316,
+            "decode_seconds": 0.38,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T06:07:15.419981+00:00",
+        "resolve_seconds": 1.035,
+        "english_cards": 1,
+        "required_audio_index": 0,
+        "audio_tags": [
+          "eng"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "0a251878600d3366",
+            "label": "CastleTV [English] | 720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.328,
+            "decode_seconds": 0.45,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T06:07:16.940024+00:00",
+        "resolve_seconds": 1.269,
+        "english_cards": 1,
+        "required_audio_index": 1,
+        "audio_tags": [
+          "hin",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "4f0249a4f9865820",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.828,
+            "decode_seconds": 1.154,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-spaced",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "round": 6,
+        "checked_at": "2026-09-30T06:07:19.864752+00:00",
+        "resolve_seconds": 0.787,
+        "english_cards": 2,
+        "required_audio_index": 3,
+        "audio_tags": [
+          "hin",
+          "tam",
+          "tel",
+          "eng",
+          "jpn"
+        ],
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "f45edc31f654f9e7",
+            "label": "CastleTV [English] | 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.319,
+            "decode_seconds": 0.432,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "castle-verified-long60": [
+      {
+        "provider": "castle-long60",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "checked_at": "2026-09-30T05:51:21.492459+00:00",
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "cdff58d930d71d69",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.342,
+            "decode_seconds": 5.855,
+            "frames": 1436,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "checked_at": "2026-09-30T05:51:27.347857+00:00",
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "04a8db892224c103",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.346,
+            "decode_seconds": 1.538,
+            "frames": 1437,
+            "media_seconds": 60.0,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:51:28.886116+00:00",
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "829102bc459db94b",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.33,
+            "decode_seconds": 5.898,
+            "frames": 1436,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:51:34.784864+00:00",
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "dbda77fc186e1204",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.379,
+            "decode_seconds": 4.303,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:51:39.087939+00:00",
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "377a485622f51df4",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.318,
+            "decode_seconds": 1.103,
+            "frames": 1439,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "long-playback": [
+      {
+        "provider": "moviebox-long60",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "checked_at": "2026-09-30T05:46:45.679532+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.815,
+            "decode_seconds": 95.863,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-long60",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "checked_at": "2026-09-30T05:48:21.543356+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.544,
+            "decode_seconds": 125.004,
+            "frames": 1434,
+            "media_seconds": 57.493,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": -9
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-long60",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:50:26.547592+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.522,
+            "decode_seconds": 100.676,
+            "frames": 1499,
+            "media_seconds": 60.01,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-long60",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:52:07.223917+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b21649b0becff5a5",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.442,
+            "decode_seconds": 65.519,
+            "frames": 1798,
+            "media_seconds": 60.027,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-long60",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:53:12.742929+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b11ab3354eef0d19",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.537,
+            "decode_seconds": 41.766,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:53:54.509543+00:00",
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "288a938a50652717",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.37,
+            "decode_seconds": 2.16,
+            "frames": 1436,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:53:56.669621+00:00",
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "845e838b0c87ec50",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.389,
+            "decode_seconds": 3.994,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "castle-long60",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:54:00.663749+00:00",
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "82383f45e9e88114",
+            "label": "castle 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.343,
+            "decode_seconds": 5.134,
+            "frames": 1439,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "long-playback-480p": [
+      {
+        "provider": "moviebox-480p-long60",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "checked_at": "2026-09-30T05:47:54.473225+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.529,
+            "decode_seconds": 33.619,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-long60",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "checked_at": "2026-09-30T05:48:28.092585+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.481,
+            "decode_seconds": 35.699,
+            "frames": 1499,
+            "media_seconds": 60.0,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-long60",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:49:03.792241+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.5,
+            "decode_seconds": 31.299,
+            "frames": 1499,
+            "media_seconds": 60.01,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-long60",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:49:35.091661+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b21649b0becff5a5",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.447,
+            "decode_seconds": 26.36,
+            "frames": 1798,
+            "media_seconds": 60.027,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-long60",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:50:01.451752+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b11ab3354eef0d19",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.616,
+            "decode_seconds": 21.003,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "long-playback-480p-discard": [
+      {
+        "provider": "moviebox-480p-discard-long60",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "checked_at": "2026-09-30T05:48:53.791879+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.52,
+            "decode_seconds": 33.588,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-discard-long60",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "checked_at": "2026-09-30T05:49:27.380401+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.447,
+            "decode_seconds": 35.729,
+            "frames": 1499,
+            "media_seconds": 60.0,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-discard-long60",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:50:03.109617+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.503,
+            "decode_seconds": 29.169,
+            "frames": 1499,
+            "media_seconds": 60.01,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-discard-long60",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:50:32.278768+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b21649b0becff5a5",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.455,
+            "decode_seconds": 23.179,
+            "frames": 1798,
+            "media_seconds": 60.027,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-480p-discard-long60",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:50:55.457753+00:00",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b11ab3354eef0d19",
+            "label": "moviebox 60s",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.544,
+            "decode_seconds": 18.009,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "cached-url-playback": [
+      {
+        "provider": "moviebox-cached",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "checked_at": "2026-09-30T05:38:41.253495+00:00",
+        "url_age_seconds_lower_bound": 4148,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.699,
+            "decode_seconds": 39.351,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-cached",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "checked_at": "2026-09-30T05:39:20.605011+00:00",
+        "url_age_seconds_lower_bound": 4147,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.459,
+            "decode_seconds": 13.087,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-cached",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:39:33.692566+00:00",
+        "url_age_seconds_lower_bound": 4147,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "MovieBox English dub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.5,
+            "decode_seconds": 17.074,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-cached",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:39:50.766733+00:00",
+        "url_age_seconds_lower_bound": 4146,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b21649b0becff5a5",
+            "label": "MovieBox English dub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.457,
+            "decode_seconds": 11.073,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-cached",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "checked_at": "2026-09-30T05:40:01.840446+00:00",
+        "url_age_seconds_lower_bound": 4145,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b11ab3354eef0d19",
+            "label": "MovieBox English dub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.613,
+            "decode_seconds": 7.502,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "citadel-cached-old": [
+      {
+        "provider": "citadel-old-cached",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "url_age_seconds_lower_bound": 4828,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "ed75d4b1df96179d",
+            "label": null,
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.503,
+            "decode_seconds": 0.607,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-old-cached",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "url_age_seconds_lower_bound": 3621,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "9baa1a24de8ecff5",
+            "label": null,
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.32,
+            "decode_seconds": 0.392,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-old-cached",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "url_age_seconds_lower_bound": 4828,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "851de85c178b114d",
+            "label": null,
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.322,
+            "decode_seconds": 0.458,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-old-cached",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "url_age_seconds_lower_bound": 4827,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "1c18c8ef90799c25",
+            "label": null,
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.421,
+            "decode_seconds": 0.643,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "citadel-old-cached",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "url_age_seconds_lower_bound": 4825,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "226e6170e703dcff",
+            "label": null,
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.346,
+            "decode_seconds": 0.45,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "new-source-screen-corrected": [
+      {
+        "provider": "mapple",
+        "tmdb": 209867,
+        "resolve_seconds": 0.342,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "vidrock",
+        "tmdb": 209867,
+        "resolve_seconds": 5.656,
+        "cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "vidlove",
+        "tmdb": 209867,
+        "resolve_seconds": 0.193,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "moonflix",
+        "tmdb": 209867,
+        "resolve_seconds": 0.414,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "nakios",
+        "tmdb": 209867,
+        "resolve_seconds": 10.09,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "movix",
+        "tmdb": 209867,
+        "resolve_seconds": 0.779,
+        "cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "purstream",
+        "tmdb": 209867,
+        "resolve_seconds": 0.501,
+        "cards": 1,
+        "decodes": []
+      },
+      {
+        "provider": "xpass",
+        "tmdb": 209867,
+        "resolve_seconds": 0.29,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "goated",
+        "tmdb": 209867,
+        "resolve_seconds": 0.128,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "zinkmovies",
+        "tmdb": 209867,
+        "resolve_seconds": 1.001,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "cinemacity",
+        "tmdb": 209867,
+        "resolve_seconds": 0.221,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "1shows",
+        "tmdb": 209867,
+        "resolve_seconds": 0.079,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "movieblast",
+        "tmdb": 209867,
+        "resolve_seconds": 0.553,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "castle",
+        "tmdb": 209867,
+        "resolve_seconds": 0.491,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "netmirror",
+        "tmdb": 209867,
+        "error": "TimeoutExpired",
+        "decodes": []
+      },
+      {
+        "provider": "peachify",
+        "tmdb": 209867,
+        "resolve_seconds": 0.097,
+        "cards": 0,
+        "decodes": []
+      }
+    ],
+    "new-source-playback": [
+      {
+        "provider": "new-vidrock",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 5.2,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "cosmicalgorithm.live",
+            "stream_hash": "95e9588e1aa05e44",
+            "label": "\ud83c\udfac Frieren: Beyond Journey's End - (2023) | S1E2\n\ud83d\ude80 1080p | \ud83c\udf0d Original Audio | \ud83c\udfa7 AAC\n\ud83d\udce1 M3U8 | \u26a1 x2.64 | \u23f1\ufe0f 26 min\n\ud83c\udfaf Orion | \ud83d\udd17 Provider: VidRock",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.002,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": -9
+          }
+        ]
+      },
+      {
+        "provider": "new-movix",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 0.451,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "free.finepulfe.xyz",
+            "stream_hash": "964ab6f259012e8f",
+            "label": "\ud83c\udf7f S1 E2 - It Didn't Have to Be Magic... | Frieren: Beyond Journey's End\n\u26a1 1080p | \ud83d\udcac Dual-Audio | \ud83c\udfb5 \ud83c\uddfa\ud83c\uddf8 \u2022 \ud83c\uddeb\ud83c\uddf7\n\ud83d\udcbf M3U8 \u2022 H.264 | \ud83c\udfa7 AAC | 26 min",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.683,
+            "decode_seconds": 4.025,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-purstream",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 0.531,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "free.finepulfe.xyz",
+            "stream_hash": "c5010d002c75ba26",
+            "label": "\ud83c\udfac S1 E2 - It Didn't Have to Be Magic... | Frieren: Beyond Journey's End\n\ud83d\udd25 1080p | \ud83d\udd0a Dual-Audio | \ud83d\udde3\ufe0f \ud83c\uddfa\ud83c\uddf8 \u2022 \ud83c\uddeb\ud83c\uddf7\n\ud83c\udfaf M3U8 \u2022 H.264 | \ud83c\udfa7 AAC | 26 min",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.45,
+            "decode_seconds": 1.803,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "net27-playback": [
+      {
+        "provider": "net27-english",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "resolve_seconds": 3.566,
+        "status": 200,
+        "decodes": [
+          {
+            "host": "bcdnw.hakunaymatata.com",
+            "stream_hash": "968618b37ee2c8c5",
+            "label": "360p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.361,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnw.hakunaymatata.com",
+            "stream_hash": "c653a2fc57b45e40",
+            "label": "480p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.405,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "net27-english",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "resolve_seconds": 0.594,
+        "status": 200,
+        "decodes": [
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "aae9da8b7f3c4ae0",
+            "label": "720p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.524,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "0bcf91e8950bed2d",
+            "label": "360p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.41,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "net27-english",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 1.311,
+        "status": 200,
+        "decodes": [
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "61a7fd5ff710c9fe",
+            "label": "480p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.403,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "0612bcbae9ae8c6a",
+            "label": "1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.255,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "net27-english",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 1.312,
+        "status": 200,
+        "decodes": [
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "497e2d0b077930e2",
+            "label": "360p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.253,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "41398ad52fb2f74e",
+            "label": "480p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.417,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "net27-english",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 1.767,
+        "status": 200,
+        "decodes": [
+          {
+            "host": "bcdnxw.hakunaymatata.com",
+            "stream_hash": "03c1f6d10e60220b",
+            "label": "480p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.408,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      }
+    ],
+    "cinema-v6-playback": [
+      {
+        "provider": "cinemaos-mb2",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "resolve_seconds": 0.228335319,
+        "decodes": [
+          {
+            "host": "sacdn.cinemaos.in",
+            "stream_hash": "8291eb71fec20c90",
+            "label": "Epsilon - English mp4",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 10.234,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 146
+          },
+          {
+            "host": "holly.cinemaos.in",
+            "stream_hash": "c19fce095cb030f0",
+            "label": "Alpha - English dash",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 1.076,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "cinemaos-mb2",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "resolve_seconds": 0.21768723699999998,
+        "decodes": [
+          {
+            "host": "sacdn.cinemaos.in",
+            "stream_hash": "3ef8633b338c77bf",
+            "label": "Epsilon - English mp4",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 6.387,
+            "decode_seconds": 9.849,
+            "frames": 199,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          },
+          {
+            "host": "sacdn.cinemaos.in",
+            "stream_hash": "e4ad18ff6a463aab",
+            "label": "Alpha - English dash",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 10.223,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 146
+          }
+        ]
+      },
+      {
+        "provider": "cinemaos-mb2",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 1.933518622,
+        "decodes": [
+          {
+            "host": "sacdn.cinemaos.in",
+            "stream_hash": "a568bd0b64d3dc1d",
+            "label": "Theta - English dub mp4",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 13.501,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 187
+          },
+          {
+            "host": "holly.cinemaos.in",
+            "stream_hash": "c2dcb6d935621d9e",
+            "label": "Beta - English dub dash",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.655,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "cinemaos-mb2",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 1.535526113,
+        "decodes": []
+      },
+      {
+        "provider": "cinemaos-mb2",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 1.689352328,
+        "decodes": [
+          {
+            "host": "sacdn.cinemaos.in",
+            "stream_hash": "81373f939d0d2458",
+            "label": "Track9 - English dub mp4",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.672,
+            "decode_seconds": 19.079,
+            "frames": 133,
+            "media_seconds": 5.631,
+            "audio_decoded": true,
+            "passed": false,
+            "exit": 0
+          },
+          {
+            "host": "sacdn.cinemaos.in",
+            "stream_hash": "f1175a3b32e8a611",
+            "label": "Beta - English dub dash",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.49,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      }
+    ],
+    "cinema-direct-playback": [
+      {
+        "provider": "cinemaos-direct-mp4",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "resolve_seconds": 0.228335319,
+        "decodes": [
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "9f6aa508cf3e040e",
+            "label": "Epsilon - English 1080p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.379,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "3b5e471764bd4176",
+            "label": "Epsilon - English 480p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.409,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "cinemaos-direct-mp4",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "resolve_seconds": 0.21768723699999998,
+        "decodes": [
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "d3fd2f47e334c632",
+            "label": "Epsilon - English 1080p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.403,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "a47fb26ef39678f9",
+            "label": "Epsilon - English 720p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.412,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "dd538b633c04c07f",
+            "label": "Epsilon - English 480p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.404,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "cinemaos-direct-mp4",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 1.933518622,
+        "decodes": [
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "55745a2d4569b7e5",
+            "label": "Theta - English dub 1080p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.402,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "90f07a41a4a1fa12",
+            "label": "Theta - English dub 480p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.248,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "cinemaos-direct-mp4",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 1.689352328,
+        "decodes": [
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "b4981df2b3b084a8",
+            "label": "Track9 - English dub 1080p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.404,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          },
+          {
+            "host": "bcdnt.hakunaymatata.com",
+            "stream_hash": "450210ff9a84c1f3",
+            "label": "Track9 - English dub 480p direct",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.406,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      }
+    ],
+    "vaplayer-playback": [
+      {
+        "provider": "vaplayer",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "decodes": [
+          {
+            "host": "onlinevisibilitysystem.site",
+            "stream_hash": "8d5062fa832c15b6",
+            "label": "VaPlayer",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.425,
+            "decode_seconds": 2.55,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "vaplayer",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [
+          {
+            "host": "quietmidnightgardeningideas.site",
+            "stream_hash": "3af3546859750929",
+            "label": "VaPlayer",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.197,
+            "decode_seconds": 2.46,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "vaplayer",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "remoteconsultinggroup.site",
+            "stream_hash": "7a7c6c746e2fd6b7",
+            "label": "VaPlayer",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.272,
+            "decode_seconds": 3.496,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "vaplayer",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "personalbrandgrowth.site",
+            "stream_hash": "245d977b9e2868cc",
+            "label": "VaPlayer",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.646,
+            "decode_seconds": 2.985,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "vaplayer",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "influencerstrategygroup.site",
+            "stream_hash": "c21de25d89bb1d6d",
+            "label": "VaPlayer",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.868,
+            "decode_seconds": 2.027,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "streamflix-playback": [
+      {
+        "provider": "streamflix",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "catalog_match": true,
+        "decodes": [
+          {
+            "host": "cf.streamflixserver.site",
+            "stream_hash": "5ef87a68ca6e16c9",
+            "label": "Inception",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.04,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "streamflix",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "catalog_match": true,
+        "episode_name": null,
+        "decodes": []
+      },
+      {
+        "provider": "streamflix",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "catalog_match": false,
+        "decodes": []
+      },
+      {
+        "provider": "streamflix",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "catalog_match": true,
+        "episode_name": null,
+        "decodes": []
+      },
+      {
+        "provider": "streamflix",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "catalog_match": true,
+        "episode_name": null,
+        "decodes": []
+      }
+    ]
+  },
+  "privacy": "No real TMDB/signing keys, guest bearer tokens, cookies, signed media URLs, raw response bodies, WAV files or transcripts are copied to this report. Private prototypes/logs remain under /tmp/vsources-overnight-20260930, mode 0700."
+}

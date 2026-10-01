@@ -1,0 +1,619 @@
+{
+  "audit_date_local": "2026-09-29",
+  "recorded_at_utc": "2026-09-30T03:22:05.116561+00:00",
+  "catalog_providers": 48,
+  "status": "Implemented native AniWaves/EchoVideo, required ReAnime embedded English audio selection, and an opt-in fast English-dub race. Migration to VIPTV remains paused.",
+  "fast_shortlist": [
+    "aniwaves",
+    "reanime",
+    "animekai"
+  ],
+  "summary": [
+    {
+      "mode": "rust-aniwaves",
+      "passes": 3,
+      "cases": 3,
+      "median_resolve_seconds": 3.397,
+      "median_first_frame_after_url_seconds": 0.721,
+      "median_resolve_plus_first_frame_seconds": 4.118
+    },
+    {
+      "mode": "rust-reanime-english",
+      "passes": 3,
+      "cases": 3,
+      "median_resolve_seconds": 2.488,
+      "median_first_frame_after_url_seconds": 1.114,
+      "median_resolve_plus_first_frame_seconds": 3.913
+    },
+    {
+      "mode": "rust-fast-english",
+      "passes": 3,
+      "cases": 3,
+      "median_resolve_seconds": 1.399,
+      "median_first_frame_after_url_seconds": 0.693,
+      "median_resolve_plus_first_frame_seconds": 2.114
+    }
+  ],
+  "cache_example": [
+    {
+      "audio_selection": null,
+      "provider": "aniwaves",
+      "resolve_ms": 2220.179936,
+      "run": 1
+    },
+    {
+      "audio_selection": null,
+      "provider": "aniwaves",
+      "resolve_ms": 12.560207,
+      "run": 2
+    },
+    {
+      "audio_selection": null,
+      "provider": "aniwaves",
+      "resolve_ms": 13.18347,
+      "run": 3
+    }
+  ],
+  "mpv_audio_verification": {
+    "exit": 0,
+    "selection": [
+      "SELECTED_AUDIO=eng AID=(2) 'English' (eng aac [LC] 2ch 44100 Hz)"
+    ]
+  },
+  "test_results": {
+    "all_targets": 821,
+    "doctests": 6,
+    "total": 827,
+    "format": "passed",
+    "clippy_warnings_denied": "passed",
+    "rustdoc_warnings_denied": "passed"
+  },
+  "cases": [
+    {
+      "provider": "rust-aniwaves",
+      "tmdb": 209867,
+      "title": "Frieren",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 3.397,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "ru-ri-cdn3.echovideo.to",
+          "stream_hash": "bb7787cc6b7eb39f",
+          "label": "AniWaves English DUB · Vidplay",
+          "resolution_hint": null,
+          "first_decoded_frame_seconds": 0.721,
+          "decode_seconds": 0.801,
+          "frames": 191,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+            "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.460200",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "aniwaves",
+      "audio_selection": null,
+      "to_first_frame_seconds": 4.118
+    },
+    {
+      "provider": "rust-aniwaves",
+      "tmdb": 85937,
+      "title": "Demon Slayer",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 3.6,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "ru-cdn2.echovideo.to",
+          "stream_hash": "80c469a3898d481b",
+          "label": "AniWaves English DUB · Vidplay",
+          "resolution_hint": null,
+          "first_decoded_frame_seconds": 0.694,
+          "decode_seconds": 0.877,
+          "frames": 191,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "eng",
+              "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+            "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+            "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "aniwaves",
+      "audio_selection": null,
+      "to_first_frame_seconds": 4.294
+    },
+    {
+      "provider": "rust-aniwaves",
+      "tmdb": 95479,
+      "title": "Jujutsu Kaisen",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 2.778,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "ru-cdn1.echovideo.to",
+          "stream_hash": "c66e23589f14129a",
+          "label": "AniWaves English DUB · Vidplay",
+          "resolution_hint": null,
+          "first_decoded_frame_seconds": 0.724,
+          "decode_seconds": 0.89,
+          "frames": 191,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+            "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.460200",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "aniwaves",
+      "audio_selection": null,
+      "to_first_frame_seconds": 3.502
+    },
+    {
+      "provider": "rust-reanime-english",
+      "tmdb": 209867,
+      "title": "Frieren",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 2.4,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "fetch8.flixcloud.cc",
+          "stream_hash": "0e4ab301cd6122e4",
+          "label": "Frieren: Beyond Journey's End S01E02 — ReAnime · English DUB · 1080p (audio 2)",
+          "resolution_hint": 1080,
+          "first_decoded_frame_seconds": 1.513,
+          "decode_seconds": 1.835,
+          "frames": 192,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "jpn",
+              "aac (LC), 44100 Hz, stereo, fltp"
+            ],
+            [
+              "eng",
+              "aac (LC), 44100 Hz, stereo, fltp"
+            ],
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0: Video: h264 (High), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 1k tbn",
+            "Stream #0:1(jpn): Audio: aac (LC), 44100 Hz, stereo, fltp",
+            "Stream #0:2(eng): Audio: aac (LC), 44100 Hz, stereo, fltp",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "reanime",
+      "audio_selection": {
+        "language": "En",
+        "audio_index": 1
+      },
+      "to_first_frame_seconds": 3.913
+    },
+    {
+      "provider": "rust-reanime-english",
+      "tmdb": 85937,
+      "title": "Demon Slayer",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 3.113,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "fetch8.flixcloud.cc",
+          "stream_hash": "9540134aeb51cf2d",
+          "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — ReAnime · English DUB · 1080p (audio 2)",
+          "resolution_hint": 1080,
+          "first_decoded_frame_seconds": 1.114,
+          "decode_seconds": 1.471,
+          "frames": 192,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "jpn",
+              "aac (LC), 44100 Hz, stereo, fltp"
+            ],
+            [
+              "eng",
+              "aac (LC), 44100 Hz, stereo, fltp"
+            ],
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0: Video: h264 (High), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 1k tbn",
+            "Stream #0:1(jpn): Audio: aac (LC), 44100 Hz, stereo, fltp",
+            "Stream #0:2(eng): Audio: aac (LC), 44100 Hz, stereo, fltp",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "reanime",
+      "audio_selection": {
+        "language": "En",
+        "audio_index": 1
+      },
+      "to_first_frame_seconds": 4.227
+    },
+    {
+      "provider": "rust-reanime-english",
+      "tmdb": 95479,
+      "title": "Jujutsu Kaisen",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 2.488,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "fetch8.flixcloud.cc",
+          "stream_hash": "1cfbd7af552aa4b9",
+          "label": "JUJUTSU KAISEN S01E02 — ReAnime · English DUB · 1080p (audio 2)",
+          "resolution_hint": 1080,
+          "first_decoded_frame_seconds": 0.63,
+          "decode_seconds": 1.273,
+          "frames": 192,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "jpn",
+              "aac (LC), 44100 Hz, stereo, fltp"
+            ],
+            [
+              "eng",
+              "aac (LC), 44100 Hz, stereo, fltp"
+            ],
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0: Video: h264 (High), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 1k tbn",
+            "Stream #0:1(jpn): Audio: aac (LC), 44100 Hz, stereo, fltp",
+            "Stream #0:2(eng): Audio: aac (LC), 44100 Hz, stereo, fltp",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "reanime",
+      "audio_selection": {
+        "language": "En",
+        "audio_index": 1
+      },
+      "to_first_frame_seconds": 3.118
+    },
+    {
+      "provider": "rust-fast-english",
+      "tmdb": 209867,
+      "title": "Frieren",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 1.358,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "ru-ri-cdn3.echovideo.to",
+          "stream_hash": "bb7787cc6b7eb39f",
+          "label": "AniWaves English DUB · Vidplay",
+          "resolution_hint": null,
+          "first_decoded_frame_seconds": 0.693,
+          "decode_seconds": 0.769,
+          "frames": 191,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+            "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.460200",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "aniwaves",
+      "audio_selection": null,
+      "to_first_frame_seconds": 2.051
+    },
+    {
+      "provider": "rust-fast-english",
+      "tmdb": 85937,
+      "title": "Demon Slayer",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 1.541,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "ru-cdn2.echovideo.to",
+          "stream_hash": "80c469a3898d481b",
+          "label": "AniWaves English DUB · Vidplay",
+          "resolution_hint": null,
+          "first_decoded_frame_seconds": 0.693,
+          "decode_seconds": 0.901,
+          "frames": 191,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "eng",
+              "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+            "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+            "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "aniwaves",
+      "audio_selection": null,
+      "to_first_frame_seconds": 2.234
+    },
+    {
+      "provider": "rust-fast-english",
+      "tmdb": 95479,
+      "title": "Jujutsu Kaisen",
+      "episode": 2,
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "resolve_seconds": 1.399,
+      "exit": 0,
+      "cards": 1,
+      "decodes": [
+        {
+          "host": "ru-cdn1.echovideo.to",
+          "stream_hash": "c66e23589f14129a",
+          "label": "AniWaves English DUB · Vidplay",
+          "resolution_hint": null,
+          "first_decoded_frame_seconds": 0.715,
+          "decode_seconds": 0.881,
+          "frames": 191,
+          "media_seconds": 8.008,
+          "audio_decoded": true,
+          "audio_streams": [
+            [
+              "eng",
+              "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+            ]
+          ],
+          "passed": true,
+          "exit": 0,
+          "codec_evidence": [
+            "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+            "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.460200",
+            "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+            "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+            "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+            "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+            "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+          ]
+        }
+      ],
+      "selected_provider": "aniwaves",
+      "audio_selection": null,
+      "to_first_frame_seconds": 2.114
+    }
+  ],
+  "speech_language_observations": [
+    {
+      "audio_map": "0:a:1",
+      "provider": "rust-reanime-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "0e4ab301cd6122e4",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 9.392
+    },
+    {
+      "audio_map": "0:a:1",
+      "provider": "rust-reanime-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "9540134aeb51cf2d",
+      "language": "en",
+      "probability": 0.9798,
+      "speech_seconds": 18.593
+    },
+    {
+      "audio_map": "0:a:1",
+      "provider": "rust-reanime-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "1cfbd7af552aa4b9",
+      "language": "en",
+      "probability": 0.9833,
+      "speech_seconds": 21.856
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rust-fast-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "bb7787cc6b7eb39f",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 9.392
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rust-fast-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "80c469a3898d481b",
+      "language": "en",
+      "probability": 0.9785,
+      "speech_seconds": 18.56
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rust-fast-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "c66e23589f14129a",
+      "language": "en",
+      "probability": 0.9804,
+      "speech_seconds": 21.728
+    }
+  ],
+  "playback_harness_verification": [
+    {
+      "provider": "reanime",
+      "verified": true,
+      "checked_at": "2026-09-30T03:19:14.820675+00:00",
+      "attempts": [
+        {
+          "tmdb": 209867,
+          "season": 1,
+          "episode": 2,
+          "status": "resolved",
+          "cards": 1,
+          "resolve_seconds": 2.556,
+          "decodes": [
+            {
+              "status": "played",
+              "exit": 0,
+              "host": "fetch8.flixcloud.cc",
+              "stream_hash": "71377f43125bb9b6",
+              "format": "mp4",
+              "frames": 192,
+              "media_seconds": 8.008,
+              "audio_decoded": true,
+              "required_audio_selection": {
+                "language": "En",
+                "audio_index": 1
+              },
+              "wall_seconds": 2.346,
+              "error_kind": null
+            }
+          ]
+        }
+      ],
+      "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+      "configured_env": [
+        "TMDB_API_KEY"
+      ]
+    }
+  ],
+  "provenance": {
+    "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+    "source_git_base": "934de2d36aa424bcb75b47c1f723965300b4f75a",
+    "source_state": "Working tree changes; no commit or push performed.",
+    "prior_research": "2026-09-29-anime-dub-speed.json"
+  },
+  "limits": [
+    "Fast means first qualifying resolver result; it is not a runtime comparison of decoded frame latency.",
+    "First-frame measurements use decoded FFmpeg progress at 50 ms intervals, not a GUI paint measurement.",
+    "Three distinct episodes, eight-second native decodes. Prior research separately includes repeated trials and 60-second decodes.",
+    "Fast race selects 720p AniWaves in these cases; ReAnime is 1080p with required English track index 1.",
+    "Container language metadata is inspected; probabilistic speech checks confirm sampled dialogue, not every catalog title.",
+    "Cache timings show immediate repeated resolution in one Engine, not a five-minute longevity test.",
+    "ReAnime English verification currently supports bounded Matroska/WebM headers; missing raw probe support or incomplete/unsupported track metadata does not qualify.",
+    "Later AniWaves seasons require explicit matching season titles. Uncertain matches are rejected."
+  ],
+  "reproduce": {
+    "fast_cli": "TMDB_API_KEY=... cargo run -p vsources-cli -- resolve tmdb:209867 --kind series --season 1 --episode 2 --english-dub --fast --json",
+    "english_1080p": "TMDB_API_KEY=... cargo run -p vsources-cli -- resolve tmdb:209867 --kind series --season 1 --episode 2 --provider reanime --english-dub --json",
+    "warm_cache": "TMDB_API_KEY=... cargo run -p vsources --example fast_dub -- 209867 1 2",
+    "playback": "TMDB_API_KEY=... python3 scripts/verify_playback.py --providers aniwaves,reanime,animekai --english-dub --fast --media 209867,85937,95479 --episode 2 --titles 3 --cards 1 --workers 1 --output /tmp/dub-playback.jsonl"
+  }
+}

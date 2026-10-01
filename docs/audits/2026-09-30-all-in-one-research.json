@@ -1,0 +1,2937 @@
+{
+  "research_date": "2026-09-30",
+  "recorded_at_utc": "2026-09-30T05:00:09.815087+00:00",
+  "scope": "Research only. Existing SDK implementation changes preserved; no new provider changes or VIPTV migration performed. Free/anonymous routes were tested; no paid account or personal cookie was used.",
+  "recommendations": {
+    "closest_catalog_match": "MovieBox mobile API, with explicit English dub subject selection",
+    "simple_public_api_lead": "RiveStream/Citadel, with strict language/track selection and fallback",
+    "long_term_stability": "Not established by this short research session; neither is a guaranteed service contract."
+  },
+  "moviebox": {
+    "provider": "MovieBox (aoneroom mobile API; distinct from MovieBox Pro)",
+    "coverage": "Movies, TV and anime; explicit English dub sibling subject IDs observed",
+    "short_decode_passes": 5,
+    "short_decode_cases": 5,
+    "median_resolution_seconds": 0.663,
+    "median_first_frame_after_url_seconds": 2.565,
+    "anonymous_visitor_used": true,
+    "requires_runtime_client_signing_key": true,
+    "playback": "Signed CDN cookies plus required mobile User-Agent/Referer; real DASH manifests parsed from signCookie, excluding upgrade-notice MP4s",
+    "stability": "No long-term uptime claim. Thirty-second 720p tests passed Breaking Bad/Jujutsu Kaisen; Inception reached only 28.03 media seconds within the 40-second cap."
+  },
+  "citadel": {
+    "endpoint": "https://scrapper.rivestream.app/api/provider",
+    "query_fields": [
+      "provider=citadel",
+      "id=<TMDB>",
+      "season=<series season>",
+      "episode=<series episode>",
+      "cb=<optional coarse freshness bucket used by current client>"
+    ],
+    "authentication": "No API key/login in the tested requests. Used browser-style User-Agent and rivestream.ru Referer.",
+    "observed_english_coverage": "Movie Inception; TV Breaking Bad; Frieren, Demon Slayer and Jujutsu Kaisen English dubs. TV was confirmed in the initial SDK result and later direct browser-header refresh.",
+    "initial_direct_passes": 4,
+    "initial_direct_cases": 5,
+    "tv_refresh_passed": true,
+    "audio_selection": "Some English-labeled resources default to another language. Tested required English audio indices include 1 and 3; always inspect/select the track.",
+    "stability": "English TV availability/quality changed during testing; some direct requests returned no English candidate. A fresh browser-header request returned a playable English 480p resource."
+  },
+  "important_findings": [
+    "MovieBox metadata differentiates English sub and English dub. A substring match for English selects the wrong resource; choose the explicit English dub sibling subjectId.",
+    "Series titles include bundles such as S1-S2/S1-S5. Strict bare-title/year equality in the existing SDK misses valid catalog entries; matching must preserve exact season identity while handling bundle decoration.",
+    "The current SDK MovieBox mobile path does not yet perform dub sibling selection or bundled-series matching. This research validates a prototype, not integrated English-dub support for MovieBox.",
+    "The RiveStream SDK already resolves the service, but default selection and missing audio track requirements can replay Japanese or Hindi. One later Multi Audio TV fallback was detected as Hindi; the earlier explicit English TV resource and later direct refresh were English.",
+    "VidLink movie/TV streams played, but sampled Frieren/Jujutsu Kaisen TV routes contained Japanese. Its documented dedicated MAL dub API paths returned 404 here; a deployed anime bundle referenced localhost:8080.",
+    "VidZee returned movie/TV and anime streams, but all three tested default anime resources contained Japanese despite English server labels. This does not establish a selectable dub path.",
+    "VidKing/ZXCStream returned no playable results in this SDK pass; CineJoy playback was mixed. These are sample/adapter observations, not permanent host bans.",
+    "NHD homepage was reachable and advertises movie/TV/anime embeds, but a working direct dubbed media API was not verified."
+  ],
+  "test_cases": [
+    {
+      "tmdb": 27205,
+      "title": "Inception",
+      "kind": "movie"
+    },
+    {
+      "tmdb": 1396,
+      "title": "Breaking Bad",
+      "kind": "series",
+      "season": 1,
+      "episode": 1
+    },
+    {
+      "tmdb": 209867,
+      "title": "Frieren",
+      "kind": "anime",
+      "season": 1,
+      "episode": 2
+    },
+    {
+      "tmdb": 85937,
+      "title": "Demon Slayer",
+      "kind": "anime",
+      "season": 1,
+      "episode": 2
+    },
+    {
+      "tmdb": 95479,
+      "title": "Jujutsu Kaisen",
+      "kind": "anime",
+      "season": 1,
+      "episode": 2
+    }
+  ],
+  "method": "Eight-second actual video/audio decodes through FFmpeg, plus sampled dialogue detection using faster-whisper tiny. Language samples at 240 seconds, with 480-second resamples for sparse opening dialogue. Longer MovieBox tests decode thirty seconds using the second video representation (720p in the sampled manifests). Research timings are from this connection and do not prove global speed, complete catalog coverage or visible-player latency.",
+  "sources": [
+    {
+      "title": "MovieBox Rust client",
+      "url": "https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/moviebox/client.rs"
+    },
+    {
+      "title": "MovieBox language and resource adapter",
+      "url": "https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/moviebox/adapt.rs"
+    },
+    {
+      "title": "Current MovieBox Nuvio implementation",
+      "url": "https://github.com/NuvioPlugin/All-in-One-Nuvio/blob/dec1987e7b3723d2753ed234adbdb211d0eab30b/providers/moviebox.js"
+    },
+    {
+      "title": "MovieBox Python wrapper with v3 dub selection",
+      "url": "https://github.com/simatwa/moviebox-api"
+    },
+    {
+      "title": "RiveStream implementation",
+      "url": "https://github.com/SaugatXthaa/PhoeniX/blob/d43e0a26d7edec2a27b20b70a5a1f6e7c3b99496/src/source/RiveStream.js"
+    },
+    {
+      "title": "VidLink deployed routes and API reference",
+      "url": "https://github.com/rudrarathod/openScreen/blob/main/VidLink%20API.md"
+    },
+    {
+      "title": "VidZee direct JSON client",
+      "url": "https://github.com/kacigaya/binje/blob/main/lib/vidzee.ts"
+    },
+    {
+      "title": "MovieBox stream fallback research",
+      "url": "https://github.com/Loo-stick/loostream/blob/main/src/scrapers/moviebox.ts"
+    }
+  ],
+  "speech_language_observations": [
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidlink2",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "4c4eb403bd5990ba",
+      "language": "en",
+      "probability": 0.8847,
+      "speech_seconds": 8.304
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidlink2",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "b2a8815cb3086e3e",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidlink2",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "4fb0fca339e4b504",
+      "language": "ja",
+      "probability": 0.9827,
+      "speech_seconds": 9.712
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidlink2",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "d02fc85a383f4829",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidlink2",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "fb868f4cad5cf006",
+      "language": "ja",
+      "probability": 0.9905,
+      "speech_seconds": 22.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidzee",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "6965c27bc8a31d00",
+      "language": "ja",
+      "probability": 0.9814,
+      "speech_seconds": 9.104
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidzee",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "315ee32403cddf32",
+      "language": "ja",
+      "probability": 0.9873,
+      "speech_seconds": 18.432
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidzee",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "dedcb66b97e7f4f7",
+      "language": "ja",
+      "probability": 0.9857,
+      "speech_seconds": 20.639
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidzee",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "cf23c4b33fceb949",
+      "language": "en",
+      "probability": 0.8311,
+      "speech_seconds": 7.44
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "vidzee",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "dd60463001e6418b",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "95deac721178ab15",
+      "language": "en",
+      "probability": 0.7524,
+      "speech_seconds": 6.96
+    },
+    {
+      "audio_map": "0:a:1",
+      "provider": "rivestream",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "a47aad597546a1cf",
+      "language": "en",
+      "probability": 0.2536,
+      "speech_seconds": 0.864
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "5d30a20ffa0b6c49",
+      "language": "ja",
+      "probability": 0.9857,
+      "speech_seconds": 20.639
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "040475f5110da6df",
+      "language": "ja",
+      "probability": 0.9873,
+      "speech_seconds": 18.432
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "8e0df8c44fc44354",
+      "language": "ja",
+      "probability": 0.9814,
+      "speech_seconds": 9.104
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "cinejoyaio",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "5b66b9e13616a985",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "db708ba518bfd21a",
+      "language": "en",
+      "probability": 0.7524,
+      "speech_seconds": 6.96
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "f51d4eac99d008c1",
+      "language": "en",
+      "probability": 0.9875,
+      "speech_seconds": 9.423
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "c33e017b37d4e34f",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0
+    },
+    {
+      "audio_map": "0:a:1",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "ab2762f9d7816c93",
+      "language": "en",
+      "probability": 0.9791,
+      "speech_seconds": 18.496
+    },
+    {
+      "audio_map": "0:a:3",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "fd400b140b4a2acf",
+      "language": "en",
+      "probability": 0.9771,
+      "speech_seconds": 22.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "e333541df8ff452b",
+      "language": "en",
+      "probability": 0.8569,
+      "speech_seconds": 7.408
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "9d39fbeabfb8bd7a",
+      "language": "en",
+      "probability": 0.277,
+      "speech_seconds": 0.0
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "6ab6188a4dc4fb39",
+      "language": "en",
+      "probability": 0.9828,
+      "speech_seconds": 9.349
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "b21649b0becff5a5",
+      "language": "en",
+      "probability": 0.9394,
+      "speech_seconds": 14.105
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "b11ab3354eef0d19",
+      "language": "en",
+      "probability": 0.9851,
+      "speech_seconds": 21.752
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "citadel-direct-english",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "ed75d4b1df96179d",
+      "language": "en",
+      "probability": 0.7524,
+      "speech_seconds": 6.96
+    },
+    {
+      "audio_map": "0:a:0",
+      "provider": "citadel-direct-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "851de85c178b114d",
+      "language": "en",
+      "probability": 0.9875,
+      "speech_seconds": 9.423
+    },
+    {
+      "audio_map": "0:a:1",
+      "provider": "citadel-direct-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "1c18c8ef90799c25",
+      "language": "en",
+      "probability": 0.9791,
+      "speech_seconds": 18.496
+    },
+    {
+      "audio_map": "0:a:3",
+      "provider": "citadel-direct-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "226e6170e703dcff",
+      "language": "en",
+      "probability": 0.9771,
+      "speech_seconds": 22.0
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "e333541df8ff452b",
+      "language": "en",
+      "probability": 0.6709,
+      "speech_seconds": 1.44
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:0",
+      "provider": "moviebox-english-dub",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "9d39fbeabfb8bd7a",
+      "language": "en",
+      "probability": 0.9758,
+      "speech_seconds": 19.123
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:0",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "db708ba518bfd21a",
+      "language": "en",
+      "probability": 0.8463,
+      "speech_seconds": 3.296
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:0",
+      "provider": "rivestream-explicit-english",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "c33e017b37d4e34f",
+      "language": "hi",
+      "probability": 0.7689,
+      "speech_seconds": 18.72
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:0",
+      "provider": "citadel-direct-english",
+      "tmdb": 27205,
+      "episode": null,
+      "stream_hash": "ed75d4b1df96179d",
+      "language": "en",
+      "probability": 0.8463,
+      "speech_seconds": 3.296
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:1",
+      "provider": "rivestream",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "a47aad597546a1cf",
+      "language": "en",
+      "probability": 0.9906,
+      "speech_seconds": 18.832
+    },
+    {
+      "sample_start_seconds": 480,
+      "audio_map": "0:a:1",
+      "provider": "citadel-direct-tv-browser",
+      "tmdb": 1396,
+      "episode": 1,
+      "stream_hash": "9baa1a24de8ecff5",
+      "language": "en",
+      "probability": 0.9906,
+      "speech_seconds": 18.832
+    }
+  ],
+  "phases": {
+    "sdk-aio-sweep.jsonl": [
+      {
+        "provider": "vidking",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.697,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "vidking",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.739,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "vidking",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.745,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "vidlink2",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.554,
+        "exit": 0,
+        "cards": 3,
+        "decodes": [
+          {
+            "host": "bcdn.hakunaymatata.com",
+            "stream_hash": "4c4eb403bd5990ba",
+            "label": "Inception (2010) (VidLink 1080p)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.012,
+            "decode_seconds": 1.269,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x1](eng): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 2037 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s (default)",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(eng): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:80KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Inception (2010) (VidLink 1080p)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidlink2",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.231,
+        "exit": 0,
+        "cards": 4,
+        "decodes": [
+          {
+            "host": "bcdn.hakunaymatata.com",
+            "stream_hash": "b2a8815cb3086e3e",
+            "label": "Breaking Bad S01E01 (VidLink 1080p)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.752,
+            "decode_seconds": 1.167,
+            "frames": 200,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x1](und): Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1548 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 157 kb/s (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:83KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Breaking Bad S01E01 (VidLink 1080p)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidlink2",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.931,
+        "exit": 0,
+        "cards": 3,
+        "decodes": [
+          {
+            "host": "bcdn.hakunaymatata.com",
+            "stream_hash": "4fb0fca339e4b504",
+            "label": "Frieren: Beyond Journey's End S01E02 (VidLink 1080p)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.542,
+            "decode_seconds": 1.18,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1930 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1[0x2](jpn): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 130 kb/s (default)",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(jpn): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:80KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Frieren: Beyond Journey's End S01E02 (VidLink 1080p)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidlink2",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.271,
+        "exit": 0,
+        "cards": 2,
+        "decodes": [
+          {
+            "host": "hcdn3.hakunaymatata.com",
+            "stream_hash": "d02fc85a383f4829",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (VidLink 720p)",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.849,
+            "decode_seconds": 1.662,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1280x720 [SAR 1:1 DAR 16:9], 943 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 256 kb/s (default)",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(und): Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:80KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (VidLink 720p)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidlink2",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.309,
+        "exit": 0,
+        "cards": 4,
+        "decodes": [
+          {
+            "host": "bcdn.hakunaymatata.com",
+            "stream_hash": "fb868f4cad5cf006",
+            "label": "JUJUTSU KAISEN S01E02 (VidLink 1080p)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.864,
+            "decode_seconds": 1.405,
+            "frames": 199,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1079 kb/s, 25 fps, 25 tbr, 90k tbn, start 0.046000 (default)",
+              "Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 157 kb/s (default)",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(und): Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:82KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "JUJUTSU KAISEN S01E02 (VidLink 1080p)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidking",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 20.1,
+        "exit": 1,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "vidking",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 20.081,
+        "exit": 1,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "vidzee",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.723,
+        "exit": 0,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "6965c27bc8a31d00",
+            "label": "Achilles (US)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.066,
+            "decode_seconds": 1.272,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, 5.1, s16, 4233 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+              "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, 5.1, fltp, start 1.483411",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1: Audio: pcm_s16le, 44100 Hz, 5.1, s16, 4233 kb/s",
+              "[out#0/null] video:80KiB audio:4135KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": "VidZee",
+        "label": "Achilles (US)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidzee",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.449,
+        "exit": 0,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "315ee32403cddf32",
+            "label": "Achilles (US)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.921,
+            "decode_seconds": 1.06,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+              "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400411",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": "VidZee",
+        "label": "Achilles (US)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidzee",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.24,
+        "exit": 0,
+        "cards": 1,
+        "decodes": [
+          {
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "dedcb66b97e7f4f7",
+            "label": "Achilles (US)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.91,
+            "decode_seconds": 1.034,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720, 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+              "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.483411",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180, q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": "VidZee",
+        "label": "Achilles (US)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidzee",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.755,
+        "exit": 0,
+        "cards": 2,
+        "decodes": [
+          {
+            "host": "i-arch-400.luxki440das.com",
+            "stream_hash": "cf23c4b33fceb949",
+            "label": "Achilles (US)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 11.184,
+            "decode_seconds": 12.596,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (Main) ([27][0][0][0] / 0x001B), yuv420p(tv, bt2020nc/bt2020/smpte2084), 640x266 [SAR 399:400 DAR 12:5], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:2[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt2020nc/bt2020/smpte2084), 858x356 [SAR 712:715 DAR 12:5], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:3[0x1](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:4[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt2020nc/bt2020/smpte2084), 1280x532 [SAR 399:400 DAR 12:5], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:5[0x2](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:6[0x3]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt2020nc/bt2020/smpte2084), 1280x532 [SAR 399:400 DAR 12:5], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:7[0x3](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt2020nc/bt2020/smpte2084, progressive), 320x134 [SAR 201:200 DAR 12:5], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+              "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": "VidZee",
+        "label": "Achilles (US)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "vidzee",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.695,
+        "exit": 0,
+        "cards": 2,
+        "decodes": [
+          {
+            "host": "i-arch-400.luxki440das.com",
+            "stream_hash": "dd60463001e6418b",
+            "label": "Achilles (US)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 11.021,
+            "decode_seconds": 12.074,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (Main) ([27][0][0][0] / 0x001B), yuv420p, 640x358 [SAR 179:180 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:2[0x1]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 858x482 [SAR 3856:3861 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:3[0x1](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:4[0x2]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:5[0x2](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:6[0x3]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:7[0x3](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+              "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": "VidZee",
+        "label": "Achilles (US)",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 11.25,
+        "exit": 0,
+        "cards": 10,
+        "decodes": [
+          {
+            "host": "proxy.valhallastream.com",
+            "stream_hash": "25a772f5d7d7dddd",
+            "label": "Inception (2010) — [RiveStream pulse Pulse] 1080p Multi Audio",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.52,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8,
+            "codec_evidence": []
+          },
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "95deac721178ab15",
+            "label": "Inception (2010) — [RiveStream citadel Citadel] 720p English",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.472,
+            "decode_seconds": 1.115,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.529867",
+              "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:78KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Inception (2010) — [RiveStream citadel Citadel] 720p English",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 10.924,
+        "exit": 0,
+        "cards": 5,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "a47aad597546a1cf",
+            "label": "Breaking Bad S01E01 — [RiveStream citadel Citadel] 720p Hindi",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.421,
+            "decode_seconds": 0.694,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.525133",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.436978",
+              "Stream #0:2[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.436978",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Breaking Bad S01E01 — [RiveStream citadel Citadel] 720p Hindi",
+        "audio_selection": 1
+      },
+      {
+        "provider": "rivestream",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 7.979,
+        "exit": 0,
+        "cards": 9,
+        "decodes": [
+          {
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "5d30a20ffa0b6c49",
+            "label": "JUJUTSU KAISEN S01E02 — [RiveStream primevids PrimeVids] 1080p Multi Audio",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.959,
+            "decode_seconds": 1.034,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720, 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+              "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.483411",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180, q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "JUJUTSU KAISEN S01E02 — [RiveStream primevids PrimeVids] 1080p Multi Audio",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 11.953,
+        "exit": 0,
+        "cards": 4,
+        "decodes": [
+          {
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "040475f5110da6df",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [RiveStream primevids PrimeVids] 1080p Multi Audio",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.92,
+            "decode_seconds": 1.005,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+              "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400411",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [RiveStream primevids PrimeVids] 1080p Multi Audio",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 12.951,
+        "exit": 0,
+        "cards": 5,
+        "decodes": [
+          {
+            "host": "cdn2.ngcorp.dad",
+            "stream_hash": "8e0df8c44fc44354",
+            "label": "Frieren: Beyond Journey's End S01E02 — [RiveStream primevids PrimeVids] 1080p Multi Audio",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.152,
+            "decode_seconds": 1.33,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, 5.1, s16, 4233 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483411",
+              "Stream #0:1[0x0]: Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, 5.1, fltp, start 1.483411",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1: Audio: pcm_s16le, 44100 Hz, 5.1, s16, 4233 kb/s",
+              "[out#0/null] video:80KiB audio:4135KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Frieren: Beyond Journey's End S01E02 — [RiveStream primevids PrimeVids] 1080p Multi Audio",
+        "audio_selection": 0
+      },
+      {
+        "provider": "cinejoyaio",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.475,
+        "exit": 0,
+        "cards": 3,
+        "decodes": [
+          {
+            "host": "lit.cheaptruckrepairs.cc",
+            "stream_hash": "7aaa1c4e2166b795",
+            "label": "Inception (2010) — Inception (2010) [Lisbon] 2160p WEB-DL HEVC HDR English — PXDm-yFnQdxWAmmXj6JIew.m3u8",
+            "resolution_hint": 2160,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 2.88,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8,
+            "codec_evidence": []
+          },
+          {
+            "host": "nebula.bright67.online",
+            "stream_hash": "6777da5e292324aa",
+            "label": "Inception (2010) — Inception (2010) [Nebula] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 10.854,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 146,
+            "codec_evidence": []
+          }
+        ],
+        "extractor": null,
+        "label": "Inception (2010) — Inception (2010) [Nebula] 1080p WEB-DL x264 English"
+      },
+      {
+        "provider": "cinejoyaio",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.185,
+        "exit": 0,
+        "cards": 3,
+        "decodes": [
+          {
+            "host": "lit.cheaptruckrepairs.cc",
+            "stream_hash": "5b66b9e13616a985",
+            "label": "Breaking Bad S01E01 — Breaking Bad S01E01 [Lisbon] 2160p WEB-DL HEVC HDR English — hL-_c7szdSawZaF-y5RYhA.m3u8",
+            "resolution_hint": 2160,
+            "first_decoded_frame_seconds": 9.886,
+            "decode_seconds": 11.431,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "[in#0/hls] Could not find codec parameters for stream 4 (Video: h264 (avc1 / 0x31637661), none, 640x360, 644 kb/s): unspecified pixel format",
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)",
+              "Stream #0:1[0x1](und): Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 3840x2160 [SAR 1:1 DAR 16:9], 3788 kb/s, 23.98 fps, 23.98 tbr, 24k tbn, start 10.125125 (default)",
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)",
+              "Stream #0:2[0x2](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 2571 kb/s, 23.98 fps, 23.98 tbr, 24k tbn, start 10.083417 (default)",
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)",
+              "Stream #0:3[0x3](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 1168 kb/s, 23.98 fps, 23.98 tbr, 24k tbn, start 10.083417 (default)",
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)",
+              "Stream #0:4[0x4](und): Video: h264 (avc1 / 0x31637661), none, 640x360, 644 kb/s, 24k tbr, 24k tbn, start 10.000000 (default)",
+              "Stream #0:1 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:0 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:78KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Breaking Bad S01E01 — Breaking Bad S01E01 [Lisbon] 2160p WEB-DL HEVC HDR English — hL-_c7szdSawZaF-y5RYhA.m3u8",
+        "audio_selection": 0
+      },
+      {
+        "provider": "cinejoyaio",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 3.095,
+        "exit": 0,
+        "cards": 2,
+        "decodes": [
+          {
+            "host": "lit.cheaptruckrepairs.cc",
+            "stream_hash": "b1b0bafb8fb3daeb",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — Demon Slayer: Kimetsu no Yaiba S01E02 [Lisbon] 2160p WEB-DL HEVC HDR English — 6EGb7Or1mNWa5orZ0GOW4w.m3u8",
+            "resolution_hint": 2160,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 3.113,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8,
+            "codec_evidence": []
+          },
+          {
+            "host": "cheaptruckrepairs.cc",
+            "stream_hash": "f78465b7aa81c22a",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — Demon Slayer: Kimetsu no Yaiba S01E02 [Solara] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.153,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8,
+            "codec_evidence": []
+          }
+        ],
+        "extractor": null,
+        "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — Demon Slayer: Kimetsu no Yaiba S01E02 [Solara] 1080p WEB-DL x264 English"
+      },
+      {
+        "provider": "zxcstream",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 1.783,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "zxcstream",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 0.759,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "zxcstream",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 0.413,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "zxcstream",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 0.401,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "zxcstream",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 0.42,
+        "exit": 0,
+        "cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "cinejoyaio",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 2.625,
+        "exit": 0,
+        "cards": 3,
+        "decodes": [
+          {
+            "host": "lit.cheaptruckrepairs.cc",
+            "stream_hash": "d169f7224b7d1d3c",
+            "label": "Frieren: Beyond Journey's End S01E02 — Frieren: Beyond Journey's End S01E02 [Lisbon] 2160p WEB-DL HEVC HDR English — o1i1zyEyJWfKfXnugk7CmA.m3u8",
+            "resolution_hint": 2160,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 3.884,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8,
+            "codec_evidence": []
+          },
+          {
+            "host": "nebula.bright67.online",
+            "stream_hash": "7eaaef6089b999aa",
+            "label": "Frieren: Beyond Journey's End S01E02 — Frieren: Beyond Journey's End S01E02 [Nebula] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 32.052,
+            "decode_seconds": 32.056,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0](und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1920x1080 [SAR 1:1 DAR 16:9], 4623 kb/s, 23.98 fps, 23.98 tbr, 24k tbn, start 0.041000 (default)",
+              "Stream #0:1[0x0](jpn): Audio: aac (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 184 kb/s, start 0.040998 (default)",
+              "Stream #0:2[0x1](und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 2556 kb/s, 23.98 fps, 23.98 tbr, 24k tbn, start 0.041000 (default)",
+              "Stream #0:3[0x1](jpn): Audio: aac (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 124 kb/s, start 0.040998 (default)",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0(und): Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(jpn): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:80KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Frieren: Beyond Journey's End S01E02 — Frieren: Beyond Journey's End S01E02 [Nebula] 1080p WEB-DL x264 English",
+        "audio_selection": 0
+      },
+      {
+        "provider": "cinejoyaio",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 5.827,
+        "exit": 0,
+        "cards": 3,
+        "decodes": [
+          {
+            "host": "lit.cheaptruckrepairs.cc",
+            "stream_hash": "605b0f50b1688a2e",
+            "label": "JUJUTSU KAISEN S01E02 — JUJUTSU KAISEN S01E02 [Lisbon] 2160p WEB-DL HEVC HDR English — yqkv0xWNKXWXh4KsvuWnjg.m3u8",
+            "resolution_hint": 2160,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 2.985,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 234,
+            "codec_evidence": [
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)",
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)",
+              "Stream #0:0[0x0](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start 10.000000 (default)"
+            ]
+          },
+          {
+            "host": "nebula.bright67.online",
+            "stream_hash": "b9478df2d0888eae",
+            "label": "JUJUTSU KAISEN S01E02 — JUJUTSU KAISEN S01E02 [Nebula] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.003,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9,
+            "codec_evidence": []
+          }
+        ],
+        "extractor": null,
+        "label": "JUJUTSU KAISEN S01E02 — JUJUTSU KAISEN S01E02 [Nebula] 1080p WEB-DL x264 English"
+      }
+    ],
+    "moviebox-research.jsonl": [
+      {
+        "provider": "moviebox-direct",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.087,
+            "decode_seconds": 39.077,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 5879 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 4251 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 2087 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:3(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:79KiB audio:1492KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "6391474290696802080"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "977486567826752424"
+          },
+          {
+            "language": "Tamil dub",
+            "subjectId": "1271066063215677000"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "2460016364841487064"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "5694563249140679320"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "3582670341560224688"
+          }
+        ],
+        "subject_id": "6391474290696802080",
+        "selected_subject_id": "6391474290696802080",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.682,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-direct",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [],
+        "error": "RuntimeError",
+        "resolve_seconds": 0.375
+      },
+      {
+        "provider": "moviebox-direct",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "decodes": [],
+        "error": "RuntimeError",
+        "resolve_seconds": 0.353
+      },
+      {
+        "provider": "moviebox-direct",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "decodes": [],
+        "dub_options": [],
+        "subject_id": "5635985817983242720",
+        "selected_subject_id": "5635985817983242720",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.72,
+        "cards": 0
+      },
+      {
+        "provider": "moviebox-direct",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "decodes": [],
+        "error": "RuntimeError",
+        "resolve_seconds": 0.425
+      }
+    ],
+    "moviebox-dubs-research.jsonl": [
+      {
+        "provider": "moviebox-direct-dubs",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6f60d465ad93839e",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.118,
+            "decode_seconds": 39.148,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 5879 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 4251 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 2087 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:3(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:79KiB audio:1492KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "6391474290696802080"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "977486567826752424"
+          },
+          {
+            "language": "Tamil dub",
+            "subjectId": "1271066063215677000"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "2460016364841487064"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "5694563249140679320"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "3582670341560224688"
+          }
+        ],
+        "subject_id": "6391474290696802080",
+        "selected_subject_id": "6391474290696802080",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.624,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-direct-dubs",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "598c490934a0ea62",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.836,
+            "decode_seconds": 12.802,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 101 kb/s, start -0.023220 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1675 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 761 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 371 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 101 kb/s, start -0.023220 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:82KiB audio:1372KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "6207982430134357800"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "1382465867459478920"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "9185019261486531816"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "7036205526539454136"
+          }
+        ],
+        "subject_id": "6207982430134357800",
+        "selected_subject_id": "6207982430134357800",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.617,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-direct-dubs",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "decodes": [],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "2285580691393889616"
+          },
+          {
+            "language": "English sub",
+            "subjectId": "4682870289385018528"
+          },
+          {
+            "language": "English dub",
+            "subjectId": "2180637985006310824"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "6621507596920963808"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "5619366055484219304"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "1320850248914323224"
+          }
+        ],
+        "subject_id": "2285580691393889616",
+        "selected_subject_id": "4682870289385018528",
+        "selected_language_label": "English sub",
+        "resolve_seconds": 0.537,
+        "cards": 0
+      },
+      {
+        "provider": "moviebox-direct-dubs",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "decodes": [],
+        "dub_options": [],
+        "subject_id": "5635985817983242720",
+        "selected_subject_id": "5635985817983242720",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.603,
+        "cards": 0
+      },
+      {
+        "provider": "moviebox-direct-dubs",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "d0938039b46ab0c5",
+            "label": "MovieBox English sub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.274,
+            "decode_seconds": 19.343,
+            "frames": 191,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 113 kb/s, start -0.021333 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 2575 kb/s, 24 fps, 24 tbr, 12288 tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 1524 kb/s, 24 fps, 24 tbr, 12288 tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 738 kb/s, 24 fps, 24 tbr, 12288 tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 113 kb/s, start -0.021333 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 24 fps, 24 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:79KiB audio:1492KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "134079758618484744"
+          },
+          {
+            "language": "Bengali dub",
+            "subjectId": "1647982011103041176"
+          },
+          {
+            "language": "English sub",
+            "subjectId": "1455555137874837616"
+          },
+          {
+            "language": "English dub",
+            "subjectId": "74102370522777768"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "102175217904222864"
+          },
+          {
+            "language": "Tamil dub",
+            "subjectId": "7087998073842321128"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "3136026646520678864"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "5156407403184802968"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "8314967665953624584"
+          }
+        ],
+        "subject_id": "134079758618484744",
+        "selected_subject_id": "1455555137874837616",
+        "selected_language_label": "English sub",
+        "resolve_seconds": 0.523,
+        "cards": 1
+      }
+    ],
+    "moviebox-english-dub-research.jsonl": [
+      {
+        "provider": "moviebox-english-dub",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.024,
+            "decode_seconds": 39.132,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 5879 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 4251 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 2087 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:3(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:79KiB audio:1492KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "6391474290696802080"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "977486567826752424"
+          },
+          {
+            "language": "Tamil dub",
+            "subjectId": "1271066063215677000"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "2460016364841487064"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "5694563249140679320"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "3582670341560224688"
+          }
+        ],
+        "subject_id": "6391474290696802080",
+        "selected_subject_id": "6391474290696802080",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.611,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-english-dub",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "MovieBox original/unverified",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.856,
+            "decode_seconds": 12.926,
+            "frames": 199,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 101 kb/s, start -0.023220 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1675 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 761 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 371 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 101 kb/s, start -0.023220 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:82KiB audio:1372KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "6207982430134357800"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "1382465867459478920"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "9185019261486531816"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "7036205526539454136"
+          }
+        ],
+        "subject_id": "6207982430134357800",
+        "selected_subject_id": "6207982430134357800",
+        "selected_language_label": "original/unverified",
+        "resolve_seconds": 0.678,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-english-dub",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "6ab6188a4dc4fb39",
+            "label": "MovieBox English dub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.436,
+            "decode_seconds": 17.332,
+            "frames": 199,
+            "media_seconds": 8.021,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 131 kb/s, start -0.021333 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1923 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 1063 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 578 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 131 kb/s, start -0.021333 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)",
+              "[out#0/null] video:82KiB audio:1496KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "2285580691393889616"
+          },
+          {
+            "language": "English sub",
+            "subjectId": "4682870289385018528"
+          },
+          {
+            "language": "English dub",
+            "subjectId": "2180637985006310824"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "6621507596920963808"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "5619366055484219304"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "1320850248914323224"
+          }
+        ],
+        "subject_id": "2285580691393889616",
+        "selected_subject_id": "2180637985006310824",
+        "selected_language_label": "English dub",
+        "resolve_seconds": 0.643,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-english-dub",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b21649b0becff5a5",
+            "label": "MovieBox English dub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.698,
+            "decode_seconds": 11.511,
+            "frames": 239,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 122 kb/s, start -0.023220 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1227 kb/s, 29.97 fps, 29.97 tbr, 30k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 595 kb/s, 29.97 fps, 29.97 tbr, 30k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 341 kb/s, 29.97 fps, 29.97 tbr, 30k tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 122 kb/s, start -0.023220 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 29.97 fps, 29.97 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:99KiB audio:1372KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "3619725132714887968"
+          },
+          {
+            "language": "English sub",
+            "subjectId": "2791050960590857480"
+          },
+          {
+            "language": "English dub",
+            "subjectId": "7231184498325966096"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "3350050042852901216"
+          },
+          {
+            "language": "Tamil dub",
+            "subjectId": "1674744651330339184"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "1422543072197592552"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "4324850899446386984"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "4052170619893468696"
+          }
+        ],
+        "subject_id": "3619725132714887968",
+        "selected_subject_id": "7231184498325966096",
+        "selected_language_label": "English dub",
+        "resolve_seconds": 0.678,
+        "cards": 1
+      },
+      {
+        "provider": "moviebox-english-dub",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b11ab3354eef0d19",
+            "label": "MovieBox English dub",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.565,
+            "decode_seconds": 7.376,
+            "frames": 191,
+            "media_seconds": 8.011,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s, start -0.023220 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 802 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 469 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 293 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s, start -0.023220 (default)",
+              "Stream #0:0 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:79KiB audio:1372KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "dub_options": [
+          {
+            "language": "Original Audio",
+            "subjectId": "134079758618484744"
+          },
+          {
+            "language": "Bengali dub",
+            "subjectId": "1647982011103041176"
+          },
+          {
+            "language": "English sub",
+            "subjectId": "1455555137874837616"
+          },
+          {
+            "language": "English dub",
+            "subjectId": "74102370522777768"
+          },
+          {
+            "language": "Hindi dub",
+            "subjectId": "102175217904222864"
+          },
+          {
+            "language": "Tamil dub",
+            "subjectId": "7087998073842321128"
+          },
+          {
+            "language": "Telugu dub",
+            "subjectId": "3136026646520678864"
+          },
+          {
+            "language": "esla dub",
+            "subjectId": "5156407403184802968"
+          },
+          {
+            "language": "ptbr dub",
+            "subjectId": "8314967665953624584"
+          }
+        ],
+        "subject_id": "134079758618484744",
+        "selected_subject_id": "74102370522777768",
+        "selected_language_label": "English dub",
+        "resolve_seconds": 0.663,
+        "cards": 1
+      }
+    ],
+    "rivestream-explicit-english.jsonl": [
+      {
+        "provider": "rivestream-explicit-english",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "kind": "movie",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 9.788,
+        "exit": 0,
+        "cards": 10,
+        "decodes": [
+          {
+            "host": "proxy.valhallastream.com",
+            "stream_hash": "25a772f5d7d7dddd",
+            "label": "Inception (2010) — [RiveStream pulse Pulse] 1080p Multi Audio",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.525,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8,
+            "codec_evidence": []
+          },
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "db708ba518bfd21a",
+            "label": "Inception (2010) — [RiveStream citadel Citadel] 720p English",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.469,
+            "decode_seconds": 0.756,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.529867",
+              "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:78KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Inception (2010) — [RiveStream citadel Citadel] 720p English",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream-explicit-english",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 11.051,
+        "exit": 0,
+        "cards": 8,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "f51d4eac99d008c1",
+            "label": "Frieren: Beyond Journey's End S01E02 — [RiveStream citadel Citadel] 720p English",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.727,
+            "decode_seconds": 1.32,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 tbr, 90k tbn, start 1.505000",
+              "Stream #0:1[0x0](eng): Audio: aac (HE-AAC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.400000",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+              "[out#0/null] video:78KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Frieren: Beyond Journey's End S01E02 — [RiveStream citadel Citadel] 720p English",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream-explicit-english",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 8.595,
+        "exit": 0,
+        "cards": 13,
+        "decodes": [
+          {
+            "host": "i-arch-400.luxki440das.com",
+            "stream_hash": "c33e017b37d4e34f",
+            "label": "Breaking Bad S01E01 — [RiveStream asiacloud AsiaCloud] 1080p Multi Audio",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 3.526,
+            "decode_seconds": 5.774,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "hin",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.483422",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.462089",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(hin): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+              "[out#0/null] video:79KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Breaking Bad S01E01 — [RiveStream asiacloud AsiaCloud] 1080p Multi Audio",
+        "audio_selection": 0
+      },
+      {
+        "provider": "rivestream-explicit-english",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 10.893,
+        "exit": 0,
+        "cards": 5,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "ab2762f9d7816c93",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [RiveStream citadel Citadel] 720p English",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.394,
+            "decode_seconds": 0.715,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.525122",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:2[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:3[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [RiveStream citadel Citadel] 720p English",
+        "audio_selection": 1
+      },
+      {
+        "provider": "rivestream-explicit-english",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "kind": "series",
+        "binary_sha256": "8871769d3734848823b98f2c5432f9b9cfead2ddfd9d39be01ebfe8f007f7414",
+        "resolve_seconds": 11.565,
+        "exit": 0,
+        "cards": 7,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "fd400b140b4a2acf",
+            "label": "JUJUTSU KAISEN S01E02 — [RiveStream citadel Citadel] 720p English",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 0.36,
+            "decode_seconds": 0.477,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.525122",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.475122",
+              "Stream #0:2[0x0](tam): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.475122",
+              "Stream #0:3[0x0](tel): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.475122",
+              "Stream #0:4[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.482133",
+              "Stream #0:5[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:4 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:80KiB audio:1216KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "extractor": null,
+        "label": "JUJUTSU KAISEN S01E02 — [RiveStream citadel Citadel] 720p English",
+        "audio_selection": 3
+      }
+    ],
+    "citadel-direct.jsonl": [
+      {
+        "provider": "citadel-direct-english",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "ed75d4b1df96179d",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.673,
+            "decode_seconds": 0.786,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.529867",
+              "Stream #0:1[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.400000",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:78KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "resolve_seconds": 0.987,
+        "cards": 4,
+        "required_audio_index": 0
+      },
+      {
+        "provider": "citadel-direct-english",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [],
+        "resolve_seconds": 1.283,
+        "cards": 0
+      },
+      {
+        "provider": "citadel-direct-english",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "851de85c178b114d",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.411,
+            "decode_seconds": 0.561,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 tbr, 90k tbn, start 1.505000",
+              "Stream #0:1[0x0](eng): Audio: aac (HE-AAC) ([15][0][0][0] / 0x000F), 48000 Hz, stereo, fltp, start 1.400000",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:1 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s",
+              "[out#0/null] video:78KiB audio:1500KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "resolve_seconds": 1.412,
+        "cards": 1,
+        "required_audio_index": 0
+      },
+      {
+        "provider": "citadel-direct-english",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "img1.fcxmb.com",
+            "stream_hash": "1c18c8ef90799c25",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.366,
+            "decode_seconds": 0.526,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.525122",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:2[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:3[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "resolve_seconds": 1.256,
+        "cards": 1,
+        "required_audio_index": 1
+      },
+      {
+        "provider": "citadel-direct-english",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "226e6170e703dcff",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.416,
+            "decode_seconds": 0.877,
+            "frames": 192,
+            "media_seconds": 8.016,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p(tv, bt709), 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.525122",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.475122",
+              "Stream #0:2[0x0](tam): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.475122",
+              "Stream #0:3[0x0](tel): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.475122",
+              "Stream #0:4[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 2.482133",
+              "Stream #0:5[0x0](jpn): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.478678",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:4 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:80KiB audio:1216KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "resolve_seconds": 1.051,
+        "cards": 2,
+        "required_audio_index": 3
+      }
+    ],
+    "citadel-tv-recovered.jsonl": [
+      {
+        "provider": "citadel-direct-tv-recovered",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [],
+        "resolve_seconds": 1.304,
+        "cards": 0
+      }
+    ],
+    "citadel-tv-browser.jsonl": [
+      {
+        "provider": "citadel-direct-tv-browser",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "decodes": [
+          {
+            "host": "img1.hscow.com",
+            "stream_hash": "9baa1a24de8ecff5",
+            "label": "720p | English",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.323,
+            "decode_seconds": 0.403,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0[0x0]: Video: h264 (High) ([27][0][0][0] / 0x001B), yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 23.98 fps, 23.98 tbr, 90k tbn, start 1.525133",
+              "Stream #0:1[0x0](hin): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.436978",
+              "Stream #0:2[0x0](eng): Audio: aac (LC) ([15][0][0][0] / 0x000F), 44100 Hz, stereo, fltp, start 1.436978",
+              "Stream #0:0 -> #0:0 (h264 (native) -> wrapped_avframe (native))",
+              "Stream #0:2 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn",
+              "Stream #0:1(eng): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s",
+              "[out#0/null] video:79KiB audio:1378KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ],
+        "resolve_seconds": 0.832,
+        "cards": 2,
+        "required_audio_index": 1
+      }
+    ],
+    "moviebox-720p-long.jsonl": [
+      {
+        "provider": "moviebox-720p-long",
+        "tmdb": 27205,
+        "title": "Inception",
+        "episode": null,
+        "requested_media_seconds": 30,
+        "requested_video_index": 1,
+        "selected_language_label": "original/unverified",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "e333541df8ff452b",
+            "label": "MovieBox 720p longer decode",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.209,
+            "decode_seconds": 40.003,
+            "frames": 669,
+            "media_seconds": 28.03,
+            "audio_decoded": false,
+            "audio_streams": [
+              [
+                "eng",
+                "aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+              ]
+            ],
+            "passed": false,
+            "exit": -9,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 5879 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 4251 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, bt709, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 2087 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:3(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 129 kb/s, start -0.021333 (default)",
+              "Stream #0:1 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, bt709, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(eng): Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s (default)"
+            ]
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-720p-long",
+        "tmdb": 1396,
+        "title": "Breaking Bad",
+        "episode": 1,
+        "requested_media_seconds": 30,
+        "requested_video_index": 1,
+        "selected_language_label": "original/unverified",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "9d39fbeabfb8bd7a",
+            "label": "MovieBox 720p longer decode",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.902,
+            "decode_seconds": 26.907,
+            "frames": 749,
+            "media_seconds": 30.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 101 kb/s, start -0.023220 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1675 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 761 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 371 kb/s, 25 fps, 25 tbr, 12800 tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 101 kb/s, start -0.023220 (default)",
+              "Stream #0:1 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 25 fps, 25 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:310KiB audio:5140KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ]
+      },
+      {
+        "provider": "moviebox-720p-long",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "requested_media_seconds": 30,
+        "requested_video_index": 1,
+        "selected_language_label": "English dub",
+        "decodes": [
+          {
+            "host": "sbcdn3.hakunaymatata.com",
+            "stream_hash": "b11ab3354eef0d19",
+            "label": "MovieBox 720p longer decode",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.064,
+            "decode_seconds": 11.172,
+            "frames": 719,
+            "media_seconds": 30.03,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s, start -0.023220 (default)"
+              ],
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "codec_evidence": [
+              "Stream #0:0: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 802 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:1: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], 469 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:2: Video: hevc (Main) (hev1 / 0x31766568), yuv420p(tv, progressive), 854x480 [SAR 1280:1281 DAR 16:9], 293 kb/s, 23.98 fps, 23.98 tbr, 24k tbn (default)",
+              "Stream #0:3(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s, start -0.023220 (default)",
+              "Stream #0:1 -> #0:0 (hevc (native) -> wrapped_avframe (native))",
+              "Stream #0:3 -> #0:1 (aac (native) -> pcm_s16le (native))",
+              "Stream #0:0: Video: wrapped_avframe, yuv420p(tv, progressive), 320x180 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 23.98 fps, 23.98 tbn (default)",
+              "Stream #0:1(und): Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)",
+              "[out#0/null] video:298KiB audio:5144KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "privacy": "Signed media URLs, cookies, credentials, raw speech, and transcripts are excluded. Private prototypes and logs are under /tmp/vsources-aio-research-20260930."
+}

@@ -1,0 +1,3854 @@
+{
+  "audit_date_local": "2026-09-29",
+  "recorded_at_utc": "2026-09-30T02:32:05.682845+00:00",
+  "objective": "Find fast English-dub anime streams through live extraction, first-frame decoding, and speech language checks.",
+  "recommendations": {
+    "fastest_tested": "AniWaves at 720p, via new GitHub prototype",
+    "best_tested_1080p": "ReAnime with its embedded English audio track explicitly selected",
+    "ready_dub_fallback": "AnimeKai, then HiAnime; they share the tested Zoko backend"
+  },
+  "summary": [
+    {
+      "provider": "aniwaves",
+      "status": "GitHub prototype; not registered in SDK",
+      "source_reference": "https://github.com/aryaniiil/anime-api/blob/594d12ec729553699bf6bc46fc94b1f76a6b76f3/src/providers/aniwaves.py",
+      "resolution_tested": 720,
+      "successful_decodes": 9,
+      "attempts": 9,
+      "median_resolve_seconds": 2.305,
+      "median_first_decoded_frame_after_url_seconds": 0.728,
+      "median_resolve_plus_first_frame_seconds": 3.081,
+      "first_frame_range_seconds": [
+        0.692,
+        0.928
+      ],
+      "english_speech_verified_tmdb_ids": [
+        85937,
+        95479,
+        209867
+      ]
+    },
+    {
+      "provider": "reanime",
+      "status": "Existing SDK provider; explicitly select embedded eng audio",
+      "source_reference": "https://reanime.to/",
+      "resolution_tested": 1080,
+      "successful_decodes": 9,
+      "attempts": 9,
+      "median_resolve_seconds": 2.337,
+      "median_first_decoded_frame_after_url_seconds": 1.37,
+      "median_resolve_plus_first_frame_seconds": 4.009,
+      "first_frame_range_seconds": [
+        0.808,
+        3.688
+      ],
+      "english_speech_verified_tmdb_ids": [
+        85937,
+        95479,
+        209867
+      ]
+    },
+    {
+      "provider": "animekai",
+      "status": "Existing SDK; tested dub route uses Zoko",
+      "source_reference": "https://github.com/pystardust/ani-cli",
+      "resolution_tested": 1080,
+      "successful_decodes": 9,
+      "attempts": 9,
+      "median_resolve_seconds": 2.125,
+      "median_first_decoded_frame_after_url_seconds": 2.355,
+      "median_resolve_plus_first_frame_seconds": 4.54,
+      "first_frame_range_seconds": [
+        2.098,
+        2.6
+      ],
+      "english_speech_verified_tmdb_ids": [
+        85937,
+        95479,
+        209867
+      ]
+    },
+    {
+      "provider": "hianime",
+      "status": "Existing SDK; shares the tested Zoko streams with AnimeKai",
+      "source_reference": "https://hianime.at/",
+      "resolution_tested": 1080,
+      "successful_decodes": 9,
+      "attempts": 9,
+      "median_resolve_seconds": 2.445,
+      "median_first_decoded_frame_after_url_seconds": 2.376,
+      "median_resolve_plus_first_frame_seconds": 4.805,
+      "first_frame_range_seconds": [
+        2.121,
+        2.629
+      ],
+      "english_speech_verified_tmdb_ids": [
+        85937,
+        95479,
+        209867
+      ]
+    },
+    {
+      "provider": "senshi",
+      "status": "Prototype requires local playlist decryption and explicit en track selection",
+      "source_reference": "https://github.com/CoorenLabs/CoorenLabs/blob/610c3c078c73ce0a259014b9f6953e8d6596d609/src/providers/anime/anivexa/providers/senshi.js",
+      "resolution_tested": 1080,
+      "successful_decodes": 3,
+      "attempts": 3,
+      "median_resolve_seconds": 0.861,
+      "median_first_decoded_frame_after_url_seconds": 3.29,
+      "median_resolve_plus_first_frame_seconds": 4.436,
+      "first_frame_range_seconds": [
+        3.0,
+        4.125
+      ],
+      "english_speech_verified_tmdb_ids": [
+        85937,
+        95479,
+        209867
+      ]
+    },
+    {
+      "provider": "anikage",
+      "status": "Existing SDK; tested first dub candidate was inconsistent, so not recommended as first choice",
+      "source_reference": "https://anikage.cc/",
+      "resolution_tested": 720,
+      "successful_decodes": 5,
+      "attempts": 9,
+      "median_resolve_seconds": 3.819,
+      "median_first_decoded_frame_after_url_seconds": 1.119,
+      "median_resolve_plus_first_frame_seconds": 4.827,
+      "first_frame_range_seconds": [
+        1.008,
+        2.229
+      ],
+      "english_speech_verified_tmdb_ids": [
+        85937,
+        95479
+      ]
+    }
+  ],
+  "method": {
+    "cases": [
+      {
+        "tmdb": 209867,
+        "anilist": 154587,
+        "mal": 52991,
+        "title": "Frieren: Beyond Journey’s End",
+        "season": 1,
+        "episode": 2
+      },
+      {
+        "tmdb": 85937,
+        "anilist": 101922,
+        "mal": 38000,
+        "title": "Demon Slayer: Kimetsu no Yaiba",
+        "season": 1,
+        "episode": 2
+      },
+      {
+        "tmdb": 95479,
+        "anilist": 113415,
+        "mal": 40748,
+        "title": "Jujutsu Kaisen",
+        "season": 1,
+        "episode": 2
+      }
+    ],
+    "sdk_screen_providers": 12,
+    "sdk_screen_cases": 36,
+    "new_prototype_providers_screened": 7,
+    "repeated_measurement": "Three rounds of three episodes for AniWaves, AnimeKai, HiAnime and AniKage, rotated order and one decoder at a time. ReAnime English was retested separately for the same nine cases.",
+    "first_frame_definition": "Wall time until FFmpeg emits a positive decoded frame counter, progress interval 50 ms. Includes network setup, demuxing and decoding; is not a visible-player paint measurement.",
+    "decode_configuration": {
+      "duration_seconds": 8,
+      "output": "null muxer, decoded video and audio",
+      "video_scale_width": 320,
+      "threads": 2,
+      "analyzeduration_microseconds": 2000000,
+      "probesize_bytes": 2000000,
+      "process_timeout_seconds": 40
+    },
+    "language_detection": {
+      "tool": "faster-whisper tiny, CPU int8",
+      "sample_start_seconds": 240,
+      "sample_duration_seconds": 22,
+      "vad": true,
+      "evidence": "Detected English speech with >=0.9 confidence on each of the three titles for recommended routes. ReAnime eng audio and Senshi en audio explicitly selected. Probabilistic speech detection, not an exhaustive dub catalog audit."
+    },
+    "source_lookup_comparability": "SDK timing includes TMDB metadata through a fresh CLI process. GitHub prototypes were supplied title/year/AniList metadata and timed source resolution only; shared lookup caches were cleared between AniWaves rounds. First-frame-after-URL timing is directly comparable as a playback pipeline measurement, but resolution totals are not identical application architectures.",
+    "quality_comparability": "AniWaves/AniKage samples are 720p; ReAnime/AnimeKai/HiAnime/Senshi samples are 1080p. Codec, bitrate, upstream caches, and network conditions differ.",
+    "cli_sha256": "91621ccd30f2cd57cce3a4af7c35fd1a7af587cefe70cf136e0c219ecf89babb",
+    "repo_commit": "934de2d36aa424bcb75b47c1f723965300b4f75a",
+    "ffmpeg": "ffmpeg version n9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "temporary_reproduction_directory": "/tmp/vsources-anime-speed-20260929",
+    "privacy": "No signed media URLs, cookies, keys, private headers, raw speech or transcripts in this report."
+  },
+  "findings": [
+    "AniWaves passed 9/9 repeated short decodes and 3/3 sixty-second decodes. Its raw startup was consistently below one second.",
+    "ReAnime passed 9/9 repeated English-track decodes and 3/3 sixty-second decodes. Files are multi-audio and default Japanese even when a card is labeled dub; select eng explicitly.",
+    "AnimeKai and HiAnime passed 9/9 each, but share identical tested dub stream identities. They are alternate discovery routes rather than independent playback redundancy.",
+    "The sampled AnimeGG dub candidates for Frieren and Jujutsu Kaisen contained Japanese speech and no separate English track was observed. These candidates are excluded; this is not a claim that every AnimeGG dub is wrong.",
+    "A new Anikoto prototype played the Jujutsu Kaisen candidate but speech detection favored Japanese at only 0.616 confidence. It was not accepted as confirmed English.",
+    "Senshi resolved multi-audio 1080p media, but playlists use proprietary EM3U8v1 AES-GCM wrapping. A bounded temporary local playlist adapter plus explicit en audio decoded all three samples.",
+    "AniZone supplied no dub for the test episode. AnimeOnsen and AniBD references are sub-only; excluded from the English-dub shortlist.",
+    "AniNeko current page returned no matches in the sampled scraper flow. KickAssAnime source lookups worked but sampled media did not decode on this connection.",
+    "AllAnime/MKissa metadata search worked quickly; sampled current source flows failed and the published keygen attempt returned AA_CRYPTO_STALE. Fast search alone does not prove fast playback.",
+    "AniDap download API returned 503; WCO pages returned Cloudflare 403. Neither was promoted without playback evidence.",
+    "AniStream resolved source metadata, but sampled Nexabloom/Krussdomi media failed to decode. Existing AnimeZeY/Animesuge/AnikotoTV/AllWish/AniDoor sampled routes did not produce confirmed English-dub candidates."
+  ],
+  "research_sources": [
+    "https://github.com/aryaniiil/anime-api",
+    "https://github.com/sdaqo/anipy-cli/blob/master/api/src/anipy_api/provider/providers/allanime_provider.py",
+    "https://github.com/pystardust/ani-cli",
+    "https://github.com/NuvioPlugin/All-in-One-Nuvio",
+    "https://github.com/hexxt-git/anime-sdk/blob/master/src/providers/AllmangaProvider.ts",
+    "https://github.com/CoorenLabs/CoorenLabs/blob/main/src/providers/anime/anivexa/providers/senshi.js",
+    "https://github.com/stashforge/allmanga-cli/blob/main/allmanga_cli/providers/senshi.py",
+    "https://github.com/Mallyd11/mangayomi-anime-extensions/blob/main/javascript/anime/src/en/anidap.js",
+    "https://github.com/Dhairya3391/kari/blob/main/internal/provider/anistream/direct.go",
+    "https://github.com/Luzferr/extensions-source/blob/main/src/en/wcofun/src/eu/kanade/tachiyomi/animeextension/en/wcofun/Wcofun.kt",
+    "https://github.com/fmhy/edit/blob/main/docs/video.md",
+    "https://github.com/Vynx-Velvet/Flyx-main/blob/main/packages/providers/src/providers/animex.ts"
+  ],
+  "language_observations": [
+    {
+      "provider": "hianime",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "84ce34e48da7f388",
+      "language": "en",
+      "probability": 0.9789,
+      "speech_seconds": 21.879
+    },
+    {
+      "provider": "hianime",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "3bfacc8c03e9b613",
+      "language": "en",
+      "probability": 0.9841,
+      "speech_seconds": 9.424
+    },
+    {
+      "provider": "hianime",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "3f50c0fb76d2d2c0",
+      "language": "en",
+      "probability": 0.9338,
+      "speech_seconds": 14.293
+    },
+    {
+      "provider": "animegg",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "b6071148cac733d5",
+      "language": "ja",
+      "probability": 0.9827,
+      "speech_seconds": 9.616
+    },
+    {
+      "provider": "animegg",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "472214124ee84dfb",
+      "language": "ja",
+      "probability": 0.9901,
+      "speech_seconds": 21.984
+    },
+    {
+      "provider": "anikage",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "1936d36cea5b3e42",
+      "language": "en",
+      "probability": 0.9785,
+      "speech_seconds": 18.56
+    },
+    {
+      "provider": "anikage",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "ccff9bb2f94f0106",
+      "language": "en",
+      "probability": 0.9804,
+      "speech_seconds": 21.728
+    },
+    {
+      "provider": "reanime",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "cd34150fc8b7704d",
+      "language": "ja",
+      "probability": 0.9875,
+      "speech_seconds": 18.464
+    },
+    {
+      "provider": "reanime",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "98e844784a2df7bc",
+      "language": "ja",
+      "probability": 0.9917,
+      "speech_seconds": 22.0
+    },
+    {
+      "provider": "nikastream",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "2cd6d49b78db9fc4",
+      "language": "en",
+      "probability": 0.9827,
+      "speech_seconds": 9.424
+    },
+    {
+      "provider": "nikastream",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "8992da7d9221ec7e",
+      "language": "en",
+      "probability": 0.9841,
+      "speech_seconds": 21.728
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "3e4fab844646e24d",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 9.392
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "491b829eaaa31064",
+      "language": "en",
+      "probability": 0.9785,
+      "speech_seconds": 18.56
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "97f45384ea5f5a45",
+      "language": "en",
+      "probability": 0.9804,
+      "speech_seconds": 21.728
+    },
+    {
+      "provider": "new-anikoto",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "89eff518e1698f61",
+      "language": "ja",
+      "probability": 0.6159,
+      "speech_seconds": 15.264
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "0f18e2e5c9e42f7e",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 9.392
+    },
+    {
+      "provider": "anikage",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "f9f6de1c8eb5c82c",
+      "language": "en",
+      "probability": 0.9785,
+      "speech_seconds": 18.56
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "c66e23589f14129a",
+      "language": "en",
+      "probability": 0.9804,
+      "speech_seconds": 21.728
+    },
+    {
+      "provider": "anikage",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "de0e9e4b57f39c31",
+      "language": "en",
+      "probability": 0.9804,
+      "speech_seconds": 21.728
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "b70483df72ab9f97",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 9.392
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "80c469a3898d481b",
+      "language": "en",
+      "probability": 0.9785,
+      "speech_seconds": 18.56
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "bb7787cc6b7eb39f",
+      "language": "en",
+      "probability": 0.9744,
+      "speech_seconds": 9.392
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "4876655a5fb10caa",
+      "language": "en",
+      "probability": 0.9785,
+      "speech_seconds": 18.56
+    },
+    {
+      "provider": "new-aniwaves",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "6d4ceac42c02f967",
+      "language": "en",
+      "probability": 0.9804,
+      "speech_seconds": 21.728
+    },
+    {
+      "provider": "new-senshi-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "c3e0d2b8572f7b1d",
+      "language": "en",
+      "probability": 0.9842,
+      "speech_seconds": 9.425
+    },
+    {
+      "provider": "new-senshi-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "f0d6cecb71545638",
+      "language": "en",
+      "probability": 0.9788,
+      "speech_seconds": 18.591
+    },
+    {
+      "provider": "new-senshi-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "44fb1f09814057a7",
+      "language": "en",
+      "probability": 0.9834,
+      "speech_seconds": 21.92
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "8a8865c5f46946fc",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 9.392
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "b6e01ba2a1bbe8a9",
+      "language": "en",
+      "probability": 0.9798,
+      "speech_seconds": 18.593
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "e22db90508745feb",
+      "language": "en",
+      "probability": 0.9833,
+      "speech_seconds": 21.856
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "fea4aea166c50c13",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 9.392
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "e8b23320c9a0e393",
+      "language": "en",
+      "probability": 0.9798,
+      "speech_seconds": 18.593
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 95479,
+      "episode": 2,
+      "stream_hash": "ab6dd2a1a4964bf5",
+      "language": "en",
+      "probability": 0.9833,
+      "speech_seconds": 21.856
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 209867,
+      "episode": 2,
+      "stream_hash": "8868a55d929f39ee",
+      "language": "en",
+      "probability": 0.9845,
+      "speech_seconds": 9.392
+    },
+    {
+      "audio_map": "0:a:m:language:eng",
+      "provider": "reanime-english",
+      "tmdb": 85937,
+      "episode": 2,
+      "stream_hash": "b7307d55c4d13e8f",
+      "language": "en",
+      "probability": 0.9798,
+      "speech_seconds": 18.593
+    }
+  ],
+  "phases": {
+    "sdk-screen.jsonl": [
+      {
+        "provider": "hianime",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 3.556,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.622,
+            "decode_seconds": 3.518,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "hianime",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 3.9,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.444,
+            "decode_seconds": 5.381,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "hianime",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 3.926,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.119,
+            "decode_seconds": 3.199,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "animekai",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.389,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.273,
+            "decode_seconds": 4.753,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "animekai",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.475,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.153,
+            "decode_seconds": 3.293,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "animekai",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 2.42,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.512,
+            "decode_seconds": 3.356,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "anikoto",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 6.879,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anikoto",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 6.574,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "allwish",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 5.515,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anikoto",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 5.922,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "allwish",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 5.994,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anidoor",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 4.387,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "allwish",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 5.219,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anidoor",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 4.043,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anidoor",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 6.992,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animegg",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.868,
+        "cards": 2,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animegg",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 4.745,
+        "cards": 8,
+        "dub_cards": 4,
+        "decodes": [
+          {
+            "host": "www.animegg.org",
+            "stream_hash": "b6071148cac733d5",
+            "label": "Frieren: Beyond Journey's End S01E02 (AnimeGG 1080p DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.85,
+            "decode_seconds": 2.726,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "animesuge",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 1.586,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animesuge",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 4.769,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animesuge",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 5.664,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animegg",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 3.901,
+        "cards": 3,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "www.animegg.org",
+            "stream_hash": "472214124ee84dfb",
+            "label": "JUJUTSU KAISEN S01E02 (AnimeGG 720p DUB)",
+            "resolution_hint": 720,
+            "first_decoded_frame_seconds": 3.675,
+            "decode_seconds": 4.05,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "und",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "anikage",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 5.544,
+        "cards": 5,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "7005d0244c7723c8",
+            "label": "Frieren: Beyond Journey's End S01E02 (Dub · koto · Vidstream-2)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 1.201,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "anikage",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 5.345,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "1936d36cea5b3e42",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.716,
+            "decode_seconds": 3.098,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "reanime",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 4.057,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anikage",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 5.341,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "ccff9bb2f94f0106",
+            "label": "JUJUTSU KAISEN S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.273,
+            "decode_seconds": 3.608,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "anikototv",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.831,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "reanime",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 4.393,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "cd34150fc8b7704d",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [ReAnime ReAnime [HD-1] | 1080p | dub] English (Dub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.787,
+            "decode_seconds": 2.272,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "jpn",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "reanime",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 3.73,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "98e844784a2df7bc",
+            "label": "JUJUTSU KAISEN S01E02 — [ReAnime ReAnime [HD-1] | 1080p | dub] English (Dub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.146,
+            "decode_seconds": 1.907,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "jpn",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "anikototv",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 3.4,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "anikototv",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 3.33,
+        "cards": 1,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "nikastream",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 11.705,
+        "cards": 13,
+        "dub_cards": 5,
+        "decodes": [
+          {
+            "host": "www.animegg.org",
+            "stream_hash": "2cd6d49b78db9fc4",
+            "label": "Frieren: Beyond Journey's End S01E02 [NikaStream animegg DUB Animegg] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 5.247,
+            "decode_seconds": 5.28,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "nikastream",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 16.446,
+        "cards": 7,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "b752cc74bbf21262",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 [NikaStream kaa DUB BirdStream] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.367,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "nikastream",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 15.733,
+        "cards": 8,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "www.animegg.org",
+            "stream_hash": "8992da7d9221ec7e",
+            "label": "JUJUTSU KAISEN S01E02 [NikaStream animegg DUB Animegg] 1080p WEB-DL x264 English",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.498,
+            "decode_seconds": 1.713,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s (default)"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "animezey",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 3.861,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animezey",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 3.682,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": []
+      },
+      {
+        "provider": "animezey",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 7.569,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": []
+      }
+    ],
+    "outsider-screen.jsonl": [
+      {
+        "provider": "new-anineko",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 0.844
+      },
+      {
+        "provider": "new-anineko",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 0.852
+      },
+      {
+        "provider": "new-anineko",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 0.621
+      },
+      {
+        "provider": "new-anizone",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 3.41
+      },
+      {
+        "provider": "new-anizone",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 2.831
+      },
+      {
+        "provider": "new-anizone",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 1.57
+      },
+      {
+        "provider": "new-kaa",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.323,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "c5ce40a8b16b034b",
+            "label": "VidStreaming",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.002,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9
+          }
+        ]
+      },
+      {
+        "provider": "new-kaa",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.131,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "1e10ca42667cf3d6",
+            "label": "VidStreaming",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 37.255,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      },
+      {
+        "provider": "new-mkissa",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 15.596
+      },
+      {
+        "provider": "new-mkissa",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 11.566
+      },
+      {
+        "provider": "new-mkissa",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "error": "RuntimeError",
+        "resolve_seconds": 5.424
+      },
+      {
+        "provider": "new-aniwaves",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.607,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "ru-cdn1.echovideo.to",
+            "stream_hash": "3e4fab844646e24d",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.739,
+            "decode_seconds": 0.817,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-kaa",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 1.648,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "2bebea08687e510c",
+            "label": "VidStreaming",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 36.289,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      },
+      {
+        "provider": "new-aniwaves",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.446,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "ru-cdn1.echovideo.to",
+            "stream_hash": "491b829eaaa31064",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.701,
+            "decode_seconds": 0.886,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-aniwaves",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.449,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "px.dpopdrop89.store",
+            "stream_hash": "97f45384ea5f5a45",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.903,
+            "decode_seconds": 1.625,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-anikoto",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.465,
+        "cards": 9,
+        "dub_cards": 6,
+        "decodes": [
+          {
+            "host": "fetch.nexabloom.top",
+            "stream_hash": "753c18442f9a3a95",
+            "label": "Vidstream-2",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.004,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9
+          },
+          {
+            "host": "pahe.nekostream.site",
+            "stream_hash": "57de5df79fd951b2",
+            "label": "Kiwi",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.522,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "new-anikoto",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.688,
+        "cards": 9,
+        "dub_cards": 6,
+        "decodes": [
+          {
+            "host": "fetch.nexabloom.top",
+            "stream_hash": "d1df5a8e97886f30",
+            "label": "Vidstream-2",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.006,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9
+          },
+          {
+            "host": "pahe.nekostream.site",
+            "stream_hash": "0e48e52eaab810a5",
+            "label": "Kiwi",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.309,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "new-anikoto",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 2.913,
+        "cards": 9,
+        "dub_cards": 6,
+        "decodes": [
+          {
+            "host": "fetch.nexabloom.top",
+            "stream_hash": "89eff518e1698f61",
+            "label": "Vidstream-2",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.158,
+            "decode_seconds": 1.253,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-reanime",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.937,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "00e9f8dd892854ea",
+            "label": "HD-2",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.302,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          },
+          {
+            "host": "fetch9.flixcloud.cc",
+            "stream_hash": "b4340675a36b69f5",
+            "label": "HD-1",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.427,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      },
+      {
+        "provider": "new-reanime",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 1.132,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "d0354cc5929a6b72",
+            "label": "HD-2",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.38,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          },
+          {
+            "host": "fetch9.flixcloud.cc",
+            "stream_hash": "8cb5acb7a1bae607",
+            "label": "HD-1",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.407,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      },
+      {
+        "provider": "new-reanime",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.882,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "6f89fa465f080f93",
+            "label": "HD-2",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.293,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          },
+          {
+            "host": "fetch9.flixcloud.cc",
+            "stream_hash": "a14753ed0311f18d",
+            "label": "HD-1",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.424,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      }
+    ],
+    "senshi-screen.jsonl": [
+      {
+        "provider": "new-senshi",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.961,
+        "cards": 1,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "s-91.bcdn1.se",
+            "stream_hash": "554591cd7e08d681",
+            "label": "Senshi 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.396,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "new-senshi",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.811,
+        "cards": 1,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "s-90.bcdn1.se",
+            "stream_hash": "333806da3be6ca0b",
+            "label": "Senshi 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.565,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      },
+      {
+        "provider": "new-senshi",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.552,
+        "cards": 1,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "s-94.bcdn2.se",
+            "stream_hash": "9e671bac5791f13e",
+            "label": "Senshi 1080p",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.66,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 251
+          }
+        ]
+      }
+    ],
+    "senshi-english-screen.jsonl": [
+      {
+        "provider": "new-senshi-english",
+        "implementation": "GitHub prototype with local playlist decrypt adapter",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 1.146,
+        "decodes": [
+          {
+            "host": "127.0.0.1",
+            "stream_hash": "c3e0d2b8572f7b1d",
+            "label": "Senshi decrypt proxy",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.29,
+            "decode_seconds": 3.642,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "en",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "transport_note": "Temporary loopback playlist decrypt adapter; remote bcdn*.se media"
+          }
+        ]
+      },
+      {
+        "provider": "new-senshi-english",
+        "implementation": "GitHub prototype with local playlist decrypt adapter",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.675,
+        "decodes": [
+          {
+            "host": "127.0.0.1",
+            "stream_hash": "f0d6cecb71545638",
+            "label": "Senshi decrypt proxy",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 3.0,
+            "decode_seconds": 3.547,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "en",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "transport_note": "Temporary loopback playlist decrypt adapter; remote bcdn*.se media"
+          }
+        ]
+      },
+      {
+        "provider": "new-senshi-english",
+        "implementation": "GitHub prototype with local playlist decrypt adapter",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 0.861,
+        "decodes": [
+          {
+            "host": "127.0.0.1",
+            "stream_hash": "44fb1f09814057a7",
+            "label": "Senshi decrypt proxy",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 4.125,
+            "decode_seconds": 4.439,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "en",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0,
+            "transport_note": "Temporary loopback playlist decrypt adapter; remote bcdn*.se media"
+          }
+        ]
+      }
+    ],
+    "anistream-screen.jsonl": [
+      {
+        "provider": "new-anistream",
+        "implementation": "GitHub prototype",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 1.597,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "fetch.nexabloom.top",
+            "stream_hash": "edcaaaf4ce83ee4d",
+            "label": "AniStream yuki",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.004,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9
+          },
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "9709226bba725501",
+            "label": "AniStream sora",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 39.199,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      },
+      {
+        "provider": "new-anistream",
+        "implementation": "GitHub prototype",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 1.39,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "fetch.nexabloom.top",
+            "stream_hash": "6a68c6a7acb2a3ef",
+            "label": "AniStream yuki",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.002,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9
+          },
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "9b81a3749e1454ae",
+            "label": "AniStream sora",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 37.781,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      },
+      {
+        "provider": "new-anistream",
+        "implementation": "GitHub prototype",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "metadata_preloaded": true,
+        "resolve_seconds": 1.318,
+        "cards": 2,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "fetch.nexabloom.top",
+            "stream_hash": "7bdbd46ad1516243",
+            "label": "AniStream yuki",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 40.004,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": -9
+          },
+          {
+            "host": "hls.krussdomi.com",
+            "stream_hash": "dc2f78fc364e0a05",
+            "label": "AniStream sora",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 35.958,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 183
+          }
+        ]
+      }
+    ],
+    "repeated.jsonl": [
+      {
+        "provider": "new-aniwaves",
+        "round": 1,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.305,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "px.dpopdrop89.store",
+            "stream_hash": "0f18e2e5c9e42f7e",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.923,
+            "decode_seconds": 1.605,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.228
+      },
+      {
+        "provider": "animekai",
+        "round": 1,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 2.207,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.355,
+            "decode_seconds": 3.449,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.562
+      },
+      {
+        "provider": "hianime",
+        "round": 1,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 2.609,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.409,
+            "decode_seconds": 3.428,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.018
+      },
+      {
+        "provider": "anikage",
+        "round": 1,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 4.645,
+        "cards": 5,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "84b88c6eaf001821",
+            "label": "Frieren: Beyond Journey's End S01E02 (Dub · koto · Vidstream-2)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.651,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 1,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.389,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "ru-cdn1.echovideo.to",
+            "stream_hash": "491b829eaaa31064",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.692,
+            "decode_seconds": 0.876,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.081
+      },
+      {
+        "provider": "animekai",
+        "round": 1,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 2.125,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.232,
+            "decode_seconds": 3.385,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.357
+      },
+      {
+        "provider": "hianime",
+        "round": 1,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 2.574,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.231,
+            "decode_seconds": 3.438,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.805
+      },
+      {
+        "provider": "anikage",
+        "round": 1,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 4.219,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "f9f6de1c8eb5c82c",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.229,
+            "decode_seconds": 2.452,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 6.448
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 1,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 2.595,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "ru-cdn1.echovideo.to",
+            "stream_hash": "c66e23589f14129a",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.721,
+            "decode_seconds": 0.888,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.316
+      },
+      {
+        "provider": "animekai",
+        "round": 1,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 2.135,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.596,
+            "decode_seconds": 3.493,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.731
+      },
+      {
+        "provider": "hianime",
+        "round": 1,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 2.549,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.463,
+            "decode_seconds": 3.275,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.012
+      },
+      {
+        "provider": "anikage",
+        "round": 1,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 4.125,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "de0e9e4b57f39c31",
+            "label": "JUJUTSU KAISEN S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.778,
+            "decode_seconds": 1.861,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.903
+      },
+      {
+        "provider": "animekai",
+        "round": 2,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 2.096,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.248,
+            "decode_seconds": 3.289,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.344
+      },
+      {
+        "provider": "hianime",
+        "round": 2,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 2.321,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.376,
+            "decode_seconds": 3.429,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.697
+      },
+      {
+        "provider": "anikage",
+        "round": 2,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 1.626,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": [],
+        "error": "no_dub_candidate"
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 2,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.516,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "px.roburnt10.store",
+            "stream_hash": "b70483df72ab9f97",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.928,
+            "decode_seconds": 1.531,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.444
+      },
+      {
+        "provider": "animekai",
+        "round": 2,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 2.12,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.194,
+            "decode_seconds": 3.344,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.314
+      },
+      {
+        "provider": "hianime",
+        "round": 2,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 2.511,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.174,
+            "decode_seconds": 3.273,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.685
+      },
+      {
+        "provider": "anikage",
+        "round": 2,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 3.462,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "f9f6de1c8eb5c82c",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.094,
+            "decode_seconds": 1.172,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.556
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 2,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.063,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "ru-cdn2.echovideo.to",
+            "stream_hash": "80c469a3898d481b",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.727,
+            "decode_seconds": 0.919,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 2.79
+      },
+      {
+        "provider": "animekai",
+        "round": 2,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 2.127,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.53,
+            "decode_seconds": 3.37,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.657
+      },
+      {
+        "provider": "hianime",
+        "round": 2,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 2.419,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.629,
+            "decode_seconds": 3.576,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.048
+      },
+      {
+        "provider": "anikage",
+        "round": 2,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 3.607,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "de0e9e4b57f39c31",
+            "label": "JUJUTSU KAISEN S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.119,
+            "decode_seconds": 1.194,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.726
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 2,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 1.946,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "ru-cdn1.echovideo.to",
+            "stream_hash": "c66e23589f14129a",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.73,
+            "decode_seconds": 0.899,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 2.676
+      },
+      {
+        "provider": "hianime",
+        "round": 3,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 2.413,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.29,
+            "decode_seconds": 3.3,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.703
+      },
+      {
+        "provider": "anikage",
+        "round": 3,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 3.788,
+        "cards": 5,
+        "dub_cards": 2,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "248581e7e5aa2665",
+            "label": "Frieren: Beyond Journey's End S01E02 (Dub · koto · Vidstream-2)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": null,
+            "decode_seconds": 0.723,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "audio_streams": [],
+            "passed": false,
+            "exit": 8
+          }
+        ]
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 3,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.107,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "ru-ri-cdn3.echovideo.to",
+            "stream_hash": "bb7787cc6b7eb39f",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.721,
+            "decode_seconds": 0.787,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 2.828
+      },
+      {
+        "provider": "animekai",
+        "round": 3,
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 154587,
+        "resolve_seconds": 2.102,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3bfacc8c03e9b613",
+            "label": "Frieren: Beyond Journey's End S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.438,
+            "decode_seconds": 3.476,
+            "frames": 198,
+            "media_seconds": 8.0,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.54
+      },
+      {
+        "provider": "hianime",
+        "round": 3,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 2.403,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.121,
+            "decode_seconds": 3.246,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.524
+      },
+      {
+        "provider": "anikage",
+        "round": 3,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 1.598,
+        "cards": 0,
+        "dub_cards": 0,
+        "decodes": [],
+        "error": "no_dub_candidate"
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 3,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.317,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "px.roburnt10.store",
+            "stream_hash": "4876655a5fb10caa",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.861,
+            "decode_seconds": 1.573,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.178
+      },
+      {
+        "provider": "animekai",
+        "round": 3,
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 101922,
+        "resolve_seconds": 2.173,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "3f50c0fb76d2d2c0",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.098,
+            "decode_seconds": 3.178,
+            "frames": 238,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.271
+      },
+      {
+        "provider": "hianime",
+        "round": 3,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 2.445,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (HiAnime ZokoAnime DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.567,
+            "decode_seconds": 3.452,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.012
+      },
+      {
+        "provider": "anikage",
+        "round": 3,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 3.819,
+        "cards": 4,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "og.bakayaro.live",
+            "stream_hash": "de0e9e4b57f39c31",
+            "label": "JUJUTSU KAISEN S01E02 (Dub · wave · Vidplay)",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.008,
+            "decode_seconds": 1.09,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.827
+      },
+      {
+        "provider": "new-aniwaves",
+        "round": 3,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 1.876,
+        "metadata_preloaded": true,
+        "decodes": [
+          {
+            "host": "ru-cdn2.echovideo.to",
+            "stream_hash": "6d4ceac42c02f967",
+            "label": "Vidplay",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.728,
+            "decode_seconds": 0.795,
+            "frames": 191,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 2.604
+      },
+      {
+        "provider": "animekai",
+        "round": 3,
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "implementation": "SDK",
+        "anilist": 113415,
+        "resolve_seconds": 2.124,
+        "cards": 2,
+        "dub_cards": 1,
+        "decodes": [
+          {
+            "host": "hls.dramahot.top",
+            "stream_hash": "84ce34e48da7f388",
+            "label": "JUJUTSU KAISEN S01E02 (AnimeKai DUB)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.6,
+            "decode_seconds": 3.649,
+            "frames": 190,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.724
+      }
+    ],
+    "reanime-english-repeated.jsonl": [
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 3.298,
+        "cards": 1,
+        "dub_cards": 0,
+        "round": 1,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "8a8865c5f46946fc",
+            "label": "Frieren: Beyond Journey's End S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.085,
+            "decode_seconds": 2.376,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.383
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.992,
+        "cards": 2,
+        "dub_cards": 1,
+        "round": 1,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "b6e01ba2a1bbe8a9",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.288,
+            "decode_seconds": 1.533,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.28
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 2.337,
+        "cards": 1,
+        "dub_cards": 0,
+        "round": 1,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "e22db90508745feb",
+            "label": "JUJUTSU KAISEN S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.88,
+            "decode_seconds": 1.44,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.217
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.178,
+        "cards": 1,
+        "dub_cards": 0,
+        "round": 2,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "fea4aea166c50c13",
+            "label": "Frieren: Beyond Journey's End S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 2.023,
+            "decode_seconds": 2.306,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.201
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.402,
+        "cards": 2,
+        "dub_cards": 1,
+        "round": 2,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "e8b23320c9a0e393",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.607,
+            "decode_seconds": 1.838,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 4.009
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 2.7,
+        "cards": 2,
+        "dub_cards": 1,
+        "round": 2,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "ab6dd2a1a4964bf5",
+            "label": "JUJUTSU KAISEN S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.07,
+            "decode_seconds": 1.694,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.77
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 209867,
+        "anilist": 154587,
+        "title": "Frieren",
+        "episode": 2,
+        "resolve_seconds": 2.175,
+        "cards": 1,
+        "dub_cards": 0,
+        "round": 3,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "8868a55d929f39ee",
+            "label": "Frieren: Beyond Journey's End S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 3.688,
+            "decode_seconds": 3.985,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 5.863
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 85937,
+        "anilist": 101922,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "resolve_seconds": 2.224,
+        "cards": 1,
+        "dub_cards": 0,
+        "round": 3,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "b7307d55c4d13e8f",
+            "label": "Demon Slayer: Kimetsu no Yaiba S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 1.37,
+            "decode_seconds": 1.595,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.594
+      },
+      {
+        "provider": "reanime-english",
+        "implementation": "SDK",
+        "tmdb": 95479,
+        "anilist": 113415,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "resolve_seconds": 2.308,
+        "cards": 1,
+        "dub_cards": 0,
+        "round": 3,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "4bfb6751eba8da40",
+            "label": "JUJUTSU KAISEN S01E02 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)",
+            "resolution_hint": 1080,
+            "first_decoded_frame_seconds": 0.808,
+            "decode_seconds": 1.435,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ],
+        "to_first_frame_seconds": 3.116
+      }
+    ],
+    "sustained.jsonl": [
+      {
+        "provider": "new-aniwaves-sustained",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "requested_media_seconds": 60,
+        "decodes": [
+          {
+            "host": "ru-ri-cdn3.echovideo.to",
+            "stream_hash": "bb7787cc6b7eb39f",
+            "label": "AniWaves sustained",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.701,
+            "decode_seconds": 2.216,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-aniwaves-sustained",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "requested_media_seconds": 60,
+        "decodes": [
+          {
+            "host": "px.roburnt10.store",
+            "stream_hash": "4876655a5fb10caa",
+            "label": "AniWaves sustained",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.758,
+            "decode_seconds": 5.176,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "new-aniwaves-sustained",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "requested_media_seconds": 60,
+        "decodes": [
+          {
+            "host": "ru-cdn2.echovideo.to",
+            "stream_hash": "6d4ceac42c02f967",
+            "label": "AniWaves sustained",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.752,
+            "decode_seconds": 1.884,
+            "frames": 1438,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "sustained-reanime.jsonl": [
+      {
+        "provider": "reanime-english-sustained",
+        "tmdb": 209867,
+        "title": "Frieren",
+        "episode": 2,
+        "requested_media_seconds": 60,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "8868a55d929f39ee",
+            "label": "ReAnime English sustained",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 2.416,
+            "decode_seconds": 5.381,
+            "frames": 1439,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "reanime-english-sustained",
+        "tmdb": 85937,
+        "title": "Demon Slayer",
+        "episode": 2,
+        "requested_media_seconds": 60,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "b7307d55c4d13e8f",
+            "label": "ReAnime English sustained",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 1.432,
+            "decode_seconds": 3.015,
+            "frames": 1439,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "provider": "reanime-english-sustained",
+        "tmdb": 95479,
+        "title": "Jujutsu Kaisen",
+        "episode": 2,
+        "requested_media_seconds": 60,
+        "decodes": [
+          {
+            "host": "fetch8.flixcloud.cc",
+            "stream_hash": "4bfb6751eba8da40",
+            "label": "ReAnime English sustained",
+            "resolution_hint": null,
+            "first_decoded_frame_seconds": 0.966,
+            "decode_seconds": 2.597,
+            "frames": 1439,
+            "media_seconds": 60.018,
+            "audio_decoded": true,
+            "audio_streams": [
+              [
+                "jpn",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "aac (LC), 44100 Hz, stereo, fltp"
+              ],
+              [
+                "eng",
+                "pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s"
+              ]
+            ],
+            "passed": true,
+            "exit": 0
+          }
+        ]
+      }
+    ]
+  }
+}

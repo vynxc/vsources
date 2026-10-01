@@ -13,6 +13,7 @@ pub mod anipriv8;
 pub mod directstream;
 pub mod doodstream;
 pub mod dropload;
+pub mod echovideo;
 pub mod embedresolver;
 pub mod filemoon;
 pub mod fsst;
@@ -73,6 +74,7 @@ pub fn all() -> Vec<Arc<dyn Extractor>> {
         // Netlio — claims direct HLS before the generic fallbacks.
         Arc::new(netlio::Netlio::new()),
         Arc::new(animedirect::AnimeDirect::new()),
+        Arc::new(echovideo::EchoVideo::new()),
         Arc::new(megaplay::Megaplay::new()),
         Arc::new(vidhawk::VidHawk::new()),
         Arc::new(reanime::ReAnime::new()),
