@@ -1,0 +1,347 @@
+{
+  "date": "2026-10-02",
+  "scope": "GitHub research for five providers outside the current 48-provider SDK. No new provider integration.",
+  "speed_policy": "Recommend only candidates with responsive resolution and decoded playback; expose startup and tail latency separately. A fast API response alone is insufficient.",
+  "reference_baseline": {
+    "playimdb_tv_median_resolve_ms": 233.7,
+    "animekai_note": "Existing SDK candidate; primary id-based path. Prior matrix contains its individual source and startup timings."
+  },
+  "candidates": [
+    {
+      "provider": "Castle TV",
+      "decision": "shortlist",
+      "catalog": "Movies, TV and English-dub anime in earlier five-title checks; this fresh check is Inception only.",
+      "source": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/aacac098f25db5f6fe0614670987c54ae32fc2eb/providers/castletv.js",
+      "evidence": {
+        "provider": "Castle TV",
+        "resolve_ms": 998.68,
+        "cards": 1,
+        "decodes": [
+          {
+            "status": "played",
+            "exit": 0,
+            "frames": 189,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "selected_audio_language": "eng",
+            "audio_tags": [
+              "eng"
+            ],
+            "video_codecs": [
+              "h264 (High) ([27][0][0][0] / 0x001B)",
+              "wrapped_avframe"
+            ],
+            "first_frame_ms": 730.736,
+            "decode_ms": 965.148,
+            "host_queue_ms": 0.0,
+            "error_kind": null,
+            "header_names": [
+              "User-Agent"
+            ],
+            "header_hash": "5604e96e10988e6f3336",
+            "private_log_name": "fast-research/Castle TV-0-decode.log",
+            "host": "img1.hlnom.com"
+          }
+        ],
+        "audio_languages": [],
+        "played": true
+      },
+      "notes": [
+        "Anonymous native encrypted JSON. Fresh security-key bootstrap, strict title/type match, details and shared video lookup.",
+        "Long numeric ids remain strings. Inspect muxed English tracks rather than dropping shared files.",
+        "Cold resolution approximately 0.999 s; first frame after URL approximately 0.731 s."
+      ]
+    },
+    {
+      "provider": "VaPlayer",
+      "decision": "shortlist_movies_only",
+      "catalog": "Movies/regular TV; anime English-dub coverage previously failed.",
+      "source": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/aacac098f25db5f6fe0614670987c54ae32fc2eb/providers/vaplayer.js",
+      "evidence": {
+        "provider": "VaPlayer",
+        "resolve_ms": 291.48,
+        "cards": 3,
+        "decodes": [
+          {
+            "status": "played",
+            "exit": 0,
+            "frames": 192,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "selected_audio_language": null,
+            "audio_tags": [],
+            "video_codecs": [
+              "h264 (Constrained Baseline) ([27][0][0][0] / 0x001B)",
+              "h264 (High) ([27][0][0][0] / 0x001B)",
+              "wrapped_avframe"
+            ],
+            "first_frame_ms": 2838.236,
+            "decode_ms": 2969.064,
+            "host_queue_ms": 0.0,
+            "error_kind": null,
+            "header_names": [
+              "Origin",
+              "Referer",
+              "User-Agent"
+            ],
+            "header_hash": "19c1d9083d3e29def850",
+            "private_log_name": "fast-research/VaPlayer-0-decode.log",
+            "host": "onlinevisibilitysystem.site"
+          }
+        ],
+        "audio_languages": [
+          null,
+          null,
+          null
+        ],
+        "played": true
+      },
+      "notes": [
+        "IMDb-keyed direct JSON API. Fresh Inception eight-second video/audio passed.",
+        "Current sample audio tags are unspecified; no fresh speech transcription.",
+        "Do not promote as a complete English-dub anime provider."
+      ]
+    },
+    {
+      "provider": "FibWatch",
+      "decision": "shortlist_movies_only",
+      "catalog": "Movie/TV file catalog; English muxed audio must be selected per file.",
+      "source": "https://github.com/NuvioPlugin/All-in-One-Nuvio/blob/3f09a6ff4360498895e622877af7a32212f75038/providers/fibwatch.js",
+      "evidence": {
+        "provider": "FibWatch",
+        "resolve_ms": 2045.91,
+        "cards": 1,
+        "decodes": [
+          {
+            "status": "played",
+            "exit": 0,
+            "frames": 187,
+            "media_seconds": 8.008,
+            "audio_decoded": true,
+            "selected_audio_language": "eng",
+            "audio_tags": [
+              "eng",
+              "hin"
+            ],
+            "video_codecs": [
+              "h264 (High)",
+              "wrapped_avframe"
+            ],
+            "first_frame_ms": 710.265,
+            "decode_ms": 715.675,
+            "host_queue_ms": 0.0,
+            "error_kind": null,
+            "header_names": [
+              "Referer",
+              "User-Agent"
+            ],
+            "header_hash": "b47922973eba1650b5cc",
+            "private_log_name": "fast-research/FibWatch-0-decode.log",
+            "host": "fertgh.b-cdn.net"
+          }
+        ],
+        "audio_languages": [
+          "hin",
+          "eng"
+        ],
+        "played": true
+      },
+      "notes": [
+        "Fresh title/year-gated search plus watch-page direct VIDEO_URL, sampled at 480p.",
+        "Selected embedded English index 1 after observing hin/eng tracks. This index is file-specific.",
+        "Full resolution is approximately 2.046 s, slower than PlayIMDB. First frame after URL approximately 0.710 s."
+      ]
+    },
+    {
+      "provider": "VidRock",
+      "decision": "reject_startup_too_slow_for_strict_shortlist",
+      "catalog": "TMDB movie/TV native API.",
+      "source": "https://github.com/yogesh-hacker/MediaVanced/blob/9a25068e31c5129c72efd7938435e165162ca507/sites/vidrock.py",
+      "initial_evidence": {
+        "provider": "VidRock",
+        "resolve_ms": 222.94,
+        "cards": 2,
+        "decodes": [
+          {
+            "status": "decode_failed",
+            "exit": 124,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "selected_audio_language": null,
+            "audio_tags": [],
+            "video_codecs": [],
+            "first_frame_ms": null,
+            "decode_ms": 30002.759,
+            "host_queue_ms": 0.0,
+            "error_kind": "timeout",
+            "header_names": [
+              "Referer",
+              "User-Agent"
+            ],
+            "header_hash": "f2334ef7e76c454897c8",
+            "private_log_name": "fast-research/VidRock-0-decode.log",
+            "host": "cdn1.ngcorp.dad"
+          },
+          {
+            "status": "decode_failed",
+            "exit": 8,
+            "frames": 0,
+            "media_seconds": 0.0,
+            "audio_decoded": false,
+            "selected_audio_language": null,
+            "audio_tags": [],
+            "video_codecs": [],
+            "first_frame_ms": null,
+            "decode_ms": 214.084,
+            "host_queue_ms": 0.0,
+            "error_kind": "http_403",
+            "header_names": [
+              "Referer",
+              "User-Agent"
+            ],
+            "header_hash": "f2334ef7e76c454897c8",
+            "private_log_name": "fast-research/VidRock-1-decode.log",
+            "host": "goldenfirewanderer.lol"
+          }
+        ],
+        "audio_languages": [],
+        "played": false
+      },
+      "required_header_names": [
+        "Referer",
+        "Origin",
+        "User-Agent"
+      ],
+      "notes": [
+        "API resolved in approximately 0.223 s.",
+        "Initial Referer/UA-only playback failed. Fresh header experiments decoded with Origin plus the mobile browser UA.",
+        "Observed first frame took approximately 5.98–6.70 seconds, so fast URL resolution does not meet the strict startup goal."
+      ],
+      "corrected_eight_second_decode": {
+        "status": "played",
+        "exit": 0,
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "selected_audio_language": null,
+        "audio_tags": [],
+        "video_codecs": [
+          "h264 (Constrained Baseline) ([27][0][0][0] / 0x001B)",
+          "h264 (High) ([27][0][0][0] / 0x001B)",
+          "wrapped_avframe"
+        ],
+        "first_frame_ms": 6286.551,
+        "decode_ms": 6873.403,
+        "host_queue_ms": 0.0,
+        "error_kind": null,
+        "header_names": [
+          "Origin",
+          "Referer",
+          "User-Agent"
+        ],
+        "header_hash": "004a76f9e3028ecc2e65",
+        "private_log_name": "vidrock-confirm/vidrock-confirm-eight.log"
+      }
+    },
+    {
+      "provider": "Kurage",
+      "decision": "reject_variable_latency",
+      "catalog": "Anime aggregator; AnimeGG upstream rather than independent storage.",
+      "source": "https://github.com/NuvioPlugin/All-in-One-Nuvio/blob/3f09a6ff4360498895e622877af7a32212f75038/providers/kurage.js",
+      "decode": {
+        "status": "played",
+        "exit": 0,
+        "frames": 192,
+        "media_seconds": 8.008,
+        "audio_decoded": true,
+        "selected_audio_language": "eng",
+        "audio_tags": [
+          "eng"
+        ],
+        "video_codecs": [
+          "h264 (High) (avc1 / 0x31637661)",
+          "wrapped_avframe"
+        ],
+        "first_frame_ms": 2685.621,
+        "decode_ms": 2717.873,
+        "host_queue_ms": 0.0,
+        "error_kind": null,
+        "header_names": [
+          "Referer",
+          "User-Agent"
+        ],
+        "header_hash": "b831465b4f9d58aa0ed6",
+        "private_log_name": "kurage/kurage-corrected-decode.log"
+      },
+      "api_samples": [
+        {
+          "ms": 2269.47,
+          "available": true
+        },
+        {
+          "error": "ReadTimeout"
+        },
+        {
+          "ms": 3941.4,
+          "available": true
+        }
+      ],
+      "notes": [
+        "Fresh Frieren dub eight-second decode passed with eng audio.",
+        "Correctly join relative proxy URLs to kurage.live and honor mp4 sourceType.",
+        "Initial source resolution 3.618 s; repeats approximately 2.269/timeout/3.941 s; first frame 2.686 s. Rejected for fast-only use."
+      ]
+    }
+  ],
+  "other_screened_rejections": [
+    {
+      "provider": "Moonflix",
+      "finding": "Both referenced Railway movie endpoints returned 404."
+    },
+    {
+      "provider": "Gojo/Animetsu",
+      "finding": "Old animetsu.live API returned a redirect/ad HTML body with HTTP 200, not JSON streams."
+    },
+    {
+      "provider": "AllAnime/Mkissa",
+      "finding": "Current API challenge 403 with ordinary and browser-impersonating clients; not verified fast playback."
+    },
+    {
+      "provider": "Mapple",
+      "finding": "Anonymous request-token POST returned 403. No borrowed sessions used."
+    },
+    {
+      "provider": "Nakios",
+      "finding": "Referenced fit API timed out; current reference notes stale store backend and domain migration."
+    },
+    {
+      "provider": "VidLove",
+      "finding": "Six referenced backend choices returned 403."
+    },
+    {
+      "provider": "1Shows",
+      "finding": "Its published host registry returned 403; the implementation wraps VidRock/VidZee/VidFast."
+    },
+    {
+      "provider": "AnimePahe/AniNeko",
+      "finding": "Referenced endpoints were DNS failures or non-catalog HTML bodies; no fresh playable result."
+    }
+  ],
+  "limitations": [
+    "Single fresh playback sample per shortlisted candidate; not a broad catalog, uptime, expiry or independent content-identity audit.",
+    "New candidates were private protocol prototypes, not SDK integrations or native SDK cache benchmarks.",
+    "Exact fifth fast recommendation was not established: five strong code leads were investigated, three shortlisted, two rejected on measured startup/latency."
+  ],
+  "privacy": "No cookies, signed URLs, encryption keys, raw response bodies or caller credentials published. Private probes/logs under /tmp/vsources-fast-research-20261002 (0700).",
+  "github_search_repositories": [
+    "NuvioPlugin/All-in-One-Nuvio",
+    "Inside4ndroid/TMDB-Embed-API",
+    "aryaniiil/anime-api",
+    "sdaqo/anipy-cli",
+    "Gowaru/gowaru-nuvio-providers",
+    "johnneerdael/nexio-nagare",
+    "yogesh-hacker/MediaVanced",
+    "salmanbappi/sb-extensions-source"
+  ]
+}

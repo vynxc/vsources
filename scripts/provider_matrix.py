@@ -351,7 +351,7 @@ def export_csv(report,path):
         'warm_to_first_frame_ms','attempt_ms','cards','decode_attempts','sdk_playback','cache_playback_valid',
         'selected_audio_language','header_recovered']
     with path.open('w',newline='') as output:
-        writer=csv.DictWriter(output,fieldnames=fields);writer.writeheader()
+        writer=csv.DictWriter(output,fieldnames=fields,lineterminator="\n");writer.writeheader()
         for row in report['rows']:
             case=names[row['case_id']]
             title=case['title']

@@ -96,6 +96,21 @@ The completed audit generates `.env.generated` without credentials. Load it afte
 selection. Known non-animation metadata keeps anime-only routes out of regular
 film/TV resolutions. Genre classification reuses the existing TMDB details request.
 
+GitHub fast-provider research (2026-10-02), outside the SDK's current catalog:
+
+| Candidate | Fresh URL resolution | First decoded frame after URL | Decision |
+|---|---:|---:|---|
+| Castle TV | 0.999 s | 0.731 s | Strongest new API lead; English-tagged Inception played |
+| VaPlayer | 0.291 s | 2.838 s | Movie/TV lead; anime dub coverage is incomplete |
+| FibWatch | 2.046 s | 0.710 s | Fast playback; select the file's embedded English track |
+| VidRock | 0.223 s | about 6 s | Fast resolver, slower startup; outside the strict shortlist |
+| Kurage | 2.269–3.941 s, with a timeout | 2.686 s | Dub playback works, latency too variable for fast-only use |
+
+Each accepted sample decoded eight seconds of video/audio. These are private
+protocol prototypes, **not five new integrated SDK providers**. Three candidates
+passed the fresh shortlist screen; five verified fast replacements were not
+established. [Pinned GitHub sources, timing evidence and rejected leads](docs/audits/2026-10-02-fast-provider-research.json).
+
 Historical playback audit (2026-09-26): **41/47 registered provider routes decoded
 eight seconds of video and audio**. Forty passed with TMDB configuration;
 MovieBox also needed `MOVIEBOX_MOBILE_SIGNING_KEY`. AcerMovies, IMDBPlay,

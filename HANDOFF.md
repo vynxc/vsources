@@ -4,6 +4,38 @@ Workspace: `/mnt/ALPH/code/vsources`; `/home/vynxc/code/vsources` resolves here.
 An initial commit now exists (`934de2d`). Preserve the working tree and new
 audit/source files; do not reset or remove untracked files as cleanup.
 
+## Latest: GitHub fast-provider research and authorized push (2026-10-02)
+
+The user asked for five additional fast providers from GitHub and to push the
+completed SDK/audit/README work. Main now contains commit `991979c` for that
+work. New research is in `docs/audits/2026-10-02-fast-provider-research.json`.
+
+Five strongest outside-catalog leads were inspected and live screened:
+Castle TV, VaPlayer, FibWatch, VidRock, Kurage. **Only three earned the current
+shortlist**: Castle (0.999 s resolve / 0.731 s first frame), VaPlayer movies
+(0.291 / 2.838 s), FibWatch movies (2.046 / 0.710 s with selected English index 1).
+These are one fresh eight-second decode per candidate, not full coverage or
+native-SDK caching benchmarks. No new provider was integrated.
+
+VidRock returned encrypted stream URLs in 0.223 s; Referer/UA alone failed,
+Origin plus the referenced mobile UA decoded, but startup took about 6 s.
+Kurage's corrected absolute proxy URL decoded real eng-tagged Frieren dub;
+API times were 3.618 s initially then 2.269 / timeout / 3.941 s, with 2.686 s
+startup. Both are excluded from fast-only recommendations. Do not claim five
+verified fast providers or pad the shortlist with blocked candidates.
+
+Further screens: Moonflix referenced backends 404; Gojo's old domain returned
+redirect/ad HTML under HTTP 200; AllAnime/Mkissa challenged both ordinary and
+Chrome-impersonating clients; Mapple request-token POST 403; Nakios stale-host
+migration/timeouts; VidLove six backends 403; 1Shows registry 403 and wrappers
+around already-known providers. No borrowed cookies/credentials or telemetry
+from third-party scraper code were used. Private probes/response files are in
+`/tmp/vsources-fast-research-20261002` (0700); repository evidence is sanitized.
+
+README fixes include a working `.with_default_providers()` library example and
+actual `vidlink2` ID. CSV exports now use LF newlines so Git whitespace checks
+pass. Original credentials and historical audit evidence are preserved.
+
 ## Completed: full provider/title playback matrix (2026-10-02)
 
 The user requested five old/recent movies, five TV series, five anime series and
