@@ -299,6 +299,8 @@ struct ResolvedEntry {
 
 /// The `AniMoTVSlash` provider.
 pub struct AniMoTVSlash {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by [`Source::info`].
     info: SourceInfo,
     /// Shared TMDB identity resolution.
@@ -306,12 +308,20 @@ pub struct AniMoTVSlash {
 }
 
 impl AniMoTVSlash {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider over the shared TMDB client. The scraper resolves
     /// every embed itself (vidara/vidhide/megaplay inline, exactly
     /// like the `.cjs`), so no extractor registry is needed.
     #[must_use]
     pub fn new(tmdb: Arc<TmdbClient>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -337,35 +347,14 @@ impl Source for AniMoTVSlash {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
-        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
-        let title = display_title(&name, year, media);
-        // The scraper searches on the title with a trailing
-        // parenthesized qualifier stripped.
-        let clean = clean_title(&name);
-
-        let sweep = async {
-            self.sweep(ctx, &clean, year, media.season, media.episode)
-                .await
-        };
-        let raw = with_deadline(sweep, SWEEP_DEADLINE)
-            .await
-            .unwrap_or_default();
-        if raw.is_empty() {
-            return Err(SourceError::NotFound);
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-        // Per-card language flags arrive via the audio-track stamp
-        // (Japanese for sub/softsub, English for dub); the source-level
-        // codes only apply when a card carries none.
-        let country_codes = vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En];
-        Ok(build_stream_results(&BuildParams {
-            streams: &raw,
-            title: &title,
-            source_id: ID,
-            source_label: LABEL,
-            country_codes: &country_codes,
-            ttl: TTL,
-        }))
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -1339,6 +1328,44 @@ fn soften<T>(error: Result<T, SourceError>) -> Result<T, SourceError> {
             | SourceError::Fetch(FetchError::NotFound { .. } | FetchError::Http { status: 404, .. }),
         ) => Err(SourceError::NotFound),
         other => other,
+    }
+}
+
+impl AniMoTVSlash {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
+        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
+        let title = display_title(&name, year, media);
+        // The scraper searches on the title with a trailing
+        // parenthesized qualifier stripped.
+        let clean = clean_title(&name);
+
+        let sweep = async {
+            self.sweep(ctx, &clean, year, media.season, media.episode)
+                .await
+        };
+        let raw = with_deadline(sweep, SWEEP_DEADLINE)
+            .await
+            .unwrap_or_default();
+        if raw.is_empty() {
+            return Err(SourceError::NotFound);
+        }
+        // Per-card language flags arrive via the audio-track stamp
+        // (Japanese for sub/softsub, English for dub); the source-level
+        // codes only apply when a card carries none.
+        let country_codes = vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En];
+        Ok(build_stream_results(&BuildParams {
+            streams: &raw,
+            title: &title,
+            source_id: ID,
+            source_label: LABEL,
+            country_codes: &country_codes,
+            ttl: TTL,
+        }))
     }
 }
 

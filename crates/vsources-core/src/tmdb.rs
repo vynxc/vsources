@@ -77,6 +77,8 @@ struct TmdbInner {
     tmdb_to_imdb: Cache<u64, Option<String>>,
     /// `type:id:language` → details.
     details: Cache<String, MediaName>,
+    /// Animation classification from the same details response, with no extra I/O.
+    animation: Cache<String, Option<bool>>,
     /// Negative `/find` results.
     not_found: Cache<String, ()>,
     /// In-flight `/find` calls by `IMDb` id.
@@ -149,6 +151,10 @@ impl TmdbClient {
                 .max_capacity(MAX_MAPPINGS)
                 .build(),
             details: Cache::builder()
+                .time_to_live(DETAILS_TTL)
+                .max_capacity(MAX_DETAILS)
+                .build(),
+            animation: Cache::builder()
                 .time_to_live(DETAILS_TTL)
                 .max_capacity(MAX_DETAILS)
                 .build(),
@@ -258,6 +264,17 @@ impl TmdbClient {
             let response: DetailsResponse = client
                 .fetch_json(&path, &[("language", language.as_str())])
                 .await?;
+            let genres: Vec<u64> = response
+                .genres
+                .as_ref()
+                .and_then(serde_json::Value::as_array)
+                .map(Vec::as_slice)
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|genre| genre.get("id").and_then(serde_json::Value::as_u64))
+                .collect();
+            let animation = (!genres.is_empty()).then(|| genres.contains(&16));
+            client.inner.animation.insert(key.clone(), animation).await;
             let name = match kind {
                 MediaType::Series => response.name,
                 MediaType::Movie => response.title,
@@ -278,6 +295,15 @@ impl TmdbClient {
             Ok(value)
         })
         .await
+    }
+
+    /// Animation status learned from existing default-language details, without I/O.
+    ///
+    /// `None` means genres are absent, unclassified, or not cached. It never means
+    /// that the title is known to be non-animation.
+    pub async fn cached_is_animation(&self, tmdb_id: u64, kind: MediaType) -> Option<bool> {
+        let key = format!("{}:{tmdb_id}:", kind_path(kind));
+        self.inner.animation.get(&key).await.flatten()
     }
 
     /// Resolve full metadata for a media reference.
@@ -440,6 +466,8 @@ struct ExternalIdsResponse {
 /// `/{type}/{id}` details response (tv and movie fields unified).
 #[derive(Debug, Deserialize)]
 struct DetailsResponse {
+    #[serde(default)]
+    genres: Option<serde_json::Value>,
     name: Option<String>,
     title: Option<String>,
     first_air_date: Option<String>,
@@ -524,6 +552,60 @@ mod tests {
         assert_eq!(name.name, "Breaking Bad");
         assert_eq!(name.year, Some(2008));
         assert_eq!(name.original_name.as_deref(), Some("Breaking Bad"));
+    }
+
+    #[tokio::test]
+    async fn genre_classification_reuses_details_and_preserves_unknown_metadata() {
+        struct GenreFetcher {
+            body: String,
+            calls: AtomicUsize,
+        }
+        #[async_trait::async_trait]
+        impl Fetcher for GenreFetcher {
+            async fn request(&self, request: FetchRequest) -> Result<FetchResponse, FetchError> {
+                self.calls.fetch_add(1, Ordering::SeqCst);
+                Ok(FetchResponse {
+                    url: request.url,
+                    status: 200,
+                    headers: BTreeMap::new(),
+                    body: self.body.clone(),
+                })
+            }
+        }
+        for (genres, expected) in [
+            (serde_json::json!([{"id":16}]), Some(true)),
+            (serde_json::json!([{"id":18}]), Some(false)),
+            (serde_json::json!([]), None),
+            (serde_json::Value::Null, None),
+        ] {
+            let fetcher = Arc::new(GenreFetcher {
+                body: serde_json::json!({"title":"Movie","genres":genres}).to_string(),
+                calls: AtomicUsize::new(0),
+            });
+            let client = TmdbClient::new("test-key", fetcher.clone());
+            assert_eq!(
+                client.cached_is_animation(289, MediaType::Movie).await,
+                None
+            );
+            client
+                .name_and_year(289, MediaType::Movie, None)
+                .await
+                .unwrap_or_else(|e| panic!("metadata: {e}"));
+            assert_eq!(
+                client.cached_is_animation(289, MediaType::Movie).await,
+                expected
+            );
+            assert_eq!(
+                client.cached_is_animation(289, MediaType::Series).await,
+                None,
+                "movie and TV id namespaces remain separate"
+            );
+            assert_eq!(
+                fetcher.calls.load(Ordering::SeqCst),
+                1,
+                "classification adds no request"
+            );
+        }
     }
 
     #[tokio::test]

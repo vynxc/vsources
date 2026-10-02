@@ -469,6 +469,10 @@ fn build_card(
         .or_else(|| parse_height(Some(&filename)));
 
     let mut meta = StreamMeta {
+        dubbed: stream.category().map(|category| category == "dub"),
+        subbed: stream
+            .category()
+            .map(|category| category == "sub" || category == "softsub"),
         languages,
         source_id: Some((*source_id).to_string()),
         source_label: Some((*source_label).to_string()),

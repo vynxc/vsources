@@ -1,8 +1,180 @@
-# Handoff — English-dub source research (updated 2026-09-30)
+# Handoff — English-dub source research (updated 2026-10-02)
 
 Workspace: `/mnt/ALPH/code/vsources`; `/home/vynxc/code/vsources` resolves here.
 An initial commit now exists (`934de2d`). Preserve the working tree and new
 audit/source files; do not reset or remove untracked files as cleanup.
+
+## Completed: full provider/title playback matrix (2026-10-02)
+
+The user requested five old/recent movies, five TV series, five anime series and
+five anime movies against every provider, cache/playback latency, header repairs,
+a generated environment, and a rerunnable HTML report. This task is complete.
+
+- **48 providers × 20 titles = 960 current records.** An initial full run plus
+  320 repaired-provider reruns produced **1,280 recorded attempts**. Original
+  results are preserved in `baseline-results.json` and JSONL; changed-provider
+  attempts are also available in the report's 320-row history.
+- Report: `docs/audits/2026-10-02-matrix/index.html`; full sanitized JSON,
+  JSONL and CSV are beside it. Case manifest:
+  `docs/audits/provider-matrix-cases.json`. Runner:
+  `scripts/provider_matrix.py`; persistent SDK worker:
+  `crates/vsources/examples/matrix_worker.rs`. Usage/methodology:
+  `docs/audits/provider-matrix.md`.
+- Current results: **184 playback passes across 26 providers**, 645 empty,
+  33 decode failures, 59 resolve timeouts, 20 resolve errors, 17 wrong-catalog
+  results, 2 selected non-English audio-tag mismatches. These are route/title
+  samples, not 26 independent upstreams or permanent provider health findings.
+  Anime uses the SDK English-dub path; speech is not independently transcribed.
+- All twenty titles have a qualifying route. Category leaders (each **5/5**):
+  `vidlink2` movies, `playimdb` TV, `2dhive` anime series, `itachi` anime movies.
+  Median first resolve / immediate source-cache latency in ms:
+  movies **308.7 / 0.0177**, TV **233.7 / 0.0198**, anime **520.4 / 0.0058**,
+  anime movies **1913.4 / 0.0064**. These are source timings; player startup and
+  composite estimates are separate report fields/graphs.
+- Three immediate warm resolves reuse the same `CachedSource` process, with
+  Fetcher request/probe counts. Eight-second FFmpeg samples require actual
+  frames/audio and exit zero. A repeat decode measures cached-URL startup in a
+  fresh FFmpeg process. Timing budgets, sample limits and all outcomes are kept.
+- Confirmed/fixed Megaplay bug: the API path only attached Referer when subtitle
+  tracks existed. Nexabloom returned 403 without Referer and decoded with the
+  existing `https://megaplay.buzz/` Referer alone. Always retain it now. A new
+  no-subtitles extractor regression test covers this. Experimental header
+  recoveries do not qualify until an unmodified SDK rerun passes.
+- Native anime adapters now publish explicit backend sub/dub flags. AnimeFlix
+  dub cards also correctly carry English language metadata; Nuvio category-based
+  conversions carry the flags. This repaired English-only false-empty answers.
+  The sixteen affected providers were retested across every category.
+- Runtime catalog safety: TMDB genres from existing details responses are
+  cached without another request. Known non-animation titles skip the nineteen
+  anime-only routes, preventing the Casablanca movie/music-anime collision when
+  profiles mix providers. Unknown/unclassified genres preserve eligibility.
+  Public `MediaName`/`ResolvedMedia` shapes remain unchanged.
+- `.env.generated` contains six verified selections: `vidlink2`, `playimdb`,
+  `2dhive`, `itachi`, plus `aniwaves`/`reanime` for the existing fast-dub race.
+  `EngineBuilder` reads `VSOURCES_PROVIDERS` for its default catalog; explicit
+  `.providers(...)` wins. Category hints are advisory. Existing `.env` credentials
+  were preserved. The profile live-smoke resolved Casablanca to six streams from
+  only `vidlink2`/`playimdb` in **1.99 s**, excluding the anime routes.
+- Validation: **869 Rust tests** (863 all-targets + 6 doctests), **7 Python harness
+  tests**, formatting, Clippy and rustdoc with warnings denied. Harness tests
+  include real header-gated local video/audio decode, required audio-index failure,
+  safe public data, resume invalidation and shortlist exclusion rules.
+- Private API/stream response snapshots and logs: `/tmp/vsources-provider-matrix-20261002`
+  (0700). Frozen initial/fixed worker binaries are retained with SHA-256. Some
+  first-repair private filenames were reused; public before/after metrics/decode
+  evidence remain complete. Future runs use unique log directories.
+- Local preview serves on `http://127.0.0.1:8766/index.html` while its process is
+  running. The HTML is standalone/offline as well. Provider/title/category/result
+  filters, source/player/combined graphs, individual evidence, prior attempts,
+  JSON/CSV links and an in-app CSV preview were checked in the browser.
+
+Re-run the whole matrix into a new output directory, or use `--resume` for missing
+cases / `--rerun ids` for repaired providers. Do not equate empty English-dub
+answers with no ordinary sub streams. Caller credentials are still required for
+Peckle's authenticated path / optional MovieBox mobile signing. No new accounts,
+borrowed cookies, VIPTV changes, deployments or commits were made.
+
+## Completed: Provider Mapping Modernization (2026-10-02)
+
+The accepted plan is `.mimir/plans/2026-10-02t01-43-43-provider-mapping-modernization-id-first-resolution-with-an-anika.md`
+(read it first). It replaces name-scoring slug lookups with a shared,
+id-based mapping service across anime providers. Work is uncommitted in
+the working tree — do not reset it.
+
+**Earlier completed stages 1–3 (retained baseline):**
+
+- New `crates/vsources-core/src/mappings/` module: `arm.rs`
+  (arm.haglund.dev per-season entries; route in PATH, id in QUERY —
+  `/api/v2/imdb?id=…`, `/api/v2/themoviedb?id=…`), `anilist.rs`
+  (graphql.anilist.co, no auth), `service.rs` (`MappingService` with
+  single-flight dedup + TTL caches + 429 retry). Exported from
+  `vsources_core::mappings`.
+- AniKage (`anikage.rs`): id-first `find_slug_verified` — arm →
+  `anilistId` equality on browse candidates (fast path, no detail
+  request), verification tier via detail `trackers` imdb/tmdb +
+  episodes `seasonNumber`; `season_suffix`/`season_agrees` deleted;
+  name-score fallback preserved. New regression tests including
+  "S2 media resolves to the S2 slug not S1". Constructor:
+  `AniKage::with_mappings(MappingService)`.
+- anikototv: inline ARM bridge replaced with the shared service (same
+  `{mal, anilist}` result, now cached/deduped; the old
+  `/api/v2/tmdb?id&s&e` route 404s — the service uses
+  `/api/v2/themoviedb?id=` + season filtering).
+- anichan: GraphQL flow routed through the shared anilist client
+  (`mappings.anilist_search`).
+- `wave1`/`wave2` now take `(tmdb, mappings)`; the engine builds one
+  shared `MappingService` per app; `examples/audit.rs` updated.
+- `cargo test --workspace`: **842 passed, 0 failed**. Clippy
+  `--workspace --all-targets`: clean. `cargo fmt` applied.
+- Live: `env_check` 48 providers, 32 streams on Inception in 74.8 s
+  (pre-change envelope). Targeted anikage S2 resolve: TMDB 134667
+  S2E1 → 2 streams labeled S02E01 from slug `8YNHBYVFeq` (the S2
+  entry — confirmed against the sources payload) in 2.5 s.
+- `examples/cinemeta.rs` is a `mod` of the tui example but also a
+  cargo auto-discovered example target — it carries a stub `main()`
+  (needed for `cargo test` to compile it).
+
+**Stages 4–6 completed in the continuation:**
+
+- All 20 anime providers in the default catalog share the engine's mapping
+  service, including AllWish (omitted from the original remaining-provider list).
+  New adapters use a `.with_mappings(service)` builder, preserving their existing
+  constructors. AniKage retains its associated `with_mappings(service)` constructor.
+- Direct season IDs drive AnimeKai/2Dhive's MAL paths and NikaStream, ReAnime,
+  StreamXTV, AniDoor, Itachi and AniBD's AniList/MAL paths. Title-only sites
+  (AnimeSuge, HiAnime, AnimeZeY, AniMoTVSlash, AnimeFlix, AnimeGG, Anikoto,
+  AniWaves and AllWish) try a canonical title fetched by the mapped season ID,
+  then retain the original title path. Their internal `data-id`/href keys are
+  **not** assumed to be AniList/MAL IDs. This remains title matching on those
+  sites, not a claim of database-ID verification where no cross-reference exists.
+- Mapped-route misses/errors fall through to the original routes. Canonical
+  AniList title requests are also single-flight/cached. ARM malformed-success
+  responses now remain retryable errors instead of cached empty results;
+  ARM outages can use the independent AniList search. Unrelated English search
+  titles are rejected, while romaji-only translations retain the prior fallback.
+  Season markers handle multi-digit seasons and trailing part suffixes.
+- TUI: title search → choose movie (resolve directly) or series → Cinemeta
+  `/meta/series/{imdb}.json` → scrollable episodes sorted by season/episode →
+  choose episode → exact IMDb + season + episode resolve. Only Search/Kind
+  form fields remain. Episode titles/air dates stay in `App.episodes`.
+  Cinemeta's live episode title key is `name`; both `name` and `title` are
+  supported, and catalog `releaseInfo` is parsed correctly. Changing the
+  query/catalog detaches stale requests and resets episode state; an old episode
+  list cannot resolve a different selected series. `Esc` returns to series hits.
+- Validation: **865 tests pass** (859 across all targets, including the Cinemeta
+  tests compiled in three example targets, plus 6 doctests); formatting,
+  `git diff --check`, Clippy with `-D warnings`, and rustdoc with warnings denied
+  pass. New tests cover mapped S2 IDs in AnimeKai/ReAnime, mapped-route fallback,
+  canonical-title deduplication, malformed ARM recovery, unrelated search rows,
+  ordered episode metadata, stale request cancellation and selected-series gates.
+- Live AniKage Sword S2E1: 2 streams in **2.3 s**. The koto stream failed mpv;
+  the wave/Vidplay stream passed **`--frames=3 --vo=null`**, forwarding all
+  required stream headers. This is a frame-decode spot check, not an independent
+  audiovisual review of the episode's identity or English audio.
+- Live Cinemeta Breaking Bad: **67 episodes**, picked **S2E1 “Seven Thirty-Seven”**
+  with release date `2009-03-09T05:00:00.000Z`; resolved through the SDK to one
+  VidZee stream in **30.1 s**. A PTY-driven TUI check also exercised search,
+  series choice, metadata loading, S2E1 keyboard selection and progressive results.
+  A separate PTY check passed movie search, selection and progressive resolution.
+- Full-catalog Inception: **48 providers, 30 streams in 76.4 s**, compared with
+  the earlier 32 streams / 74.8 s spot check. Close to the recorded envelope;
+  stream counts and upstream latency vary. No sustained performance guarantee.
+- Reproduce with `cargo run -p vsources --example env_check`;
+  add `--series` for the episode metadata flow or `--anikage-playback` for the
+  bounded mpv check. Signed URLs/headers are never printed. Audit summary:
+  `docs/audits/2026-10-02-provider-mapping.json`. Private test/live logs:
+  `/tmp/vsources-mapping-*`.
+
+The accepted modernization plan has no remaining implementation stages.
+All work remains uncommitted; preserve the working tree. Historical research
+and provider blockers below are separate objectives and were not reopened.
+
+API facts verified live during this work: arm
+`/api/v2/imdb?id=tt15483602` and `/api/v2/themoviedb?id=134667` return
+the full per-season array (Sword S1 anilist 139587 / mal 49891, S2
+anilist 159042 / mal 53913); AniKage browse candidates carry
+`anilistId`; detail `anime.trackers` carries `imdbId`/`tmdbId`/`malId`;
+episodes carry `seasonNumber`.
 
 ## Current priority: large native/API catalogs; integration deferred
 

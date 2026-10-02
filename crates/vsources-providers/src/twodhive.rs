@@ -85,6 +85,8 @@ struct SearchResult {
 
 /// The `2Dhive` provider.
 pub struct TwoDhive {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by `info`.
     info: SourceInfo,
     /// The extractor chain that resolves the megaplay embeds.
@@ -92,10 +94,18 @@ pub struct TwoDhive {
 }
 
 impl TwoDhive {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Build the provider over an extractor registry.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: "2Dhive".to_string(),
@@ -183,67 +193,13 @@ impl Source for TwoDhive {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves the TMDB id, name, and year here; in this
-        // SDK the engine resolves media metadata before the fan-out.
-        let Some(meta) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let name = meta.name.as_str();
-        let season = if media.kind == MediaType::Series {
-            media.season
-        } else {
-            None
-        };
-        let title = match season {
-            Some(_) => format!("{name} {}", media.format_season_and_episode()),
-            None => match meta.year {
-                Some(year) => format!("{name} ({year})"),
-                None => name.to_string(),
-            },
-        };
-
-        // Step 1: search for the anime's MAL id.
-        let Some(mal_id) = self.find_mal_id(ctx, name).await? else {
-            return Ok(Vec::new());
-        };
-
-        // Step 2: build the embed URLs for both sub and dub — the
-        // megaplay extractor resolves them to direct m3u8s.
-        let ep_num = season.map_or(1, |_| media.episode.unwrap_or(1));
-        let mut streams = Vec::new();
-        for sub_dub in ["sub", "dub"] {
-            let embed_url = Url::parse(&format!(
-                "https://megaplay.buzz/stream/mal/{mal_id}/{ep_num}/{sub_dub}"
-            ))
-            .map_err(|error| {
-                SourceError::scrape(ID, format!("the embed URL is invalid: {error}"))
-            })?;
-            let extract_ctx = ResolveCtx {
-                fetcher: ctx.fetcher,
-                media: None,
-                source_id: Some(ID),
-                referer: None,
-            };
-            // DUB may 410 for titles without dubs: the extractor maps
-            // it to a miss and the variant is dropped.
-            let Ok(extracted) = self.registry.extract(&extract_ctx, &embed_url).await else {
-                continue;
-            };
-            let is_dub = sub_dub == "dub";
-            for mut stream in extracted {
-                stream.label = Some(format!("{title} ({})", if is_dub { "Dub" } else { "Sub" }));
-                stream.ttl = TTL;
-                stream.meta.languages = if is_dub {
-                    vec![CountryCode::Multi, CountryCode::En]
-                } else {
-                    vec![CountryCode::Multi, CountryCode::Ja]
-                };
-                stream.meta.source_id = Some(ID.to_string());
-                stream.meta.source_label = Some("2Dhive".to_string());
-                streams.push(stream);
-            }
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_inner(ctx, media, Some(ids)).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-        Ok(streams)
+        self.resolve_inner(ctx, media, None).await
     }
 }
 
@@ -312,6 +268,83 @@ fn candidate_queries(name: &str) -> Vec<String> {
         }
     }
     queries
+}
+
+impl TwoDhive {
+    async fn resolve_inner(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        mapped: Option<vsources_core::mappings::SeasonIds>,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves the TMDB id, name, and year here; in this
+        // SDK the engine resolves media metadata before the fan-out.
+        let Some(meta) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let name = meta.name.as_str();
+        let season = if media.kind == MediaType::Series {
+            media.season
+        } else {
+            None
+        };
+        let title = match season {
+            Some(_) => format!("{name} {}", media.format_season_and_episode()),
+            None => match meta.year {
+                Some(year) => format!("{name} ({year})"),
+                None => name.to_string(),
+            },
+        };
+
+        // Step 1: search for the anime's MAL id.
+        let mal_id = match mapped.and_then(|ids| ids.mal_id) {
+            Some(id) => Some(id),
+            None => self.find_mal_id(ctx, name).await?,
+        };
+        let Some(mal_id) = mal_id else {
+            return Ok(Vec::new());
+        };
+
+        // Step 2: build the embed URLs for both sub and dub — the
+        // megaplay extractor resolves them to direct m3u8s.
+        let ep_num = season.map_or(1, |_| media.episode.unwrap_or(1));
+        let mut streams = Vec::new();
+        for sub_dub in ["sub", "dub"] {
+            let embed_url = Url::parse(&format!(
+                "https://megaplay.buzz/stream/mal/{mal_id}/{ep_num}/{sub_dub}"
+            ))
+            .map_err(|error| {
+                SourceError::scrape(ID, format!("the embed URL is invalid: {error}"))
+            })?;
+            let extract_ctx = ResolveCtx {
+                fetcher: ctx.fetcher,
+                media: None,
+                source_id: Some(ID),
+                referer: None,
+            };
+            // DUB may 410 for titles without dubs: the extractor maps
+            // it to a miss and the variant is dropped.
+            let Ok(extracted) = self.registry.extract(&extract_ctx, &embed_url).await else {
+                continue;
+            };
+            let is_dub = sub_dub == "dub";
+            for mut stream in extracted {
+                stream.label = Some(format!("{title} ({})", if is_dub { "Dub" } else { "Sub" }));
+                stream.ttl = TTL;
+                stream.meta.languages = if is_dub {
+                    vec![CountryCode::Multi, CountryCode::En]
+                } else {
+                    vec![CountryCode::Multi, CountryCode::Ja]
+                };
+                stream.meta.dubbed = Some(is_dub);
+                stream.meta.subbed = Some(!is_dub);
+                stream.meta.source_id = Some(ID.to_string());
+                stream.meta.source_label = Some("2Dhive".to_string());
+                streams.push(stream);
+            }
+        }
+        Ok(streams)
+    }
 }
 
 #[cfg(test)]

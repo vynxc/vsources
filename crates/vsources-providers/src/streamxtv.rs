@@ -229,6 +229,8 @@ fn quality_sort_key(quality: &str) -> u8 {
 
 /// The `StreamXTV` provider.
 pub struct StreamXTV {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by [`Source::info`].
     info: SourceInfo,
     /// Shared TMDB identity resolution.
@@ -238,10 +240,18 @@ pub struct StreamXTV {
 }
 
 impl StreamXTV {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider over the shared TMDB client and extractor registry.
     #[must_use]
     pub fn new(tmdb: Arc<TmdbClient>, registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -280,7 +290,12 @@ impl Source for StreamXTV {
         // starts the sweep promise un-awaited, so the total time is
         // the max of the two, not the sum.
         let sweep = self.sweep(ctx, media, tmdb_id);
-        let anime = find_anilist_id(ctx, &name);
+        let anime = async {
+            match crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
+                Some(ids) => Some(ids.anilist_id),
+                None => find_anilist_id(ctx, &name).await,
+            }
+        };
         let (mut direct, anilist_id) = tokio::join!(sweep, anime);
         let is_anime = anilist_id.is_some();
 
@@ -327,7 +342,10 @@ impl Source for StreamXTV {
                         vec![CountryCode::Multi, CountryCode::Ja]
                     };
                     let label = format!("{title} ({} {})", provider.label, sub_dub.to_uppercase());
-                    streams.extend(self.resolve_embed(ctx, &embed, &label, languages).await);
+                    streams.extend(
+                        self.resolve_embed(ctx, &embed, &label, languages, Some(sub_dub == "dub"))
+                            .await,
+                    );
                 }
             }
         }
@@ -349,7 +367,7 @@ impl Source for StreamXTV {
                 };
                 let label = format!("{title} ({})", provider.label);
                 streams.extend(
-                    self.resolve_embed(ctx, &embed, &label, vec![CountryCode::Multi])
+                    self.resolve_embed(ctx, &embed, &label, vec![CountryCode::Multi], None)
                         .await,
                 );
             }
@@ -488,6 +506,7 @@ impl StreamXTV {
         embed: &str,
         label: &str,
         languages: Vec<CountryCode>,
+        dubbed: Option<bool>,
     ) -> Vec<Stream> {
         let Ok(url) = Url::parse(embed) else {
             return Vec::new();
@@ -510,6 +529,10 @@ impl StreamXTV {
             stream.meta.source_id = Some(self.info.id.clone());
             stream.meta.source_label = Some(self.info.label.clone());
             stream.meta.languages.clone_from(&languages);
+            if let Some(dubbed) = dubbed {
+                stream.meta.dubbed = Some(dubbed);
+                stream.meta.subbed = Some(!dubbed);
+            }
             stream.label = Some(label.to_string());
             streams.push(stream);
         }

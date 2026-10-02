@@ -165,7 +165,6 @@ impl Megaplay {
         let m3u8 = Url::parse(&file).ok()?;
 
         let subtitles = subtitle_tracks(&data);
-        let has_subtitles = !subtitles.is_empty();
 
         // Best-effort resolution detection: the playlist advertises
         // `RESOLUTION=WxH` (server-side fetches usually 403).
@@ -184,14 +183,10 @@ impl Megaplay {
             subtitles,
             ..StreamMeta::default()
         };
-        // Upstream attaches the hotlink Referer only when the API
-        // returned subtitle tracks — a verbatim port of the conditional
-        // spread over `requestHeaders`.
-        let meta = if has_subtitles {
-            meta.with_header("Referer", "https://megaplay.buzz/")
-        } else {
-            meta
-        };
+        // Playback is Referer gated regardless of subtitle availability.
+        // The observed Nexabloom file 403s without this header even when the
+        // sources payload contains no tracks.
+        let meta = meta.with_header("Referer", "https://megaplay.buzz/");
 
         let mut stream = Stream::new(m3u8, Format::Hls)
             .with_label(self.label())
@@ -436,6 +431,33 @@ mod tests {
             fetcher
                 .sent_header("/hls/gGg7J/master.m3u8", "Referer")
                 .as_deref(),
+            Some("https://megaplay.buzz/")
+        );
+    }
+
+    #[tokio::test]
+    async fn no_subtitles_still_preserves_the_required_playback_referer() {
+        let fetcher = ScriptedFetcher::default()
+            .page("/stream/ani/20/1/sub", r#"<div data-id="12345"></div>"#)
+            .page(
+                "/stream/getSourcesNew",
+                format!(r#"{{"tracks":[],"enc":"{ENC_VECTOR}"}}"#),
+            )
+            .page(
+                "/hls/gGg7J/master.m3u8",
+                "#EXTM3U\n#EXTINF:8,\nsegment.ts\n",
+            );
+        let streams = Megaplay::new()
+            .extract(&ctx_for(&fetcher, None), &url())
+            .await
+            .unwrap_or_else(|error| panic!("extract: {error}"));
+        assert!(streams[0].meta.subtitles.is_empty());
+        assert_eq!(
+            streams[0]
+                .meta
+                .request_headers
+                .get("Referer")
+                .map(String::as_str),
             Some("https://megaplay.buzz/")
         );
     }

@@ -151,6 +151,8 @@ static CJK: LazyLock<Regex> = LazyLock::new(|| {
 
 /// The `AnimeZeY` provider.
 pub struct AnimeZeY {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by [`Source::info`].
     info: SourceInfo,
     /// Shared TMDB identity resolution.
@@ -158,10 +160,18 @@ pub struct AnimeZeY {
 }
 
 impl AnimeZeY {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider over the shared TMDB client.
     #[must_use]
     pub fn new(tmdb: Arc<TmdbClient>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -187,39 +197,14 @@ impl Source for AnimeZeY {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Anime-only: the wrapper bails without season/episode.
-        let (Some(season), episode) = (media.season, media.episode.unwrap_or(1)) else {
-            return Err(SourceError::NotFound);
-        };
-
-        let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
-        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
-        let original = original_name(ctx, &self.tmdb, media, tmdb_id, &name).await;
-        let title = format!("{} {}", name, media.format_season_and_episode());
-
-        // The scraper races the 25 s deadline.
-        let session_ua = next_ua();
-        let sweep = scrape(ctx, &name, &original, year, season, episode, session_ua);
-        let raw = with_deadline(sweep, SWEEP_DEADLINE)
-            .await
-            .unwrap_or_default();
-        if raw.is_empty() {
-            return Err(SourceError::NotFound);
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-
-        let country_codes = vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En];
-        let built = build_stream_results(&BuildParams {
-            streams: &raw,
-            title: &title,
-            source_id: ID,
-            source_label: LABEL,
-            country_codes: &country_codes,
-            ttl: TTL,
-        });
-
-        // Liveness belongs to the engine's bounded media gate. An ordinary
-        // GET here can buffer a multi-gigabyte file before resolution finishes.
-        Ok(built)
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -1481,6 +1466,48 @@ fn soften<T>(error: Result<T, SourceError>) -> Result<T, SourceError> {
             | SourceError::Fetch(FetchError::NotFound { .. } | FetchError::Http { status: 404, .. }),
         ) => Err(SourceError::NotFound),
         other => other,
+    }
+}
+
+impl AnimeZeY {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Anime-only: the wrapper bails without season/episode.
+        let (Some(season), episode) = (media.season, media.episode.unwrap_or(1)) else {
+            return Err(SourceError::NotFound);
+        };
+
+        let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
+        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
+        let original = original_name(ctx, &self.tmdb, media, tmdb_id, &name).await;
+        let title = format!("{} {}", name, media.format_season_and_episode());
+
+        // The scraper races the 25 s deadline.
+        let session_ua = next_ua();
+        let sweep = scrape(ctx, &name, &original, year, season, episode, session_ua);
+        let raw = with_deadline(sweep, SWEEP_DEADLINE)
+            .await
+            .unwrap_or_default();
+        if raw.is_empty() {
+            return Err(SourceError::NotFound);
+        }
+
+        let country_codes = vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En];
+        let built = build_stream_results(&BuildParams {
+            streams: &raw,
+            title: &title,
+            source_id: ID,
+            source_label: LABEL,
+            country_codes: &country_codes,
+            ttl: TTL,
+        });
+
+        // Liveness belongs to the engine's bounded media gate. An ordinary
+        // GET here can buffer a multi-gigabyte file before resolution finishes.
+        Ok(built)
     }
 }
 

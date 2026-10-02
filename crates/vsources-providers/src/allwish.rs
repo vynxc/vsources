@@ -105,6 +105,8 @@ static SERVER_ITEMS: LazyLock<Selector> = LazyLock::new(|| {
 
 /// The `all-wish.me` provider (HiAnime-family AJAX scraping).
 pub struct AllWish {
+    /// Shared anime season mappings.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// Static descriptor.
     info: SourceInfo,
     /// The site root (upstream `BASE_URL`).
@@ -114,10 +116,18 @@ pub struct AllWish {
 }
 
 impl AllWish {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider resolving megaplay embeds through `registry`.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: PROVIDER_ID.to_string(),
                 label: "AllWish".to_string(),
@@ -189,121 +199,14 @@ impl Source for AllWish {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves TMDB (getTmdbId + getTmdbNameAndYear) and
-        // searches by name; without pre-resolved media there is no title.
-        let Some(resolved) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let title = display_title(&resolved.name, resolved.year, media);
-        let target = target_episode(media);
-
-        // Step 1: search for the anime.
-        let Some(watch) = self.find_watch_page(ctx, &resolved.name).await? else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 2: detail page → numeric anime id.
-        let Some(detail_html) = fetch_html(ctx, &watch, self.base.as_str()).await? else {
-            return Err(SourceError::NotFound);
-        };
-        let Some(anime_id) = anime_id_from_detail(&detail_html) else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 3: episode list via AJAX (no vrf — all-wish doesn't
-        // validate it).
-        let episode_list = format!("{BASE_URL}/ajax/episode/list/{anime_id}");
-        let Some(payload) = fetch_json(ctx, &site_url(&episode_list)?, watch.as_str()).await?
-        else {
-            return Err(SourceError::NotFound);
-        };
-        if payload.get("status").and_then(Value::as_i64) != Some(200) {
-            return Err(SourceError::NotFound);
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-        let Some(result_html) = payload.get("result").and_then(Value::as_str) else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 4: the target episode's data-ids + sub/dub flags.
-        let Some(episode) = find_episode(result_html, target) else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 5: server list — data-ids sent RAW (not URL-encoded); the
-        // site's own jQuery does the same.
-        let server_list = format!("{BASE_URL}/ajax/server/list?servers={}", episode.ids);
-        let ep_referer = format!("{watch}/ep-{target}");
-        let Some(payload) = fetch_json(ctx, &site_url(&server_list)?, &ep_referer).await? else {
-            return Err(SourceError::NotFound);
-        };
-        if payload.get("status").and_then(Value::as_i64) != Some(200) {
-            return Err(SourceError::NotFound);
-        }
-        let Some(result_html) = payload.get("result").and_then(Value::as_str) else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 6: parse and dedupe the server groups.
-        let servers = parse_servers(result_html);
-        if servers.is_empty() {
-            return Err(SourceError::NotFound);
-        }
-        let deduped = deduped_servers(&servers, &episode);
-        let ep_page = site_url(&ep_referer)?;
-
-        // Step 7: resolve embed URLs, prefer sub then dub, dedupe by
-        // embed URL and label; extract each through the registry.
-        let mut streams = Vec::new();
-        let mut seen_urls = HashSet::new();
-        let mut seen_labels = HashSet::new();
-        for server in deduped {
-            let Some(embed) = self
-                .resolve_embed(ctx, &server.link_id, &ep_referer)
-                .await?
-            else {
-                continue;
-            };
-            if !seen_urls.insert(embed.as_str().to_string()) {
-                continue;
-            }
-
-            let audio = if server.server_type == "dub" {
-                "Dub"
-            } else {
-                "Sub"
-            };
-            let languages = if server.server_type == "dub" {
-                vec![CountryCode::Multi, CountryCode::En]
-            } else {
-                vec![CountryCode::Multi, CountryCode::Ja]
-            };
-            let label = format!("{title} ({audio} · {})", server.name);
-            let label_key = format!("{audio}_{}", server.name);
-            if !seen_labels.insert(label_key) {
-                continue;
-            }
-
-            // Upstream: the resolver extracts every embed and merges the
-            // source meta into the extractor's streams; extraction
-            // errors are swallowed per URL.
-            let embed_ctx = ResolveCtx {
-                fetcher: ctx.fetcher,
-                media: ctx.media.clone(),
-                source_id: Some(self.info.id.as_str()),
-                referer: Some(&ep_page),
-            };
-            let Ok(extracted) = self.registry.extract(&embed_ctx, &embed).await else {
-                continue;
-            };
-            for mut stream in extracted {
-                stream.meta.source_id = Some(self.info.id.clone());
-                stream.meta.source_label = Some(self.info.label.clone());
-                stream.meta.languages.clone_from(&languages);
-                stream.label = Some(label.clone());
-                streams.push(stream);
-            }
-        }
-        Ok(streams)
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -671,6 +574,132 @@ fn is_miss(error: &FetchError) -> bool {
     )
 }
 
+impl AllWish {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves TMDB (getTmdbId + getTmdbNameAndYear) and
+        // searches by name; without pre-resolved media there is no title.
+        let Some(resolved) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let title = display_title(&resolved.name, resolved.year, media);
+        let target = target_episode(media);
+
+        // Step 1: search for the anime.
+        let Some(watch) = self.find_watch_page(ctx, &resolved.name).await? else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 2: detail page → numeric anime id.
+        let Some(detail_html) = fetch_html(ctx, &watch, self.base.as_str()).await? else {
+            return Err(SourceError::NotFound);
+        };
+        let Some(anime_id) = anime_id_from_detail(&detail_html) else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 3: episode list via AJAX (no vrf — all-wish doesn't
+        // validate it).
+        let episode_list = format!("{BASE_URL}/ajax/episode/list/{anime_id}");
+        let Some(payload) = fetch_json(ctx, &site_url(&episode_list)?, watch.as_str()).await?
+        else {
+            return Err(SourceError::NotFound);
+        };
+        if payload.get("status").and_then(Value::as_i64) != Some(200) {
+            return Err(SourceError::NotFound);
+        }
+        let Some(result_html) = payload.get("result").and_then(Value::as_str) else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 4: the target episode's data-ids + sub/dub flags.
+        let Some(episode) = find_episode(result_html, target) else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 5: server list — data-ids sent RAW (not URL-encoded); the
+        // site's own jQuery does the same.
+        let server_list = format!("{BASE_URL}/ajax/server/list?servers={}", episode.ids);
+        let ep_referer = format!("{watch}/ep-{target}");
+        let Some(payload) = fetch_json(ctx, &site_url(&server_list)?, &ep_referer).await? else {
+            return Err(SourceError::NotFound);
+        };
+        if payload.get("status").and_then(Value::as_i64) != Some(200) {
+            return Err(SourceError::NotFound);
+        }
+        let Some(result_html) = payload.get("result").and_then(Value::as_str) else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 6: parse and dedupe the server groups.
+        let servers = parse_servers(result_html);
+        if servers.is_empty() {
+            return Err(SourceError::NotFound);
+        }
+        let deduped = deduped_servers(&servers, &episode);
+        let ep_page = site_url(&ep_referer)?;
+
+        // Step 7: resolve embed URLs, prefer sub then dub, dedupe by
+        // embed URL and label; extract each through the registry.
+        let mut streams = Vec::new();
+        let mut seen_urls = HashSet::new();
+        let mut seen_labels = HashSet::new();
+        for server in deduped {
+            let Some(embed) = self
+                .resolve_embed(ctx, &server.link_id, &ep_referer)
+                .await?
+            else {
+                continue;
+            };
+            if !seen_urls.insert(embed.as_str().to_string()) {
+                continue;
+            }
+
+            let audio = if server.server_type == "dub" {
+                "Dub"
+            } else {
+                "Sub"
+            };
+            let languages = if server.server_type == "dub" {
+                vec![CountryCode::Multi, CountryCode::En]
+            } else {
+                vec![CountryCode::Multi, CountryCode::Ja]
+            };
+            let label = format!("{title} ({audio} · {})", server.name);
+            let label_key = format!("{audio}_{}", server.name);
+            if !seen_labels.insert(label_key) {
+                continue;
+            }
+
+            // Upstream: the resolver extracts every embed and merges the
+            // source meta into the extractor's streams; extraction
+            // errors are swallowed per URL.
+            let embed_ctx = ResolveCtx {
+                fetcher: ctx.fetcher,
+                media: ctx.media.clone(),
+                source_id: Some(self.info.id.as_str()),
+                referer: Some(&ep_page),
+            };
+            let Ok(extracted) = self.registry.extract(&embed_ctx, &embed).await else {
+                continue;
+            };
+            for mut stream in extracted {
+                stream.meta.source_id = Some(self.info.id.clone());
+                stream.meta.source_label = Some(self.info.label.clone());
+                stream.meta.languages.clone_from(&languages);
+                stream.meta.dubbed = Some(server.server_type == "dub");
+                stream.meta.subbed = Some(server.server_type != "dub");
+                stream.label = Some(label.clone());
+                streams.push(stream);
+            }
+        }
+        Ok(streams)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -944,6 +973,8 @@ mod tests {
             Some("Frieren: Beyond Journey's End S01E02 (Sub · Vidplay)")
         );
         let dub = &streams[2];
+        assert_eq!(dub.meta.dubbed, Some(true));
+        assert_eq!(dub.meta.subbed, Some(false));
         assert_eq!(dub.url.as_str(), "https://cdn.example.com/tokC/index.m3u8");
         assert_eq!(
             dub.label.as_deref(),

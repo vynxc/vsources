@@ -279,6 +279,8 @@ struct Caption {
 
 /// The `Itachi` provider.
 pub struct Itachi {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by `info`.
     info: SourceInfo,
     /// The extractor chain that claims the `VidHawk` tracks and the
@@ -287,10 +289,18 @@ pub struct Itachi {
 }
 
 impl Itachi {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Build the provider over an extractor registry.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: "Itachi".to_string(),
@@ -399,6 +409,8 @@ impl Itachi {
                     } else {
                         vec![CountryCode::Multi, CountryCode::Ja]
                     },
+                    dubbed: Some(is_dub),
+                    subbed: Some(!is_dub),
                     audio: vec![if is_dub { "English" } else { "Japanese" }.to_string()],
                     quality: Some("WebDL".to_string()),
                     codec: Some("x264".to_string()),
@@ -455,6 +467,8 @@ impl Itachi {
                 } else {
                     vec![CountryCode::Multi, CountryCode::Ja]
                 };
+                stream.meta.dubbed = Some(is_dub);
+                stream.meta.subbed = Some(!is_dub);
                 stream.meta.audio = vec![if is_dub { "English" } else { "Japanese" }.to_string()];
                 stream.meta.quality = Some("WebDL".to_string());
                 stream.meta.codec = Some("x264".to_string());
@@ -512,103 +526,13 @@ impl Source for Itachi {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves the TMDB id, name, and year here; in this
-        // SDK the engine resolves media metadata before the fan-out.
-        let Some(meta) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let name = meta.name.as_str();
-        let season = if media.kind == MediaType::Series {
-            media.season
-        } else {
-            None
-        };
-        let title_base = match season {
-            Some(_) => format!("{name} {}", media.format_season_and_episode()),
-            None => match meta.year {
-                Some(year) => format!("{name} ({year})"),
-                None => name.to_string(),
-            },
-        };
-
-        // Anime-only — the upstream TMDB genre pre-check is cut (see
-        // the module doc); the AniList match below is the gate.
-        let want_movie = season.is_none();
-        let media_list = resolve_anime_entries(ctx, name).await;
-        if media_list.is_empty() {
-            return Ok(Vec::new());
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_inner(ctx, media, Some(ids)).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-
-        let Some(best) = pick_best_anilist(&media_list, name, want_movie) else {
-            return Ok(Vec::new());
-        };
-        let anilist_id = best.anilist_id;
-        let mal_id = best.mal_id;
-        // Skip if we have neither id.
-        if anilist_id.is_none() && mal_id.is_none() {
-            return Ok(Vec::new());
-        }
-        let ep_num = if want_movie {
-            1
-        } else {
-            media.episode.unwrap_or(1)
-        };
-
-        // ── VidHawk: 3 servers × 2 audio variants ──
-        let mut results: Vec<Stream> = Vec::new();
-        let mut seen_hls: HashSet<Url> = HashSet::new();
-        for (server_id, server_label) in VIDHAWK_SERVERS {
-            // The ticket (variant is always sub: the play data carries
-            // both audio tracks).
-            let Some(ticket) = vidhawk_ticket(ctx, server_id, ep_num, anilist_id, mal_id).await
-            else {
-                // A dead server contributes nothing (upstream `[]`).
-                continue;
-            };
-
-            let play_url = VIDHAWK_BASE
-                .join(&format!("api/play?t={}", urlencode(&ticket)))
-                .map_err(|error| {
-                    SourceError::scrape(ID, format!("the play URL is invalid: {error}"))
-                })?;
-            let request = FetchRequest::get(play_url)
-                .with_header("Referer", VIDHAWK_BASE.as_str())
-                .with_timeout(Duration::from_secs(10));
-            let Ok(response) = ctx.fetcher.request(request).await else {
-                continue;
-            };
-            let Ok(play) = response.json::<PlayResponse>() else {
-                continue;
-            };
-
-            for track in &play.tracks {
-                let mut streams = self
-                    .vidhawk_track(ctx, &title_base, server_label, &play, track, &mut seen_hls)
-                    .await?;
-                results.append(&mut streams);
-            }
-        }
-
-        // ── MegaPlay: 2 deterministic URLs (sub + dub) ──
-        // Only with a real AniList id (upstream would interpolate
-        // `null` for Jikan-only matches, which can only 404).
-        if let Some(anilist_id) = anilist_id {
-            for sub_dub in ["sub", "dub"] {
-                let mut streams = self
-                    .megaplay_variant(ctx, &title_base, anilist_id, ep_num, sub_dub)
-                    .await?;
-                results.append(&mut streams);
-            }
-        }
-
-        // Best-effort height default: VidHawk typically serves
-        // 720p-1080p.
-        for stream in &mut results {
-            if stream.meta.resolution.is_none() {
-                stream.meta.resolution = Some(1080);
-            }
-        }
-        Ok(results)
+        self.resolve_inner(ctx, media, None).await
     }
 }
 
@@ -780,6 +704,112 @@ fn ascii_fold(s: &str) -> String {
 /// `encodeURIComponent` for the ticket query parameter.
 fn urlencode(value: &str) -> String {
     url::form_urlencoded::byte_serialize(value.as_bytes()).collect()
+}
+
+impl Itachi {
+    async fn resolve_inner(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        mapped: Option<vsources_core::mappings::SeasonIds>,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves the TMDB id, name, and year here; in this
+        // SDK the engine resolves media metadata before the fan-out.
+        let Some(meta) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let name = meta.name.as_str();
+        let season = if media.kind == MediaType::Series {
+            media.season
+        } else {
+            None
+        };
+        let title_base = match season {
+            Some(_) => format!("{name} {}", media.format_season_and_episode()),
+            None => match meta.year {
+                Some(year) => format!("{name} ({year})"),
+                None => name.to_string(),
+            },
+        };
+
+        // Anime-only — the upstream TMDB genre pre-check is cut (see
+        // the module doc); the AniList match below is the gate.
+        let want_movie = season.is_none();
+        let (anilist_id, mal_id) = if let Some(ids) = mapped {
+            (Some(ids.anilist_id), ids.mal_id)
+        } else {
+            let media_list = resolve_anime_entries(ctx, name).await;
+            let Some(best) = pick_best_anilist(&media_list, name, want_movie) else {
+                return Ok(Vec::new());
+            };
+            (best.anilist_id, best.mal_id)
+        };
+        // Skip if we have neither id.
+        if anilist_id.is_none() && mal_id.is_none() {
+            return Ok(Vec::new());
+        }
+        let ep_num = if want_movie {
+            1
+        } else {
+            media.episode.unwrap_or(1)
+        };
+
+        // ── VidHawk: 3 servers × 2 audio variants ──
+        let mut results: Vec<Stream> = Vec::new();
+        let mut seen_hls: HashSet<Url> = HashSet::new();
+        for (server_id, server_label) in VIDHAWK_SERVERS {
+            // The ticket (variant is always sub: the play data carries
+            // both audio tracks).
+            let Some(ticket) = vidhawk_ticket(ctx, server_id, ep_num, anilist_id, mal_id).await
+            else {
+                // A dead server contributes nothing (upstream `[]`).
+                continue;
+            };
+
+            let play_url = VIDHAWK_BASE
+                .join(&format!("api/play?t={}", urlencode(&ticket)))
+                .map_err(|error| {
+                    SourceError::scrape(ID, format!("the play URL is invalid: {error}"))
+                })?;
+            let request = FetchRequest::get(play_url)
+                .with_header("Referer", VIDHAWK_BASE.as_str())
+                .with_timeout(Duration::from_secs(10));
+            let Ok(response) = ctx.fetcher.request(request).await else {
+                continue;
+            };
+            let Ok(play) = response.json::<PlayResponse>() else {
+                continue;
+            };
+
+            for track in &play.tracks {
+                let mut streams = self
+                    .vidhawk_track(ctx, &title_base, server_label, &play, track, &mut seen_hls)
+                    .await?;
+                results.append(&mut streams);
+            }
+        }
+
+        // ── MegaPlay: 2 deterministic URLs (sub + dub) ──
+        // Only with a real AniList id (upstream would interpolate
+        // `null` for Jikan-only matches, which can only 404).
+        if let Some(anilist_id) = anilist_id {
+            for sub_dub in ["sub", "dub"] {
+                let mut streams = self
+                    .megaplay_variant(ctx, &title_base, anilist_id, ep_num, sub_dub)
+                    .await?;
+                results.append(&mut streams);
+            }
+        }
+
+        // Best-effort height default: VidHawk typically serves
+        // 720p-1080p.
+        for stream in &mut results {
+            if stream.meta.resolution.is_none() {
+                stream.meta.resolution = Some(1080);
+            }
+        }
+        Ok(results)
+    }
 }
 
 #[cfg(test)]

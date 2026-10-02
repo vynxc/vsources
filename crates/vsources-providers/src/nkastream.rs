@@ -234,6 +234,8 @@ struct NikaCard {
 
 /// The `NikaStream` provider.
 pub struct NikaStream {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by [`Source::info`].
     info: SourceInfo,
     /// Shared TMDB identity resolution.
@@ -241,12 +243,20 @@ pub struct NikaStream {
 }
 
 impl NikaStream {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider over the shared TMDB client. The aggregator answers
     /// direct URLs (embeds are dropped by the wrapper), so no
     /// extractor registry is needed.
     #[must_use]
     pub fn new(tmdb: Arc<TmdbClient>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -299,11 +309,31 @@ impl NikaStream {
     /// `nikastream.cjs` `getStreams` (the wrapper's playable filter
     /// and URL dedupe fold into the conversion).
     async fn sweep(&self, ctx: &ResolveCtx<'_>, name: &str, media: &MediaRef) -> Vec<NikaCard> {
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
+            let streams = self.sweep_inner(ctx, name, media, Some(ids)).await;
+            if !streams.is_empty() {
+                return streams;
+            }
+        }
+        self.sweep_inner(ctx, name, media, None).await
+    }
+
+    async fn sweep_inner(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        name: &str,
+        media: &MediaRef,
+        mapped: Option<vsources_core::mappings::SeasonIds>,
+    ) -> Vec<NikaCard> {
         let is_movie = media.season.is_none();
         let media_type = if is_movie { "movie" } else { "tv" };
         // Anivexa requires the AniList id — a Jikan/Kitsu-only match
         // answers the honest zero.
-        let Some(anilist_id) = find_anilist_id(ctx, name, media_type).await else {
+        let anilist_id = match mapped {
+            Some(ids) => Some(ids.anilist_id),
+            None => find_anilist_id(ctx, name, media_type).await,
+        };
+        let Some(anilist_id) = anilist_id else {
             return Vec::new();
         };
         let ep_num = if is_movie {
@@ -806,6 +836,8 @@ fn build_streams(cards: &[NikaCard], display_title: &str) -> Vec<Stream> {
         };
 
         let mut meta = StreamMeta {
+            dubbed: Some(card.audio == Audio::Dub),
+            subbed: Some(card.audio == Audio::Sub),
             languages,
             resolution: Some(height),
             quality: Some("WebDL".to_string()),

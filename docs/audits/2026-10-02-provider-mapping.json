@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-02",
+  "task": "Provider mapping modernization, stages 4\u20136",
+  "status": "complete",
+  "implementation": {
+    "anime_providers_with_shared_mapping": 20,
+    "direct_id_adapters": [
+      "animekai",
+      "twodhive",
+      "nkastream",
+      "reanime",
+      "streamxtv",
+      "anidoor",
+      "itachi",
+      "anibd"
+    ],
+    "canonical_season_title_adapters": [
+      "animesuge",
+      "hianime",
+      "animezey",
+      "animotvslash",
+      "animeflix",
+      "animegg",
+      "anikoto",
+      "aniwaves",
+      "allwish"
+    ],
+    "previously_completed": [
+      "anikage",
+      "anikototv",
+      "anichan"
+    ],
+    "title_only_limit": "Internal site IDs are not treated as AniList/MAL cross-references. These adapters retain title matching and original fallback routes.",
+    "tui": "Cinemeta search \u2192 movie resolve or series metadata \u2192 ordered season/episode picker \u2192 exact selected episode resolve; episode titles and dates retained."
+  },
+  "validation": {
+    "all_targets_passed": 859,
+    "doctests_passed": 6,
+    "failed": 0,
+    "format": "passed",
+    "diff_check": "passed",
+    "clippy_warnings_denied": "passed",
+    "rustdoc_warnings_denied": "passed"
+  },
+  "live_checks": [
+    {
+      "media": {
+        "tmdb": 134667,
+        "season": 2,
+        "episode": 1
+      },
+      "provider": "anikage",
+      "streams": 2,
+      "resolve_seconds": 2.3,
+      "playback": {
+        "player": "mpv",
+        "frames_argument": 3,
+        "video_output": "null",
+        "headers": "all required stream headers forwarded",
+        "koto": "failed",
+        "wave_vidplay": "passed"
+      },
+      "limit": "Frame decoding does not independently verify episode content or spoken language."
+    },
+    {
+      "media": {
+        "imdb": "tt0903747",
+        "season": 2,
+        "episode": 1
+      },
+      "episode_title": "Seven Thirty-Seven",
+      "released": "2009-03-09T05:00:00.000Z",
+      "cinemeta_episodes": 67,
+      "providers_selected": [
+        "vidlink",
+        "vidzee",
+        "cineby"
+      ],
+      "providers_registered": 2,
+      "streams": 1,
+      "successful_provider": "vidzee",
+      "resolve_seconds": 30.1,
+      "tui_pty_series_flow": "passed"
+    },
+    {
+      "media": {
+        "tmdb": 27205,
+        "type": "movie"
+      },
+      "providers_registered": 48,
+      "streams": 30,
+      "resolve_seconds": 76.4,
+      "previous_spot_check": {
+        "streams": 32,
+        "resolve_seconds": 74.8
+      },
+      "limit": "Separate samples; no sustained latency or catalog coverage guarantee.",
+      "tui_pty_movie_flow": "passed"
+    }
+  ],
+  "documentation_reference": "https://github.com/stremio/stremio-addon-sdk/blob/master/docs/api/responses/meta.md",
+  "private_logs": "/tmp/vsources-mapping-*",
+  "excluded": "Credentials, cookies, signed media URLs, raw responses and speech samples"
+}

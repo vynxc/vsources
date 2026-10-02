@@ -123,6 +123,8 @@ struct WpSearchEntry {
 
 /// The `AnimeFlix` provider.
 pub struct AnimeFlix {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by `info`.
     info: SourceInfo,
     /// The extractor chain that resolves the scraped iframes.
@@ -130,10 +132,18 @@ pub struct AnimeFlix {
 }
 
 impl AnimeFlix {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Build the provider over an extractor registry.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: "AnimeFlix".to_string(),
@@ -418,71 +428,14 @@ impl Source for AnimeFlix {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves the TMDB id, name, and year here; in this
-        // SDK the engine resolves media metadata before the fan-out.
-        let Some(meta) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let name = meta.name.as_str();
-        let year = meta.year;
-        let season = if media.kind == MediaType::Series {
-            media.season
-        } else {
-            None
-        };
-
-        let candidates = self.fetch_candidates(ctx, name, year).await?;
-        if candidates.is_empty() {
-            return Ok(Vec::new());
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-
-        let title = match season {
-            Some(_) => format!("{name} {}", media.format_season_and_episode()),
-            None => match year {
-                Some(year) => format!("{name} ({year})"),
-                None => name.to_string(),
-            },
-        };
-
-        // Primary = best-scoring page. If a DISTINCT "-dub" page also
-        // scored above threshold, emit it too so sub+dub both ship
-        // (the site lists them as separate /Anime/…-dub/ entries).
-        let primary = &candidates[0];
-        let dub = candidates.iter().find(|candidate| {
-            candidate.href != primary.href && candidate.href.to_ascii_lowercase().contains("dub")
-        });
-        let mut chosen: Vec<&Candidate> = vec![primary];
-        if let Some(dub) = dub {
-            chosen.push(dub);
-        }
-
-        let mut streams = Vec::new();
-        for candidate in chosen {
-            let is_dub = candidate.href.to_ascii_lowercase().contains("dub");
-            let card_title = if is_dub {
-                format!("{title} (Dub)")
-            } else {
-                title.clone()
-            };
-            // One candidate failing must not kill the other.
-            let Ok(embeds) = self
-                .collect_from_page(ctx, &candidate.href, season, media.episode)
-                .await
-            else {
-                continue;
-            };
-            for embed in &embeds.embeds {
-                for mut stream in self.extract_embed(ctx, &embeds.page, embed).await {
-                    stream.label = Some(card_title.clone());
-                    stream.ttl = TTL;
-                    stream.meta.languages = vec![CountryCode::Multi, CountryCode::Ja];
-                    stream.meta.source_id = Some(ID.to_string());
-                    stream.meta.source_label = Some("AnimeFlix".to_string());
-                    streams.push(stream);
-                }
-            }
-        }
-        Ok(streams)
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -671,6 +624,86 @@ fn decode_base64_lenient(input: &str) -> Vec<u8> {
         }
     }
     out
+}
+
+impl AnimeFlix {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves the TMDB id, name, and year here; in this
+        // SDK the engine resolves media metadata before the fan-out.
+        let Some(meta) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let name = meta.name.as_str();
+        let year = meta.year;
+        let season = if media.kind == MediaType::Series {
+            media.season
+        } else {
+            None
+        };
+
+        let candidates = self.fetch_candidates(ctx, name, year).await?;
+        if candidates.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let title = match season {
+            Some(_) => format!("{name} {}", media.format_season_and_episode()),
+            None => match year {
+                Some(year) => format!("{name} ({year})"),
+                None => name.to_string(),
+            },
+        };
+
+        // Primary = best-scoring page. If a DISTINCT "-dub" page also
+        // scored above threshold, emit it too so sub+dub both ship
+        // (the site lists them as separate /Anime/…-dub/ entries).
+        let primary = &candidates[0];
+        let dub = candidates.iter().find(|candidate| {
+            candidate.href != primary.href && candidate.href.to_ascii_lowercase().contains("dub")
+        });
+        let mut chosen: Vec<&Candidate> = vec![primary];
+        if let Some(dub) = dub {
+            chosen.push(dub);
+        }
+
+        let mut streams = Vec::new();
+        for candidate in chosen {
+            let is_dub = candidate.href.to_ascii_lowercase().contains("dub");
+            let card_title = if is_dub {
+                format!("{title} (Dub)")
+            } else {
+                title.clone()
+            };
+            // One candidate failing must not kill the other.
+            let Ok(embeds) = self
+                .collect_from_page(ctx, &candidate.href, season, media.episode)
+                .await
+            else {
+                continue;
+            };
+            for embed in &embeds.embeds {
+                for mut stream in self.extract_embed(ctx, &embeds.page, embed).await {
+                    stream.label = Some(card_title.clone());
+                    stream.ttl = TTL;
+                    stream.meta.languages = if is_dub {
+                        vec![CountryCode::Multi, CountryCode::En]
+                    } else {
+                        vec![CountryCode::Multi, CountryCode::Ja]
+                    };
+                    stream.meta.dubbed = Some(is_dub);
+                    stream.meta.subbed = Some(!is_dub);
+                    stream.meta.source_id = Some(ID.to_string());
+                    stream.meta.source_label = Some("AnimeFlix".to_string());
+                    streams.push(stream);
+                }
+            }
+        }
+        Ok(streams)
+    }
 }
 
 #[cfg(test)]
@@ -871,6 +904,21 @@ mod tests {
     const MEGAPLAY_PLAYLIST: &str =
         "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1,RESOLUTION=1920x1080\nchunklist.m3u8";
 
+    fn assert_audio_category(stream: &Stream, is_dub: bool) {
+        assert_eq!(
+            (stream.meta.dubbed, stream.meta.subbed),
+            (Some(is_dub), Some(!is_dub))
+        );
+        assert_eq!(
+            stream.meta.languages,
+            if is_dub {
+                vec![CountryCode::Multi, CountryCode::En]
+            } else {
+                vec![CountryCode::Multi, CountryCode::Ja]
+            }
+        );
+    }
+
     #[tokio::test]
     async fn resolves_sub_and_dub_candidates_through_the_registry() -> Result<(), SourceError> {
         let hash1 = b64(br#"<iframe src="https://megaplay.buzz/stream/ani/16498/5/sub"></iframe>"#);
@@ -941,11 +989,9 @@ mod tests {
                 "Attack on Titan S01E05 (Dub)",
             ]
         );
-        for stream in &streams {
-            assert_eq!(
-                stream.meta.languages,
-                vec![CountryCode::Multi, CountryCode::Ja]
-            );
+        for (index, stream) in streams.iter().enumerate() {
+            let is_dub = index == 2;
+            assert_audio_category(stream, is_dub);
             assert_eq!(stream.meta.source_id.as_deref(), Some(ID));
             assert_eq!(stream.meta.source_label.as_deref(), Some("AnimeFlix"));
             assert_eq!(stream.format, Format::Hls);

@@ -142,6 +142,8 @@ struct StreamPayload {
 
 /// The `HiAnime` provider.
 pub struct HiAnime {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by `info`.
     info: SourceInfo,
     /// The extractor chain that claims the resolved m3u8 URLs.
@@ -149,10 +151,18 @@ pub struct HiAnime {
 }
 
 impl HiAnime {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Build the provider over an extractor registry.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: "HiAnime".to_string(),
@@ -230,6 +240,8 @@ impl HiAnime {
                     } else {
                         vec![CountryCode::Multi, CountryCode::Ja]
                     };
+                    stream.meta.dubbed = Some(is_dub);
+                    stream.meta.subbed = Some(!is_dub);
                     stream.meta.source_id = Some(ID.to_string());
                     stream.meta.source_label = Some("HiAnime".to_string());
                     // HiAnime streams are typically 1080p.
@@ -253,97 +265,14 @@ impl Source for HiAnime {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves the TMDB id, name, and year here; in this
-        // SDK the engine resolves media metadata before the fan-out.
-        let Some(meta) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let name = meta.name.as_str();
-        let season = if media.kind == MediaType::Series {
-            media.season
-        } else {
-            None
-        };
-        let title_base = match season {
-            Some(_) => format!("{name} {}", media.format_season_and_episode()),
-            None => match meta.year {
-                Some(year) => format!("{name} ({year})"),
-                None => name.to_string(),
-            },
-        };
-
-        // Step 1: search by title.
-        let search_url = Url::parse_with_params("https://hianime.at/search", &[("keyword", name)])
-            .map_err(|error| {
-                SourceError::scrape(ID, format!("the search URL is invalid: {error}"))
-            })?;
-        let Some(search_html) = fetch_html(ctx, &search_url, &referer_url("/")).await else {
-            // Upstream: "search page unavailable" → [].
-            return Ok(Vec::new());
-        };
-        let results = parse_search_results(&search_html);
-        if results.is_empty() {
-            return Ok(Vec::new());
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-
-        // Pick the best match — a fuzzy score below 60 is refused.
-        let Some(best) = pick_best_match(&results, name) else {
-            return Ok(Vec::new());
-        };
-
-        // Step 2: get the episode list.
-        let list_url = Url::parse(&format!(
-            "https://hianime.at/api/theme/episode/list/{}",
-            best.id
-        ))
-        .map_err(|error| {
-            SourceError::scrape(ID, format!("the episode list URL is invalid: {error}"))
-        })?;
-        let Some(list) =
-            fetch_api_json::<EpisodeListResponse>(ctx, &list_url, &referer_url("/watch/")).await
-        else {
-            return Ok(Vec::new());
-        };
-        let Some(episode_html) = list.html.filter(|html| !html.is_empty()) else {
-            return Ok(Vec::new());
-        };
-        let mut episodes = parse_episodes(&episode_html);
-        if episodes.is_empty() {
-            episodes = parse_episodes_fallback(&episode_html);
-        }
-        if episodes.is_empty() {
-            return Ok(Vec::new());
-        }
-        episodes.sort_by_key(|episode| episode.number);
-
-        // Step 3: find the target episode.
-        let target = season.map_or(1, |_| media.episode.unwrap_or(1));
-        let episode = episodes
-            .iter()
-            .find(|episode| episode.number == target)
-            .unwrap_or(&episodes[0]);
-
-        // Step 4: get the servers for the episode (sub and dub).
-        let servers_url = Url::parse_with_params(
-            "https://hianime.at/api/theme/episode/servers",
-            &[("episodeId", episode.id.as_str())],
-        )
-        .map_err(|error| SourceError::scrape(ID, format!("the servers URL is invalid: {error}")))?;
-        let Some(servers) =
-            fetch_api_json::<ServersResponse>(ctx, &servers_url, &referer_url("/watch/")).await
-        else {
-            return Ok(Vec::new());
-        };
-        let Some(server_html) = servers.html.filter(|html| !html.is_empty()) else {
-            return Ok(Vec::new());
-        };
-        let servers = parse_servers(&server_html);
-        if servers.is_empty() {
-            return Ok(Vec::new());
-        }
-
-        // Step 5: fetch streams from both sub and dub servers.
-        self.resolve_streams(ctx, &servers, &title_base).await
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -638,6 +567,106 @@ fn decode_base64_lenient(input: &str) -> Vec<u8> {
     out
 }
 
+impl HiAnime {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves the TMDB id, name, and year here; in this
+        // SDK the engine resolves media metadata before the fan-out.
+        let Some(meta) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let name = meta.name.as_str();
+        let season = if media.kind == MediaType::Series {
+            media.season
+        } else {
+            None
+        };
+        let title_base = match season {
+            Some(_) => format!("{name} {}", media.format_season_and_episode()),
+            None => match meta.year {
+                Some(year) => format!("{name} ({year})"),
+                None => name.to_string(),
+            },
+        };
+
+        // Step 1: search by title.
+        let search_url = Url::parse_with_params("https://hianime.at/search", &[("keyword", name)])
+            .map_err(|error| {
+                SourceError::scrape(ID, format!("the search URL is invalid: {error}"))
+            })?;
+        let Some(search_html) = fetch_html(ctx, &search_url, &referer_url("/")).await else {
+            // Upstream: "search page unavailable" → [].
+            return Ok(Vec::new());
+        };
+        let results = parse_search_results(&search_html);
+        if results.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Pick the best match — a fuzzy score below 60 is refused.
+        let Some(best) = pick_best_match(&results, name) else {
+            return Ok(Vec::new());
+        };
+
+        // Step 2: get the episode list.
+        let list_url = Url::parse(&format!(
+            "https://hianime.at/api/theme/episode/list/{}",
+            best.id
+        ))
+        .map_err(|error| {
+            SourceError::scrape(ID, format!("the episode list URL is invalid: {error}"))
+        })?;
+        let Some(list) =
+            fetch_api_json::<EpisodeListResponse>(ctx, &list_url, &referer_url("/watch/")).await
+        else {
+            return Ok(Vec::new());
+        };
+        let Some(episode_html) = list.html.filter(|html| !html.is_empty()) else {
+            return Ok(Vec::new());
+        };
+        let mut episodes = parse_episodes(&episode_html);
+        if episodes.is_empty() {
+            episodes = parse_episodes_fallback(&episode_html);
+        }
+        if episodes.is_empty() {
+            return Ok(Vec::new());
+        }
+        episodes.sort_by_key(|episode| episode.number);
+
+        // Step 3: find the target episode.
+        let target = season.map_or(1, |_| media.episode.unwrap_or(1));
+        let episode = episodes
+            .iter()
+            .find(|episode| episode.number == target)
+            .unwrap_or(&episodes[0]);
+
+        // Step 4: get the servers for the episode (sub and dub).
+        let servers_url = Url::parse_with_params(
+            "https://hianime.at/api/theme/episode/servers",
+            &[("episodeId", episode.id.as_str())],
+        )
+        .map_err(|error| SourceError::scrape(ID, format!("the servers URL is invalid: {error}")))?;
+        let Some(servers) =
+            fetch_api_json::<ServersResponse>(ctx, &servers_url, &referer_url("/watch/")).await
+        else {
+            return Ok(Vec::new());
+        };
+        let Some(server_html) = servers.html.filter(|html| !html.is_empty()) else {
+            return Ok(Vec::new());
+        };
+        let servers = parse_servers(&server_html);
+        if servers.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Step 5: fetch streams from both sub and dub servers.
+        self.resolve_streams(ctx, &servers, &title_base).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
@@ -897,6 +926,8 @@ mod tests {
             "https://hls2.aniwatchtv.uk/v/abc/master.m3u8"
         );
         let dub = &streams[1];
+        assert_eq!(dub.meta.dubbed, Some(true));
+        assert_eq!(dub.meta.subbed, Some(false));
         assert_eq!(
             dub.label.as_deref(),
             Some("One Piece S01E05 (HiAnime HD-1 DUB)")

@@ -200,6 +200,8 @@ struct WatchLink {
 
 /// The `AnimeKai` provider.
 pub struct AnimeKai {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by `info`.
     info: SourceInfo,
     /// The extractor chain that claims the resolved m3u8 URLs.
@@ -207,10 +209,18 @@ pub struct AnimeKai {
 }
 
 impl AnimeKai {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Build the provider over an extractor registry.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: "AnimeKai".to_string(),
@@ -290,6 +300,8 @@ impl AnimeKai {
                 } else {
                     vec![CountryCode::Multi, CountryCode::Ja]
                 };
+                stream.meta.dubbed = Some(is_dub);
+                stream.meta.subbed = Some(!is_dub);
                 stream.meta.source_id = Some(ID.to_string());
                 stream.meta.source_label = Some("AnimeKai".to_string());
                 stream.meta.resolution = Some(1080);
@@ -406,6 +418,17 @@ impl Source for AnimeKai {
         };
         let ep_num = season.map_or(1, |_| media.episode.unwrap_or(1));
         let season_num = season.unwrap_or(1);
+
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await
+            && let Some(mal_id) = ids.mal_id
+        {
+            let direct = self
+                .build_results(ctx, &title_base, mal_id, ep_num, "")
+                .await?;
+            if !direct.is_empty() {
+                return Ok(direct);
+            }
+        }
 
         // Direct path: AniList idMal → zoko stream. Season-aware via
         // the "Nth Season" title alignment.
@@ -1147,6 +1170,8 @@ mod tests {
             "https://zokoanime.video/subs/en.vtt"
         );
         let dub = &streams[1];
+        assert_eq!(dub.meta.dubbed, Some(true));
+        assert_eq!(dub.meta.subbed, Some(false));
         assert_eq!(
             dub.label.as_deref(),
             Some("One Piece S02E05 (AnimeKai DUB)")
@@ -1175,6 +1200,50 @@ mod tests {
                 .header_sent_to("/stream/mal/22/5/sub", "Referer")
                 .as_deref(),
             Some("https://animekai.at/")
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn arm_season_two_id_beats_the_base_title_without_graphql() -> Result<(), SourceError> {
+        let fetcher = Arc::new(
+            ScriptedFetcher::new()
+                .page(
+                    at("arm.haglund.dev", "/api/v2/themoviedb"),
+                    r#"[
+                {"anilist":11,"myanimelist":21,"themoviedb-season":1},
+                {"anilist":12,"myanimelist":22,"themoviedb-season":2}
+            ]"#,
+                )
+                .page(
+                    at("zokoanime.video", "/stream/mal/22/5/sub"),
+                    stream_page(r#"{"src":"https://cdn.example/season2.m3u8","subtitles":[]}"#),
+                ),
+        );
+        let (media, meta) = one_piece(2, 5);
+        let mappings = vsources_core::mappings::MappingService::new(fetcher.clone());
+        let streams = provider()
+            .with_mappings(mappings)
+            .resolve(&ctx(&fetcher, Some(meta)), &media)
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert!(
+            fetcher
+                .requests()
+                .iter()
+                .any(|r| r.url.path() == "/stream/mal/22/5/sub")
+        );
+        assert!(
+            fetcher
+                .requests()
+                .iter()
+                .all(|r| r.url.host_str() != Some("graphql.anilist.co"))
+        );
+        assert!(
+            fetcher
+                .requests()
+                .iter()
+                .all(|r| !r.url.path().contains("/mal/21/"))
         );
         Ok(())
     }

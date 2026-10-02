@@ -177,6 +177,8 @@ struct MegaPlaySource {
 
 /// The `AnimeSuge` provider.
 pub struct AnimeSuge {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by [`Source::info`].
     info: SourceInfo,
     /// Shared TMDB identity resolution.
@@ -184,10 +186,18 @@ pub struct AnimeSuge {
 }
 
 impl AnimeSuge {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider over the shared TMDB client.
     #[must_use]
     pub fn new(tmdb: Arc<TmdbClient>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -213,79 +223,14 @@ impl Source for AnimeSuge {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
-        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
-        let title = display_title(&name, year, media);
-        let episode = media.episode.unwrap_or(1);
-
-        // The scraper races the 20 s deadline; the deadline winner
-        // answers the empty sweep (the JS `null`).
-        let sweep = scrape(ctx, &name, year, media, episode);
-        let raw = with_deadline(sweep, SWEEP_DEADLINE)
-            .await
-            .unwrap_or_default();
-        if raw.is_empty() {
-            return Err(SourceError::NotFound);
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-
-        // The wrapper's own conversion — every raw stream ships direct
-        // with the megaplay Referer (the m3u8 CDN 403s datacenter IPs,
-        // so the player's residential IP fetches it).
-        let mut streams = Vec::new();
-        for stream in &raw {
-            let Ok(url) = Url::parse(&stream.url) else {
-                continue;
-            };
-            if !matches!(url.scheme(), "http" | "https") {
-                continue;
-            }
-            // The category, with the title's DUB marker as the
-            // fallback.
-            let category = stream.category().map_or_else(
-                || {
-                    if stream
-                        .title
-                        .as_deref()
-                        .is_some_and(|title| title.contains("DUB"))
-                    {
-                        "dub".to_string()
-                    } else {
-                        "sub".to_string()
-                    }
-                },
-                str::to_string,
-            );
-            let audio_label = if category == "dub" { "DUB" } else { "SUB" };
-            let languages = if category == "dub" {
-                vec![CountryCode::Multi, CountryCode::En]
-            } else {
-                vec![CountryCode::Multi, CountryCode::Ja]
-            };
-            streams.push(Stream {
-                url,
-                format: Format::Hls,
-                label: Some(format!("{title} (AnimeSuge {audio_label})")),
-                meta: StreamMeta {
-                    languages,
-                    resolution: Some(wrapper_height(stream.quality.as_deref())),
-                    source_id: Some(ID.to_string()),
-                    source_label: Some(LABEL.to_string()),
-                    request_headers: [("Referer".to_string(), format!("{MEGAPLAY}/"))]
-                        .into_iter()
-                        .collect(),
-                    ..StreamMeta::default()
-                },
-                ttl: TTL,
-                is_external: false,
-                behavior_hints: std::collections::BTreeMap::new(),
-            });
-        }
-
-        if streams.is_empty() {
-            Err(SourceError::NotFound)
-        } else {
-            Ok(streams)
-        }
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -890,6 +835,90 @@ fn soften<T>(error: Result<T, SourceError>) -> Result<T, SourceError> {
             | SourceError::Fetch(FetchError::NotFound { .. } | FetchError::Http { status: 404, .. }),
         ) => Err(SourceError::NotFound),
         other => other,
+    }
+}
+
+impl AnimeSuge {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
+        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
+        let title = display_title(&name, year, media);
+        let episode = media.episode.unwrap_or(1);
+
+        // The scraper races the 20 s deadline; the deadline winner
+        // answers the empty sweep (the JS `null`).
+        let sweep = scrape(ctx, &name, year, media, episode);
+        let raw = with_deadline(sweep, SWEEP_DEADLINE)
+            .await
+            .unwrap_or_default();
+        if raw.is_empty() {
+            return Err(SourceError::NotFound);
+        }
+
+        // The wrapper's own conversion — every raw stream ships direct
+        // with the megaplay Referer (the m3u8 CDN 403s datacenter IPs,
+        // so the player's residential IP fetches it).
+        let mut streams = Vec::new();
+        for stream in &raw {
+            let Ok(url) = Url::parse(&stream.url) else {
+                continue;
+            };
+            if !matches!(url.scheme(), "http" | "https") {
+                continue;
+            }
+            // The category, with the title's DUB marker as the
+            // fallback.
+            let category = stream.category().map_or_else(
+                || {
+                    if stream
+                        .title
+                        .as_deref()
+                        .is_some_and(|title| title.contains("DUB"))
+                    {
+                        "dub".to_string()
+                    } else {
+                        "sub".to_string()
+                    }
+                },
+                str::to_string,
+            );
+            let audio_label = if category == "dub" { "DUB" } else { "SUB" };
+            let languages = if category == "dub" {
+                vec![CountryCode::Multi, CountryCode::En]
+            } else {
+                vec![CountryCode::Multi, CountryCode::Ja]
+            };
+            streams.push(Stream {
+                url,
+                format: Format::Hls,
+                label: Some(format!("{title} (AnimeSuge {audio_label})")),
+                meta: StreamMeta {
+                    dubbed: Some(category == "dub"),
+                    subbed: Some(category == "sub"),
+                    languages,
+                    resolution: Some(wrapper_height(stream.quality.as_deref())),
+                    source_id: Some(ID.to_string()),
+                    source_label: Some(LABEL.to_string()),
+                    request_headers: [("Referer".to_string(), format!("{MEGAPLAY}/"))]
+                        .into_iter()
+                        .collect(),
+                    ..StreamMeta::default()
+                },
+                ttl: TTL,
+                is_external: false,
+                behavior_hints: std::collections::BTreeMap::new(),
+            });
+        }
+
+        if streams.is_empty() {
+            Err(SourceError::NotFound)
+        } else {
+            Ok(streams)
+        }
     }
 }
 

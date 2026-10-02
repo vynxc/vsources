@@ -56,7 +56,8 @@ use async_trait::async_trait;
 use serde_json::Value;
 use url::Url;
 use vsources_core::error::SourceError;
-use vsources_core::traits::{FetchRequest, ResolveCtx, Source};
+use vsources_core::mappings::MappingService;
+use vsources_core::traits::{FetchRequest, ResolveCtx, ResolvedMedia, Source};
 use vsources_core::types::{CountryCode, Format, MediaRef, MediaType, SourceInfo, Stream};
 
 /// The site root, upstream `BASE_URL`.
@@ -83,13 +84,29 @@ pub struct AniKage {
     info: SourceInfo,
     /// The deployed relay changes independently of the site hostname.
     proxy: moka::future::Cache<(), Url>,
+    /// The shared id-mapping service (arm/anilist); `None` keeps the
+    /// name-scoring path only.
+    mappings: Option<MappingService>,
 }
 
 impl AniKage {
     /// A new provider with a short-lived cache for the deployed relay.
     #[must_use]
     pub fn new() -> Self {
+        Self::build(None)
+    }
+
+    /// A provider over the shared id-mapping service — the id-first
+    /// fast path (arm → anilist id equality on browse candidates).
+    #[must_use]
+    pub fn with_mappings(mappings: MappingService) -> Self {
+        Self::build(Some(mappings))
+    }
+
+    /// The shared constructor.
+    fn build(mappings: Option<MappingService>) -> Self {
         Self {
+            mappings,
             proxy: moka::future::Cache::builder()
                 .max_capacity(1)
                 .time_to_live(Duration::from_mins(5))
@@ -136,9 +153,19 @@ impl Source for AniKage {
         let title = display_title(&resolved.name, resolved.year, media);
         let target = target_episode(media);
 
-        // Step 1: search for the anime.
-        let Some(slug) = find_slug(ctx, &resolved.name).await? else {
-            return Err(SourceError::NotFound);
+        // Step 1: search for the anime — id-first when the shared mapping
+        // service can resolve the season's AniList id, name-score
+        // otherwise. AniKage catalogs each season as a separate entry
+        // ("… Season 2"), so the name search for a later season can land
+        // on the wrong (S1) entry; the id path picks the exact one.
+        // No id match (or the mapping services failed): the title search
+        // still works for S1 and movies.
+        let slug = match find_slug_verified(self, ctx, &resolved.name, resolved).await? {
+            Some(slug) => slug,
+            None => match find_slug(ctx, &resolved.name).await? {
+                Some(slug) => slug,
+                None => return Err(SourceError::NotFound),
+            },
         };
 
         // Step 2: the episodes list (an array or an `episodes` field).
@@ -349,10 +376,219 @@ impl AniKage {
             stream.meta.resolution = Some(height);
         }
         stream.meta.languages = languages;
+        stream.meta.dubbed = Some(lang == "dub");
+        stream.meta.subbed = Some(lang == "sub");
         stream.meta.source_id = Some(self.info.id.clone());
         stream.meta.source_label = Some(self.info.label.clone());
         Some(stream)
     }
+}
+
+/// Search and return the slug whose ids match the media — `Some(slug)`
+/// on a verified match, `None` when nothing lines up.
+///
+/// The id-first ladder:
+///
+/// 1. `arm` (through the shared [`MappingService`]) resolves the
+///    (show, season) to its `AniList` id — one deduped request shared by
+///    every anime provider resolving the same show;
+/// 2. the browse candidates carry their own `anilistId`, so exact id
+///    equality picks the entry — deterministic even when both seasons
+///    share one `IMDb` id and score identically on title;
+/// 3. the verification tier (used when step 2 is ambiguous or absent):
+///    the detail endpoint's `trackers` block pins the show
+///    (`imdbId`/`tmdbId`), and the episodes payload's `seasonNumber`
+///    pins the season — the discriminator the trackers alone cannot
+///    provide. The TUI retains episode titles/air dates separately;
+///    this adapter currently verifies database ids and season numbers;
+/// 4. anything the id sources do not know falls back to name scoring
+///    (the caller's `find_slug`) — today's behavior, preserved.
+///
+/// A missing [`MappingService`] or an arm/anilist outage answers `None`
+/// (transient failures are never cached as misses) so the fallback tier
+/// keeps working.
+async fn find_slug_verified(
+    provider: &AniKage,
+    ctx: &ResolveCtx<'_>,
+    name: &str,
+    resolved: &ResolvedMedia,
+) -> Result<Option<String>, SourceError> {
+    let Some(mappings) = provider.mappings.as_ref() else {
+        return Ok(None);
+    };
+    // The target AniList id for this (show, season) — arm first, the
+    // AniList title search when arm has no entry.
+    let season = resolved.season.unwrap_or(1);
+    let target = match resolved.imdb_id.as_deref() {
+        Some(imdb) => mappings.season_ids_by_imdb(imdb, season, Some(name)).await,
+        None => match resolved.tmdb_id {
+            Some(tmdb) => mappings.season_ids_by_tmdb(tmdb, season, Some(name)).await,
+            None => return Ok(None),
+        },
+    }
+    .ok()
+    .flatten()
+    .map(|ids| ids.anilist_id);
+
+    let candidates = browse_candidates(ctx, name).await?;
+    if candidates.is_empty() {
+        return Ok(None);
+    }
+
+    // The fast path: exact anilistId equality on the browse candidates —
+    // no detail request needed in the common case.
+    if let Some(target) = target
+        && let Some(slug) = candidates
+            .iter()
+            .find(|candidate| candidate_anilist_id(candidate) == Some(target))
+            .and_then(|candidate| candidate.slug.clone())
+    {
+        return Ok(Some(slug));
+    }
+
+    // The verification tier: trackers pin the show, and the episodes
+    // payload pins the season (its `seasonNumber` field). Both seasons
+    // of a split share one imdbId/tmdbId, so the season check is the
+    // discriminator — and the episodes fetch is already on the resolve
+    // path, making this tier free when the fast path missed.
+    for candidate in candidates.iter().take(CANDIDATE_LIMIT) {
+        let Some(slug) = candidate.slug.as_deref() else {
+            continue;
+        };
+        let detail_url = format!("{BASE_URL}/api/media/anime/{slug}");
+        let Ok(url) = site_url(&detail_url) else {
+            continue;
+        };
+        let Some(payload) = api_get(ctx, &url).await? else {
+            continue;
+        };
+        let Some(anime) = payload.get("anime") else {
+            continue;
+        };
+
+        // When the target id is known, the detail's own anilist id
+        // (trackers.malId is the MAL one; anime.anilistId is the
+        // AniList one) must agree — the strongest single check.
+        if let Some(target) = target
+            && candidate_anilist_id(candidate) != Some(target)
+            && anime.get("anilistId").and_then(Value::as_u64) != Some(target)
+        {
+            continue;
+        }
+
+        let imdb_ok = resolved
+            .imdb_id
+            .as_deref()
+            .is_none_or(|imdb| trackers_imdb(anime).is_some_and(|t| t == imdb));
+        let tmdb_ok = resolved
+            .tmdb_id
+            .is_none_or(|tmdb| trackers_tmdb(anime).is_some_and(|t| t == tmdb));
+        // A tracker must match *something* to count as verified — ids
+        // absent on both sides is a name-only tie, not a confirmation.
+        let any_id = resolved.imdb_id.is_some() || resolved.tmdb_id.is_some();
+        if !any_id || !imdb_ok || !tmdb_ok {
+            continue;
+        }
+        // The season discriminator: the episodes payload's
+        // `seasonNumber` (fetched free below on the resolve path).
+        if let Some(season) = resolved.season
+            && let Ok(episodes_url) =
+                site_url(&format!("{BASE_URL}/api/media/anime/{slug}/episodes"))
+            && let Some(payload) = api_get(ctx, &episodes_url).await?
+            && let Some(season_number) = episode_season_number(&payload)
+            && season_number != season
+        {
+            continue;
+        }
+        return Ok(candidate.slug.clone());
+    }
+    Ok(None)
+}
+
+/// One browse result, kept as the raw JSON so detail-specific fields
+/// (title, slug) survive without a full struct.
+struct BrowseCandidate {
+    /// The catalog slug.
+    slug: Option<String>,
+    /// The raw result object.
+    raw: Value,
+}
+
+/// The `anilistId` field of a browse candidate (the detail payload
+/// carries the same field at its `anime` root).
+fn candidate_anilist_id(candidate: &BrowseCandidate) -> Option<u64> {
+    candidate.raw.get("anilistId").and_then(Value::as_u64)
+}
+
+/// The episodes payload's `seasonNumber`, from either shape (an array of
+/// episode objects or an `{episodes: [...]}` object).
+fn episode_season_number(payload: &Value) -> Option<u32> {
+    let episodes = match payload {
+        Value::Array(list) => list.first(),
+        other => other
+            .get("episodes")
+            .and_then(Value::as_array)
+            .and_then(|list| list.first()),
+    }?;
+    let number = episodes.get("seasonNumber").and_then(Value::as_u64)?;
+    u32::try_from(number).ok()
+}
+
+/// The `trackers.imdbId` field of a detail payload.
+fn trackers_imdb(anime: &Value) -> Option<&str> {
+    anime
+        .pointer("/trackers/imdbId")
+        .and_then(Value::as_str)
+        .filter(|id| !id.is_empty())
+}
+
+/// The `trackers.tmdbId` field of a detail payload.
+fn trackers_tmdb(anime: &Value) -> Option<u64> {
+    anime
+        .pointer("/trackers/tmdbId")
+        .and_then(Value::as_u64)
+        .or_else(|| {
+            anime
+                .pointer("/trackers/tmdbId")
+                .and_then(Value::as_i64)
+                .and_then(|v| u64::try_from(v).ok())
+        })
+}
+
+/// How many browse candidates get the (network-costly) detail fetch.
+const CANDIDATE_LIMIT: usize = 4;
+
+/// All browse results for a query (best-first is not assumed).
+async fn browse_candidates(
+    ctx: &ResolveCtx<'_>,
+    name: &str,
+) -> Result<Vec<BrowseCandidate>, SourceError> {
+    let mut out = Vec::new();
+    for query in query_variants(name) {
+        let browse = format!(
+            "{BASE_URL}/api/media/anime/browse?q={}",
+            encode_component(&query)
+        );
+        let Some(payload) = api_get(ctx, &site_url(&browse)?).await? else {
+            continue;
+        };
+        let Some(results) = payload.get("data").and_then(Value::as_array) else {
+            continue;
+        };
+        for result in results {
+            out.push(BrowseCandidate {
+                slug: result
+                    .get("slug")
+                    .and_then(Value::as_str)
+                    .map(str::to_string),
+                raw: result.clone(),
+            });
+        }
+        if !out.is_empty() {
+            break;
+        }
+    }
+    Ok(out)
 }
 
 /// Search by name and return the best-matching slug (score ≥ 60) — the
@@ -553,8 +789,10 @@ fn site_url(raw: &str) -> Result<Url, SourceError> {
 mod tests {
 
     use super::*;
+    use std::sync::Arc;
+
     use crate::testing::{ScriptedFetcher, key_of};
-    use vsources_core::traits::ResolvedMedia;
+    use vsources_core::traits::{Fetcher, ResolvedMedia};
     use vsources_core::types::MediaId;
 
     /// The searched title.
@@ -679,6 +917,8 @@ mod tests {
         );
 
         let dub = &streams[1];
+        assert_eq!(dub.meta.dubbed, Some(true));
+        assert_eq!(dub.meta.subbed, Some(false));
         assert_eq!(dub.url.as_str(), "https://prox.anikage.cc/m3u8/TOKEN2");
         assert_eq!(
             dub.label.as_deref(),
@@ -870,6 +1110,290 @@ mod tests {
             Err(SourceError::NotFound) => {}
             other => panic!("no resolved media must be NotFound, got {other:?}"),
         }
+    }
+
+    /// The S1/S2 browse fixture: two season entries sharing one
+    /// `imdbId`/`tmdbId`, exactly like `AniKage` catalogs "Reincarnated as
+    /// a Sword".
+    const SWORD_BROWSE: &str = r#"{"data":[
+        {"slug":"S1SLUG","anilistId":139587,"title":{"english":"Reincarnated as a Sword","romaji":"Tensei Shitara Ken Deshita"}},
+        {"slug":"S2SLUG","anilistId":159042,"title":{"english":"Reincarnated as a Sword Season 2","romaji":"Tensei Shitara Ken Deshita 2nd Season"}}
+    ]}"#;
+
+    /// The arm fixture: both season rows for the Sword (captured from
+    /// arm.haglund.dev).
+    const ARM_SWORD: &str = r#"[
+        {"anidb":16785,"anilist":139587,"myanimelist":49891,"imdb":"tt15483602","themoviedb":134667,"themoviedb-season":1},
+        {"anidb":17789,"anilist":159042,"myanimelist":53913,"imdb":"tt15483602","themoviedb":134667,"themoviedb-season":2}
+    ]"#;
+
+    /// The shared fetcher with the arm page: the mapping service and the
+    /// provider both resolve through it.
+    fn sword_pages() -> ScriptedFetcher {
+        ScriptedFetcher::new()
+            .page_url("arm.haglund.dev/api/v2/imdb?id=tt15483602", ARM_SWORD)
+            .page_url(
+                url_key(&format!(
+                    "https://anikage.cc/api/media/anime/browse?q={}",
+                    encode_component("Reincarnated as a Sword")
+                )),
+                SWORD_BROWSE,
+            )
+    }
+
+    /// The Sword resolved media: imdb key, both seasons under one id.
+    fn sword_media(season: Option<u32>, episode: Option<u32>) -> ResolvedMedia {
+        ResolvedMedia {
+            tmdb_id: Some(134_667),
+            imdb_id: Some("tt15483602".to_string()),
+            name: "Reincarnated as a Sword".to_string(),
+            year: Some(2022),
+            season,
+            episode,
+        }
+    }
+
+    /// A provider whose episodes/servers/sources pages hang off one slug.
+    fn sword_stream_pages(fetcher: ScriptedFetcher, slug: &str) -> ScriptedFetcher {
+        fetcher
+            .page_url(
+                format!("anikage.cc/api/media/anime/{slug}/episodes"),
+                r#"[{"number":1,"seasonNumber":2}]"#,
+            )
+            .page_url(
+                format!("anikage.cc/api/media/anime/{slug}/episodes/1/servers"),
+                SERVERS_PAGE,
+            )
+            .page_url(
+                format!(
+                    "anikage.cc/api/media/anime/{slug}/episodes/1/sources?provider=neko&lang=sub"
+                ),
+                r#"{"sources":[{"url":"S2TOKEN","quality":"1080p","isM3U8":true}]}"#,
+            )
+            .page_url(
+                format!(
+                    "anikage.cc/api/media/anime/{slug}/episodes/1/sources?provider=neko&lang=dub"
+                ),
+                r#"{"sources":[]}"#,
+            )
+            .page_url(
+                format!(
+                    "anikage.cc/api/media/anime/{slug}/episodes/1/sources?provider=koto&lang=sub"
+                ),
+                r#"{"sources":[]}"#,
+            )
+            .page_url(
+                "prox.anikage.cc/m3u8/S2TOKEN",
+                "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\n3600/index.m3u8\n",
+            )
+    }
+
+    /// A resolve with the shared mapping service wired in — the fetcher
+    /// is shared by the provider context and the mapping service so both
+    /// see (and record) the same traffic.
+    async fn resolve_with_mappings(
+        fetcher: &Arc<ScriptedFetcher>,
+        resolved: ResolvedMedia,
+        media: MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        let mappings = MappingService::new(Arc::clone(fetcher) as Arc<dyn Fetcher>);
+        let ctx = ctx_for(fetcher.as_ref(), Some(resolved));
+        AniKage::with_mappings(mappings).resolve(&ctx, &media).await
+    }
+
+    #[tokio::test]
+    async fn s2_media_resolves_to_the_s2_slug_not_s1() -> Result<(), SourceError> {
+        // The id-first path: arm's S2 row → anilistId 159042 → the S2
+        // browse candidate. Name scoring alone would pick the exact-match
+        // S1 entry — the regression this test pins.
+        let fetcher = Arc::new(sword_stream_pages(sword_pages(), "S2SLUG"));
+        let streams = resolve_with_mappings(
+            &fetcher,
+            sword_media(Some(2), Some(1)),
+            MediaRef {
+                id: MediaId::Imdb("tt15483602".into()),
+                kind: MediaType::Series,
+                season: Some(2),
+                episode: Some(1),
+            },
+        )
+        .await
+        .unwrap_or_else(|e| panic!("the S2 id path must resolve: {e}"));
+        assert_eq!(streams.len(), 1);
+        // The episodes page is only scripted for S2SLUG — resolving the
+        // S1 slug would miss the pages and answer NotFound.
+        assert_eq!(
+            streams[0].url.as_str(),
+            "https://prox.anikage.cc/m3u8/S2TOKEN"
+        );
+        // No detail fetch was needed — the fast path is id equality.
+        assert!(
+            !fetcher
+                .requests()
+                .iter()
+                .any(|r| r.url.path().contains("S1SLUG")),
+            "the S1 entry must never be fetched for an S2 request"
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn s1_media_resolves_to_the_s1_slug() -> Result<(), SourceError> {
+        // The episodes page carries seasonNumber 1 for the S1 entry.
+        let fetcher = ScriptedFetcher::new()
+            .page_url("arm.haglund.dev/api/v2/imdb?id=tt15483602", ARM_SWORD)
+            .page_url(
+                url_key(&format!(
+                    "https://anikage.cc/api/media/anime/browse?q={}",
+                    encode_component("Reincarnated as a Sword")
+                )),
+                SWORD_BROWSE,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes",
+                r#"[{"number":1,"seasonNumber":1}]"#,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/servers",
+                SERVERS_PAGE,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/sources?provider=neko&lang=sub",
+                r#"{"sources":[{"url":"S1TOKEN","quality":"1080p","isM3U8":true}]}"#,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/sources?provider=neko&lang=dub",
+                r#"{"sources":[]}"#,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/sources?provider=koto&lang=sub",
+                r#"{"sources":[]}"#,
+            )
+            .page_url(
+                "prox.anikage.cc/m3u8/S1TOKEN",
+                "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\n3600/index.m3u8\n",
+            );
+        let fetcher = Arc::new(fetcher);
+        let streams = resolve_with_mappings(
+            &fetcher,
+            sword_media(Some(1), Some(1)),
+            MediaRef {
+                id: MediaId::Imdb("tt15483602".into()),
+                kind: MediaType::Series,
+                season: Some(1),
+                episode: Some(1),
+            },
+        )
+        .await
+        .unwrap_or_else(|e| panic!("the S1 id path must resolve: {e}"));
+        assert_eq!(streams.len(), 1);
+        assert_eq!(
+            streams[0].url.as_str(),
+            "https://prox.anikage.cc/m3u8/S1TOKEN"
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn a_missing_arm_falls_back_to_anilist_search() -> Result<(), SourceError> {
+        // arm answers empty; the anilist search page resolves the S2 id
+        // through the title fallback.
+        let fetcher = ScriptedFetcher::new()
+            .page_url("arm.haglund.dev/api/v2/imdb?id=tt15483602", "[]")
+            .page_url(
+                "graphql.anilist.co/",
+                r#"{"data":{"Page":{"media":[
+                    {"id":139587,"idMal":49891,"title":{"romaji":"Tensei Shitara Ken Deshita"}},
+                    {"id":159042,"idMal":53913,"title":{"romaji":"Tensei Shitara Ken Deshita 2nd Season"}}
+                ]}}}"#,
+            )
+            .page_url(
+                url_key(&format!(
+                    "https://anikage.cc/api/media/anime/browse?q={}",
+                    encode_component("Reincarnated as a Sword")
+                )),
+                SWORD_BROWSE,
+            );
+        let fetcher = Arc::new(sword_stream_pages(fetcher, "S2SLUG"));
+        let streams = resolve_with_mappings(
+            &fetcher,
+            sword_media(Some(2), Some(1)),
+            MediaRef {
+                id: MediaId::Imdb("tt15483602".into()),
+                kind: MediaType::Series,
+                season: Some(2),
+                episode: Some(1),
+            },
+        )
+        .await
+        .unwrap_or_else(|e| panic!("the fallback path must resolve: {e}"));
+        assert_eq!(streams.len(), 1);
+        assert_eq!(
+            streams[0].url.as_str(),
+            "https://prox.anikage.cc/m3u8/S2TOKEN"
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn a_mapping_outage_falls_back_to_name_scoring() {
+        // No arm, no anilist, no anilistId on the candidates: the
+        // name-score path must still resolve the exact-title S1 entry.
+        let browse = r#"{"data":[
+            {"slug":"S1SLUG","title":{"english":"Reincarnated as a Sword","romaji":"Tensei Shitara Ken Deshita"}},
+            {"slug":"S2SLUG","title":{"english":"Reincarnated as a Sword Season 2","romaji":"Tensei Shitara Ken Deshita 2nd Season"}}
+        ]}"#;
+        let fetcher = ScriptedFetcher::new()
+            .page(
+                |url| {
+                    url.host_str() == Some("arm.haglund.dev")
+                        || url.host_str() == Some("graphql.anilist.co")
+                },
+                r#"{"data":{}}"#,
+            )
+            .page_url(
+                url_key(&format!(
+                    "https://anikage.cc/api/media/anime/browse?q={}",
+                    encode_component("Reincarnated as a Sword")
+                )),
+                browse,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes",
+                r#"[{"number":1}]"#,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/servers",
+                SERVERS_PAGE,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/sources?provider=neko&lang=sub",
+                r#"{"sources":[{"url":"TOKENX","quality":"1080p","isM3U8":true}]}"#,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/sources?provider=neko&lang=dub",
+                r#"{"sources":[]}"#,
+            )
+            .page_url(
+                "anikage.cc/api/media/anime/S1SLUG/episodes/1/sources?provider=koto&lang=sub",
+                r#"{"sources":[]}"#,
+            )
+            .page_url("prox.anikage.cc/m3u8/TOKENX", "#EXTM3U\n");
+        let fetcher = Arc::new(fetcher);
+        let media = MediaRef {
+            id: MediaId::Imdb("tt15483602".into()),
+            kind: MediaType::Series,
+            season: Some(1),
+            episode: Some(1),
+        };
+        let streams = resolve_with_mappings(&fetcher, sword_media(Some(1), Some(1)), media)
+            .await
+            .unwrap_or_else(|e| panic!("the name fallback must resolve: {e}"));
+        assert_eq!(streams.len(), 1);
+        assert_eq!(
+            streams[0].url.as_str(),
+            "https://prox.anikage.cc/m3u8/TOKENX"
+        );
     }
 
     #[test]

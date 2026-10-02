@@ -3,10 +3,12 @@
 //! Ports `src/source/AnikotoTV.js` + `src/nuvio/anikototv.cjs` (the
 //! wrapper and the obfuscated scraper folded into one module):
 //!
-//! 1. resolve the anime id for the TMDB entry —
-//!    `GET https://arm.haglund.dev/api/v2/tmdb?id={tmdb}` (plus
-//!    `&s=&e=` for series) answers `{ mal, anilist, episode }`; when
-//!    ARM has no mapping, the `AniList` GraphQL bridge
+//! 1. resolve the anime id for the TMDB entry — the shared
+//!    [`MappingService`] ARM
+//!    bridge (`GET https://arm.haglund.dev/api/v2/themoviedb?id={tmdb}`,
+//!    the per-season entry array, filtered to the requested season,
+//!    cached and deduped across every anime provider); when ARM has no
+//!    mapping, the `AniList` GraphQL bridge
 //!    `query ($search: String) { Media (search: $search, type: ANIME)
 //!    { id idMal } }` runs on the season-adjusted title
 //!    (`{title} Season {n}` for later seasons), retrying the plain
@@ -69,6 +71,7 @@ use fancy_regex::Regex;
 use serde_json::Value;
 use url::Url;
 use vsources_core::error::{FetchError, SourceError};
+use vsources_core::mappings::{MappingService, SeasonIds};
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{FetchRequest, ResolveCtx, Source};
 use vsources_core::types::{CountryCode, MediaId, MediaRef, MediaType, SourceInfo, Stream};
@@ -83,8 +86,6 @@ const LABEL: &str = "AnikotoTV";
 /// The catalog origin, upstream `this.baseUrl` (streams resolve on
 /// megaplay.buzz).
 const BASE_URL: &str = "https://anikototv.com";
-/// The ARM id-mapping bridge, upstream `arm.haglund.dev`.
-const ARM_API: &str = "https://arm.haglund.dev/api/v2/tmdb";
 /// The `AniList` GraphQL endpoint.
 const ANILIST_GQL: &str = "https://graphql.anilist.co";
 /// The megaplay host, upstream `domain: "megaplay.buzz"`.
@@ -163,15 +164,18 @@ pub struct AnikotoTV {
     info: SourceInfo,
     /// Shared TMDB identity resolution.
     tmdb: Arc<TmdbClient>,
+    /// The shared anime id-mapping service (arm/anilist).
+    mappings: MappingService,
     /// The round-robin mobile-UA cursor (upstream picks randomly).
     ua_cursor: AtomicUsize,
 }
 
 impl AnikotoTV {
-    /// A provider over the shared TMDB client.
+    /// A provider over the shared TMDB client and mapping service.
     #[must_use]
-    pub fn new(tmdb: Arc<TmdbClient>) -> Self {
+    pub fn new(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Self {
         Self {
+            mappings,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -238,14 +242,14 @@ impl AnikotoTV {
                 ep_title = display.episode_title,
                 duration = display.duration,
             );
-            streams.push(
-                NuvioStream::new(source.url)
-                    .with_name(format!("{LABEL} | {quality} | {audio_name}"))
-                    .with_title(title.clone())
-                    .with_size(title)
-                    .with_header("Referer", format!("{MEGAPLAY}/"))
-                    .with_header("Origin", MEGAPLAY),
-            );
+            let mut card = NuvioStream::new(source.url)
+                .with_name(format!("{LABEL} | {quality} | {audio_name}"))
+                .with_title(title.clone())
+                .with_size(title)
+                .with_header("Referer", format!("{MEGAPLAY}/"))
+                .with_header("Origin", MEGAPLAY);
+            card.meta = Some(serde_json::json!({"category": kind}));
+            streams.push(card);
             for subtitle in source.subtitles {
                 if let Some(stream) = streams.last_mut() {
                     stream.subtitles.push(subtitle);
@@ -307,8 +311,16 @@ impl Source for AnikotoTV {
         // The scraper races the 25 s deadline; a miss answers the
         // empty sweep, which the wrapper turns into zero streams.
         let sweep = async {
-            let Some(anime) =
-                resolve_anime_id(ctx, self.next_ua(), tmdb_id, &display, season, episode).await
+            let Some(anime) = resolve_anime_id(
+                ctx,
+                &self.mappings,
+                self.next_ua(),
+                tmdb_id,
+                &display,
+                season,
+                episode,
+            )
+            .await
             else {
                 return Vec::new();
             };
@@ -333,47 +345,32 @@ impl Source for AnikotoTV {
     }
 }
 
-/// Resolve the anime id — the port of `getMalId`: the ARM bridge
-/// first, then the `AniList` GraphQL bridge on the season-adjusted
-/// title (retrying the plain title), with the requested episode as
-/// the fallback numbering.
+/// Resolve the anime id — the port of `getMalId`: the shared mapping
+/// service first (the ARM bridge, cached and deduped across every anime
+/// provider; per-season entries with `anilist`/`mal` ids), then the
+/// `AniList` GraphQL bridge on the season-adjusted title (retrying the
+/// plain title), with the requested episode as the fallback numbering.
 async fn resolve_anime_id(
     ctx: &ResolveCtx<'_>,
+    mappings: &MappingService,
     ua: &str,
     tmdb_id: u64,
     display: &Display,
     season: u32,
     episode: u32,
 ) -> Option<AnimeId> {
-    // The ARM bridge: `{ mal | mal_id, anilist | ani_id, episode }`.
-    let arm_url = format!("{ARM_API}?id={tmdb_id}&s={season}&e={episode}");
-    if let Ok(url) = Url::parse(&arm_url)
-        && let Ok(response) = ctx
-            .fetcher
-            .request(FetchRequest::get(url).with_timeout(API_TIMEOUT))
-            .await
-        && response.is_success()
-        && let Ok(data) = response.json::<Value>()
+    // The shared bridge: the per-season entry array carries both ids,
+    // and the season filter picks the right catalog entry — the exact
+    // mapping the old per-request `/api/v2/tmdb?s=&e=` route answered.
+    if let Ok(Some(SeasonIds { anilist_id, mal_id })) = mappings
+        .season_ids_by_tmdb(tmdb_id, season, Some(&display.title))
+        .await
     {
-        let mal_id = data
-            .get("mal")
-            .or_else(|| data.get("mal_id"))
-            .and_then(Value::as_u64);
-        let ani_id = data
-            .get("anilist")
-            .or_else(|| data.get("ani_id"))
-            .and_then(Value::as_u64);
-        if mal_id.is_some() || ani_id.is_some() {
-            let arm_episode = data
-                .get("episode")
-                .and_then(Value::as_u64)
-                .and_then(|episode| u32::try_from(episode).ok());
-            return Some(AnimeId {
-                mal_id,
-                ani_id,
-                episode: arm_episode.unwrap_or(episode),
-            });
-        }
+        return Some(AnimeId {
+            mal_id,
+            ani_id: Some(anilist_id),
+            episode,
+        });
     }
 
     // The AniList bridge on the season-adjusted title — the season
@@ -715,10 +712,12 @@ mod tests {
 
     /// The fixture media: Frieren S01E02 (MAL 52991, data-id 8817).
     const TMDB_ID: u64 = 209_867;
-    /// The ARM mapping for the fixture.
-    const ARM_BODY: &str = r#"{"mal":52991,"anilist":154587,"episode":2}"#;
-    /// The ARM page (query-keyed).
-    const ARM: &str = "/api/v2/tmdb?id=209867&s=1&e=2";
+    /// The ARM mapping for the fixture — the shared service's
+    /// per-season entry array (mal 52991 / anilist 154587 = S1).
+    const ARM_BODY: &str =
+        r#"[{"anilist":154587,"myanimelist":52991,"themoviedb":209867,"themoviedb-season":1}]"#;
+    /// The ARM page (query-keyed, the shared `/api/v2/themoviedb` route).
+    const ARM: &str = "/api/v2/themoviedb?id=209867";
     /// The megaplay stream pages.
     const SUB_PAGE: &str = "/stream/mal/52991/2/sub";
     const DUB_PAGE: &str = "/stream/mal/52991/2/dub";
@@ -734,9 +733,13 @@ mod tests {
     /// The encrypted dub sources.
     const ENC_DUB: &str = "wdeBruh3qqn_i5wUNnyaPW3GxFWAz0PzUtHz-gGMUfV9FstHnQBKGBWYluF-VtF0PD8jt7V9hQnCQYizN6yLQpwJ8f2ORE3oLZAyYlo4swU";
 
-    /// The provider over a TMDB client sharing the scripted fetcher.
+    /// The provider over a TMDB client and mapping service sharing the
+    /// scripted fetcher.
     fn provider(mock: &Arc<ScriptedFetcher>) -> AnikotoTV {
-        AnikotoTV::new(Arc::new(TmdbClient::new("test-key", mock.clone())))
+        AnikotoTV::new(
+            Arc::new(TmdbClient::new("test-key", mock.clone())),
+            MappingService::new(Arc::clone(mock) as Arc<dyn Fetcher>),
+        )
     }
 
     /// A context over the scripted fetcher.
@@ -1040,7 +1043,7 @@ mod tests {
                     200,
                     r#"{"name":"House of the Dragon","first_air_date":"2022-08-21"}"#,
                 )
-                .page(ARM, 200, r#"{"mal":null,"anilist":null}"#),
+                .page(ARM, 200, "[]"),
         );
         let provider = provider(&mock);
         let ctx = ctx_for(&mock);

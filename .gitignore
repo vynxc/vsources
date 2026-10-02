@@ -1,6 +1,12 @@
 /target
+# Local secrets
+.env
+.env.local
 Cargo.lock.orig
 *.log
 .DS_Store
 # Local plan/session metadata
 .mimir/
+
+# Python audit helper bytecode
+__pycache__/

@@ -3,8 +3,9 @@
 //! Ports `src/source/AniChan.js` — an `AniList`-keyed JSON API, no `.cjs`
 //! scraper behind this one:
 //!
-//! 1. resolve the `AniList` id for the TMDB title —
-//!    `POST https://graphql.anilist.co` (`Page(perPage: 5)` of
+//! 1. resolve the `AniList` id for the TMDB title — the shared
+//!    mapping service's `AniList` client (`POST https://graphql.anilist.co`,
+//!    `Page(perPage: 5)` of
 //!    `media(type: ANIME, sort: [SEARCH_MATCH, POPULARITY_DESC])`
 //!    `{ id idMal title { romaji english } format }`), falling back to
 //!    anichan's own search index (`GET /search?q=` →
@@ -67,6 +68,7 @@ use fancy_regex::Regex;
 use serde_json::Value;
 use url::Url;
 use vsources_core::error::{FetchError, SourceError};
+use vsources_core::mappings::MappingService;
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{FetchRequest, ResolveCtx, Source};
 use vsources_core::types::{
@@ -79,8 +81,6 @@ const LABEL: &str = "AniChan";
 /// The site root (the 2026-09 domain: `anichan.net` 301s here), upstream
 /// `BASE`/`this.baseUrl`.
 const BASE_URL: &str = "https://anichan.to";
-/// The `AniList` GraphQL endpoint, upstream `ANILIST_GQL`.
-const ANILIST_GQL: &str = "https://graphql.anilist.co";
 /// The Jikan (`MyAnimeList`) API root, upstream `JIKAN_API`.
 const JIKAN_API: &str = "https://api.jikan.moe/v4";
 /// The upstream browser UA (`UA`).
@@ -144,15 +144,18 @@ pub struct AniChan {
     info: SourceInfo,
     /// Shared TMDB identity resolution.
     tmdb: Arc<TmdbClient>,
+    /// The shared anime id-mapping service (arm/anilist).
+    mappings: MappingService,
     /// The session cookie cache (upstream `_acCookie`).
     cookie: Mutex<Option<CachedCookie>>,
 }
 
 impl AniChan {
-    /// A provider over the shared TMDB client.
+    /// A provider over the shared TMDB client and mapping service.
     #[must_use]
-    pub fn new(tmdb: Arc<TmdbClient>) -> Self {
+    pub fn new(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Self {
         Self {
+            mappings,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -320,7 +323,7 @@ impl Source for AniChan {
 
         // Step 1: the AniList id, with the two fallbacks in upstream
         // order (AniList GraphQL → AniChan's own search → Jikan).
-        let candidates = resolve_candidates(ctx, &name).await;
+        let candidates = resolve_candidates(ctx, &self.mappings, &name).await;
         if candidates.is_empty() {
             return Err(SourceError::NotFound);
         }
@@ -401,6 +404,8 @@ impl Source for AniChan {
                     format: Format::Hls,
                     label: Some(format!("{title} (AniChan {audio_label})")),
                     meta: StreamMeta {
+                        dubbed: Some(*kind == "dub"),
+                        subbed: Some(*kind == "sub"),
                         languages,
                         resolution: Some(1080),
                         source_id: Some(ID.to_string()),
@@ -427,11 +432,28 @@ impl Source for AniChan {
     }
 }
 
-/// Step 1's candidate pool — the `AniList` GraphQL bridge, with the
-/// two fallbacks in upstream order (`AniChan`'s own search, then
-/// Jikan's MAL results).
-async fn resolve_candidates(ctx: &ResolveCtx<'_>, name: &str) -> Vec<Candidate> {
-    let mut candidates = anilist_candidates(ctx, name).await;
+/// Step 1's candidate pool — the shared `AniList` client (same query,
+/// cached and deduped across the anime providers), with the two
+/// fallbacks in upstream order (`AniChan`'s own search, then Jikan's
+/// MAL results).
+async fn resolve_candidates(
+    ctx: &ResolveCtx<'_>,
+    mappings: &MappingService,
+    name: &str,
+) -> Vec<Candidate> {
+    let mut candidates = match mappings.anilist_search(name).await {
+        Ok(media) => media
+            .into_iter()
+            .map(|entry| Candidate {
+                id: entry.id,
+                english: entry.english,
+                romaji: entry.romaji,
+            })
+            .collect::<Vec<_>>(),
+        // Every resolver failure answers an empty list, like the JS
+        // `catch { return null }` blocks.
+        Err(_) => Vec::new(),
+    };
     if candidates.is_empty() {
         candidates = anichan_search_candidates(ctx, name).await;
     }
@@ -503,49 +525,6 @@ fn unix_now() -> f64 {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs_f64()
-}
-
-/// `POST graphql.anilist.co` with the upstream `Page` query — the port
-/// of `resolveAniList` (every failure is an empty list, like the JS
-/// `catch { return null }`).
-async fn anilist_candidates(ctx: &ResolveCtx<'_>, name: &str) -> Vec<Candidate> {
-    let query = "query($search: String) { Page(page: 1, perPage: 5) { media(type: ANIME, search: $search, sort: [SEARCH_MATCH, POPULARITY_DESC]) { id idMal title { romaji english } format } } }";
-    let body = serde_json::json!({ "query": query, "variables": { "search": name } }).to_string();
-    let url =
-        Url::parse(ANILIST_GQL).unwrap_or_else(|e| panic!("the AniList endpoint must parse: {e}"));
-    let request = FetchRequest::post(url, body)
-        .with_header("User-Agent", UA)
-        .with_header("Content-Type", "application/json")
-        .with_header("Accept", "application/json")
-        .with_timeout(API_TIMEOUT);
-    let Ok(response) = ctx.fetcher.request(request).await else {
-        return Vec::new();
-    };
-    if response.status != 200 {
-        return Vec::new();
-    }
-    let Ok(data) = response.json::<Value>() else {
-        return Vec::new();
-    };
-    let media = data
-        .pointer("/data/Page/media")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    media
-        .into_iter()
-        .map(|entry| Candidate {
-            id: entry.get("id").and_then(Value::as_u64),
-            english: entry
-                .pointer("/title/english")
-                .and_then(Value::as_str)
-                .map(str::to_string),
-            romaji: entry
-                .pointer("/title/romaji")
-                .and_then(Value::as_str)
-                .map(str::to_string),
-        })
-        .collect()
 }
 
 /// `AniChan`'s own search index — the port of `resolveViaAniChanSearch`:
@@ -890,9 +869,13 @@ mod tests {
     /// The episodes page (query-keyed).
     const EPISODES: &str = "/api/watch/episodes?anilistId=154587";
 
-    /// The provider over a TMDB client sharing the scripted fetcher.
+    /// The provider over a TMDB client and mapping service sharing the
+    /// scripted fetcher.
     fn provider(mock: &Arc<ScriptedFetcher>) -> AniChan {
-        AniChan::new(Arc::new(TmdbClient::new("test-key", mock.clone())))
+        AniChan::new(
+            Arc::new(TmdbClient::new("test-key", mock.clone())),
+            MappingService::new(Arc::clone(mock) as Arc<dyn Fetcher>),
+        )
     }
 
     /// A context over the scripted fetcher.

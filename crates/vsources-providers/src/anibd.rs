@@ -101,16 +101,26 @@ struct Candidate {
 
 /// The `anibd.app` provider: direct Blu-ray HLS.
 pub struct AniBD {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// Static descriptor.
     info: SourceInfo,
 }
 
 impl AniBD {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A new provider; stateless — fetches travel through the context.
     #[must_use]
     pub fn new() -> Self {
         let base = parse_url(BASE_URL);
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: PROVIDER_ID.to_string(),
                 label: "AniBD".to_string(),
@@ -197,6 +207,19 @@ impl AniBD {
         resolved: &ResolvedMedia,
         media: &MediaRef,
     ) -> Result<Option<Value>, SourceError> {
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
+            let episodes = format!("{}?epid={}", EPISODES_API, ids.anilist_id);
+            if let Ok(Some(found)) = api_get(ctx, &site_url(&episodes)?).await
+                && found
+                    .as_array()
+                    .and_then(|list| list.first())
+                    .and_then(|first| first.get("server_data"))
+                    .and_then(Value::as_array)
+                    .is_some_and(|data| !data.is_empty())
+            {
+                return Ok(Some(found));
+            }
+        }
         let candidates = anilist_candidates(ctx, &resolved.name, media.season, resolved.year)
             .await
             .unwrap_or_default();

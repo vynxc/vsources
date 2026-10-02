@@ -72,8 +72,11 @@ pub mod zxcstream;
 #[cfg(test)]
 pub(crate) mod testing;
 
+mod anime_mapping;
+
 use std::sync::Arc;
 
+use vsources_core::mappings::MappingService;
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::Source;
 use vsources_extractors::ExtractorRegistry;
@@ -81,34 +84,63 @@ use vsources_extractors::ExtractorRegistry;
 pub use cache::CachedSource;
 pub use registry::SourceRegistry;
 
+/// Catalogs intended for animation; they must not turn regular films/TV into
+/// similarly titled anime or music videos when TMDB explicitly says non-animation.
+/// `StreamXTV` is excluded because it also provides native movie/TV resolution.
+pub const ANIME_ONLY_PROVIDER_IDS: &[&str] = &[
+    "aniwaves",
+    "allwish",
+    "anibd",
+    "anichan",
+    "anidoor",
+    "anikage",
+    "anikoto",
+    "anikototv",
+    "animeflix",
+    "animegg",
+    "animekai",
+    "animesuge",
+    "animezey",
+    "animotvslash",
+    "hianime",
+    "itachi",
+    "2dhive",
+    "nikastream",
+    "reanime",
+];
+
 /// The wave-1 provider set: the 25 self-contained English scrapers.
 ///
 /// One TMDB client is shared by every provider that needs id or title
-/// metadata, and one extractor registry serves every embed resolution.
-/// Peckle's `FebBox` cookie is optional: set `PECKLE_FEBBOX_COOKIE` to
-/// ride an authenticated session, else it resolves anonymously.
+/// metadata, one extractor registry serves every embed resolution, and
+/// one mapping service shares the anime id lookups (arm/anilist) across
+/// the anime providers. Peckle's `FebBox` cookie is optional: set
+/// `PECKLE_FEBBOX_COOKIE` to ride an authenticated session, else it
+/// resolves anonymously.
 ///
 /// Waves 2a/2b (the Nuvio-backed providers) are not part of this set
 /// yet.
 #[must_use]
-pub fn wave1(tmdb: Arc<TmdbClient>) -> Vec<Arc<dyn Source>> {
+pub fn wave1(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Vec<Arc<dyn Source>> {
     let extractors = Arc::new(ExtractorRegistry::new(vsources_extractors::hosts::all()));
     let febbox_cookie = std::env::var("PECKLE_FEBBOX_COOKIE").ok();
 
     vec![
         // Anime (12).
-        Arc::new(aniwaves::AniWaves::new()),
-        Arc::new(allwish::AllWish::new(Arc::clone(&extractors))),
-        Arc::new(anibd::AniBD::new()),
-        Arc::new(anidoor::AniDoor::new(Arc::clone(&extractors))),
-        Arc::new(anikage::AniKage::new()),
-        Arc::new(anikoto::Anikoto::new(Arc::clone(&extractors))),
-        Arc::new(animeflix::AnimeFlix::new(Arc::clone(&extractors))),
-        Arc::new(animegg::AnimeGG::new(Arc::clone(&extractors))),
-        Arc::new(animekai::AnimeKai::new(Arc::clone(&extractors))),
-        Arc::new(hianime::HiAnime::new(Arc::clone(&extractors))),
-        Arc::new(itachi::Itachi::new(Arc::clone(&extractors))),
-        Arc::new(twodhive::TwoDhive::new(Arc::clone(&extractors))),
+        Arc::new(aniwaves::AniWaves::new().with_mappings(mappings.clone())),
+        Arc::new(allwish::AllWish::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(anibd::AniBD::new().with_mappings(mappings.clone())),
+        Arc::new(anidoor::AniDoor::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(anikage::AniKage::with_mappings(mappings.clone())),
+        Arc::new(anikoto::Anikoto::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(
+            animeflix::AnimeFlix::new(Arc::clone(&extractors)).with_mappings(mappings.clone()),
+        ),
+        Arc::new(animegg::AnimeGG::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(animekai::AnimeKai::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(hianime::HiAnime::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(itachi::Itachi::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
+        Arc::new(twodhive::TwoDhive::new(Arc::clone(&extractors)).with_mappings(mappings)),
         // Movies and TV (13).
         Arc::new(cinewave::CineWave::new(
             Arc::clone(&tmdb),
@@ -150,27 +182,33 @@ pub fn wave1(tmdb: Arc<TmdbClient>) -> Vec<Arc<dyn Source>> {
 /// 15 movies/TV).
 ///
 /// Like [`wave1`], one TMDB client is shared; one extractor registry
-/// serves the embed-resolving providers, and one speedracelight
+/// serves the embed-resolving providers, one speedracelight
 /// [`SeedStore`](nuvio::speedracelight::SeedStore) is shared by the
-/// three VidKing-family consumers (the upstream `srlSeed` singleton).
+/// three VidKing-family consumers (the upstream `srlSeed` singleton),
+/// and the anime providers share the mapping service's id lookups.
 #[must_use]
-pub fn wave2(tmdb: Arc<TmdbClient>) -> Vec<Arc<dyn Source>> {
+pub fn wave2(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Vec<Arc<dyn Source>> {
     let extractors = Arc::new(ExtractorRegistry::new(vsources_extractors::hosts::all()));
     let seeds = Arc::new(nuvio::speedracelight::SeedStore::new());
 
     vec![
         // Anime (8).
-        Arc::new(anichan::AniChan::new(Arc::clone(&tmdb))),
-        Arc::new(anikototv::AnikotoTV::new(Arc::clone(&tmdb))),
-        Arc::new(animesuge::AnimeSuge::new(Arc::clone(&tmdb))),
-        Arc::new(animezey::AnimeZeY::new(Arc::clone(&tmdb))),
-        Arc::new(animotvslash::AniMoTVSlash::new(Arc::clone(&tmdb))),
-        Arc::new(nkastream::NikaStream::new(Arc::clone(&tmdb))),
-        Arc::new(reanime::ReAnime::new(Arc::clone(&tmdb))),
-        Arc::new(streamxtv::StreamXTV::new(
+        Arc::new(anichan::AniChan::new(Arc::clone(&tmdb), mappings.clone())),
+        Arc::new(anikototv::AnikotoTV::new(
             Arc::clone(&tmdb),
-            Arc::clone(&extractors),
+            mappings.clone(),
         )),
+        Arc::new(animesuge::AnimeSuge::new(Arc::clone(&tmdb)).with_mappings(mappings.clone())),
+        Arc::new(animezey::AnimeZeY::new(Arc::clone(&tmdb)).with_mappings(mappings.clone())),
+        Arc::new(
+            animotvslash::AniMoTVSlash::new(Arc::clone(&tmdb)).with_mappings(mappings.clone()),
+        ),
+        Arc::new(nkastream::NikaStream::new(Arc::clone(&tmdb)).with_mappings(mappings.clone())),
+        Arc::new(reanime::ReAnime::new(Arc::clone(&tmdb)).with_mappings(mappings.clone())),
+        Arc::new(
+            streamxtv::StreamXTV::new(Arc::clone(&tmdb), Arc::clone(&extractors))
+                .with_mappings(mappings),
+        ),
         // Movies and TV (15).
         Arc::new(acermovies::AcerMovies::new(Arc::clone(&tmdb))),
         Arc::new(atlantic::Atlantic::new(Arc::clone(&tmdb))),
@@ -209,34 +247,45 @@ mod tests {
         ))
     }
 
+    /// A mapping service over the never-called fetcher.
+    fn mappings() -> MappingService {
+        MappingService::new(Arc::new(crate::testing::NoopFetcher))
+    }
+
     #[test]
     fn wave1_registers_all_25_providers() {
-        let sources = wave1(tmdb());
+        let sources = wave1(tmdb(), mappings());
         assert_eq!(sources.len(), 25);
     }
 
     #[test]
     fn wave2_registers_all_23_providers() {
-        let sources = wave2(tmdb());
+        let sources = wave2(tmdb(), mappings());
         assert_eq!(sources.len(), 23);
     }
 
     #[test]
     fn wave2_ids_are_unique_and_disjoint_from_wave1() {
-        let wave2_ids: Vec<String> = wave2(tmdb()).iter().map(|s| s.info().id.clone()).collect();
+        let wave2_ids: Vec<String> = wave2(tmdb(), mappings())
+            .iter()
+            .map(|s| s.info().id.clone())
+            .collect();
         let count = wave2_ids.len();
         let mut sorted = wave2_ids.clone();
         sorted.sort();
         sorted.dedup();
         assert_eq!(sorted.len(), count, "duplicate provider ids in wave2");
-        let wave1_ids: Vec<String> = wave1(tmdb()).iter().map(|s| s.info().id.clone()).collect();
+        let wave1_ids: Vec<String> = wave1(tmdb(), mappings())
+            .iter()
+            .map(|s| s.info().id.clone())
+            .collect();
         let overlap = wave2_ids.iter().filter(|id| wave1_ids.contains(id)).count();
         assert_eq!(overlap, 0, "wave1/wave2 id collision");
     }
 
     #[test]
     fn wave1_ids_are_unique() {
-        let sources = wave1(tmdb());
+        let sources = wave1(tmdb(), mappings());
         let mut ids: Vec<&str> = sources.iter().map(|s| s.info().id.as_str()).collect();
         ids.sort_unstable();
         let count = ids.len();
@@ -249,7 +298,7 @@ mod tests {
         // Upstream assigns non-default priorities to several wave-1
         // providers; zero-everywhere would mean the field was dropped
         // during the port.
-        let sources = wave1(tmdb());
+        let sources = wave1(tmdb(), mappings());
         let nonzero = sources.iter().filter(|s| s.info().priority != 0).count();
         assert!(nonzero > 0, "no wave-1 provider carries a priority");
     }

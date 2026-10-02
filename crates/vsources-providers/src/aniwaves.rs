@@ -62,6 +62,8 @@ struct Server {
 
 /// Native `AniWaves` provider with a bounded five-minute catalog identity cache.
 pub struct AniWaves {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     info: SourceInfo,
     identities: Cache<(String, Option<u16>, u32, MediaType), Candidate>,
 }
@@ -73,10 +75,18 @@ impl Default for AniWaves {
 }
 
 impl AniWaves {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Construct without network I/O or credentials.
     #[must_use]
     pub fn new() -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: "aniwaves".into(),
                 label: "AniWaves".into(),
@@ -94,6 +104,20 @@ impl AniWaves {
     }
 
     async fn identity(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Candidate, SourceError> {
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(candidate) = self.identity_by_title(&mapped, media).await
+        {
+            return Ok(candidate);
+        }
+        self.identity_by_title(ctx, media).await
+    }
+
+    async fn identity_by_title(
         &self,
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,

@@ -34,8 +34,9 @@ What is inside:
   `resolve_progressive`, which streams the merged list as each provider
   completes instead of waiting for the fleet.
 - **`vsources-cli`** — an example CLI exercising everything.
-- **`vsources --example tui`** — a ratatui TUI: type a media id, resolve,
-  and play the selection in `mpv` (hotlink headers passed through).
+- **`vsources --example tui`** — a ratatui TUI: search a title on Cinemeta,
+  select a movie or pick a series episode by season, title and air date,
+  then play the selected stream in `mpv` (hotlink headers passed through).
   Results are progressive — streams land in the quality-sorted table as
   providers answer (first results in seconds), re-sorted as they arrive,
   with the selection pinned across re-sorts.
@@ -63,10 +64,39 @@ $ cargo run -p vsources-cli -- --flaresolverr http://localhost:8191/ cf solve 'h
 $ TMDB_API_KEY=... cargo run -p vsources --example tui
 ```
 
+The TUI reads `.env` and `.env.local`. Search and episode metadata need no key;
+resolution uses TMDB credentials. `Tab` moves between the query and kind fields,
+`m`/`s` selects movies/series, and `Enter` searches and chooses a result. Series
+open a scrollable episode list; select an episode with `↑↓` and `Enter` to
+resolve it. `Esc` returns to the series results. Movies resolve directly.
+
+All anime providers in the default catalog share one cached ARM/AniList mapping
+service. Providers with AniList/MAL endpoints resolve the requested season by ID.
+Sites exposing only internal catalog keys try that season's canonical title,
+then their existing title matching. Custom provider instances can opt in with
+`.with_mappings(mapping_service.clone())`; AniKage has the associated constructor
+`AniKage::with_mappings(mapping_service)`.
+
 Global flags: `--flaresolverr URL`, `--proxy URL`, `--tmdb-key KEY`,
 `--timeout SECONDS`, `--concurrency N`, `--json`.
 
-Live playback audit (2026-09-26): **41/47 registered provider routes decoded
+Provider matrix (2026-10-02): **48 providers × 20 titles = 960 current checks**,
+plus 320 before/after repair attempts. The [interactive report](docs/audits/2026-10-02-matrix/index.html)
+shows cold/cached resolve latency, startup/decode timing, headers, audio selection,
+and every failed or empty outcome. [Runner and methodology](docs/audits/provider-matrix.md).
+
+```sh
+python3 scripts/provider_matrix.py --resume --output docs/audits/2026-10-02-matrix
+# Retest repaired providers while preserving the full report/history:
+python3 scripts/provider_matrix.py --resume --rerun anikage,animekai --output docs/audits/2026-10-02-matrix
+```
+
+The completed audit generates `.env.generated` without credentials. Load it after
+`.env` to use `VSOURCES_PROVIDERS`; explicit `.providers(...)` overrides that
+selection. Known non-animation metadata keeps anime-only routes out of regular
+film/TV resolutions. Genre classification reuses the existing TMDB details request.
+
+Historical playback audit (2026-09-26): **41/47 registered provider routes decoded
 eight seconds of video and audio**. Forty passed with TMDB configuration;
 MovieBox also needed `MOVIEBOX_MOBILE_SIGNING_KEY`. AcerMovies, IMDBPlay,
 NowHDTime, Peckle, Stellar and VixSrc remain unverified. See the
@@ -123,6 +153,7 @@ use vsources::{EngineBuilder, MediaId, MediaRef, MediaType};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let engine = EngineBuilder::new()
+        .with_default_providers()
         // .flaresolverr(url::Url::parse("http://localhost:8191/")?)
         .build()?;
 
@@ -138,7 +169,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 Register your own providers with `EngineBuilder::sources(vec![...])`, or
-restrict resolution with `.providers(&["cineby", "vidlink"])`. Every stream
+restrict resolution with `.providers(&["cineby", "vidlink2"])`. Every stream
 carries `meta.request_headers` when the host gates hotlinked media on
 `Referer`/`User-Agent` — there is no server-side proxy hop to hide behind, so
 any player (Tauri `reqwest`, Android OkHttp, an Axum route) applies them

@@ -180,6 +180,8 @@ struct ReanimeStream {
 
 /// The `ReAnime` provider.
 pub struct ReAnime {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by [`Source::info`].
     info: SourceInfo,
     /// Shared TMDB identity resolution.
@@ -187,12 +189,20 @@ pub struct ReAnime {
 }
 
 impl ReAnime {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider over the shared TMDB client. The `FlixCloud`
     /// decryption chain is shared plumbing (not an embed the
     /// registry resolves), so no extractor registry is needed.
     #[must_use]
     pub fn new(tmdb: Arc<TmdbClient>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
@@ -295,17 +305,37 @@ impl ReAnime {
         year: Option<u16>,
         media: &MediaRef,
     ) -> Vec<ReanimeStream> {
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
+            let streams = self.sweep_inner(ctx, name, year, media, Some(ids)).await;
+            if !streams.is_empty() {
+                return streams;
+            }
+        }
+        self.sweep_inner(ctx, name, year, media, None).await
+    }
+
+    async fn sweep_inner(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        name: &str,
+        year: Option<u16>,
+        media: &MediaRef,
+        mapped: Option<vsources_core::mappings::SeasonIds>,
+    ) -> Vec<ReanimeStream> {
         let is_tv = media.season.is_some();
-        let Some(anime) = find_anime_by_title(ctx, name, year, is_tv).await else {
-            return Vec::new();
-        };
-        // A missing anilist id is recovered from the watch page.
-        let anilist_id = match anime.anilist_id {
-            Some(id) => id,
-            None => match fetch_anime_meta(ctx, &anime.anime_id).await {
+        let anilist_id = if let Some(ids) = mapped {
+            ids.anilist_id
+        } else {
+            let Some(anime) = find_anime_by_title(ctx, name, year, is_tv).await else {
+                return Vec::new();
+            };
+            match anime.anilist_id {
                 Some(id) => id,
-                None => return Vec::new(),
-            },
+                None => match fetch_anime_meta(ctx, &anime.anime_id).await {
+                    Some(id) => id,
+                    None => return Vec::new(),
+                },
+            }
         };
 
         // Absolute episode numbering; movies watch episode 1.
@@ -1104,6 +1134,73 @@ mod tests {
             Some(&expected_key)
         );
         assert_eq!(card.ttl, TTL);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn mapped_season_two_bypasses_base_title_search() -> Result<(), SourceError> {
+        let mock = Arc::new(ScriptedFetcher::default()
+            .page("/api/v2/themoviedb", 200, r#"[
+                {"anilist":11,"themoviedb-season":1},
+                {"anilist":22,"themoviedb-season":2}
+            ]"#)
+            .page("/api/flix/22/1", 200, r#"{"success":true,"servers":[{"serverName":"HD-1","dataType":"sub","dataLink":"https://flixcloud.cc/e/vimu1sw5xonj"}]}"#)
+            .page("/e/vimu1sw5xonj", 200, flix_page())
+            .page("/api/m3u8/c9b23d633ce35ebd18031cb0", 200, flix_m3u8_json()));
+        let mappings = vsources_core::mappings::MappingService::new(mock.clone());
+        let provider = provider(&mock).with_mappings(mappings);
+        let mut ctx = ctx_for(&mock);
+        ctx.media = Some(ResolvedMedia {
+            tmdb_id: Some(TMDB_ID),
+            imdb_id: None,
+            name: "Haikyuu!!".into(),
+            year: Some(2014),
+            season: Some(2),
+            episode: Some(1),
+        });
+        let streams = provider
+            .resolve(&ctx, &MediaRef::series(MediaId::Tmdb(TMDB_ID), 2, 1))
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert!(
+            mock.requests()
+                .iter()
+                .any(|r| r.url.path() == "/api/flix/22/1")
+        );
+        assert!(
+            mock.requests()
+                .iter()
+                .all(|r| r.url.path() != "/api/v1/search" && r.url.path() != "/api/flix/11/1")
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn unavailable_mapped_route_keeps_title_fallback() -> Result<(), SourceError> {
+        let mock = Arc::new(pages(ScriptedFetcher::default()).page(
+            "/api/v2/themoviedb",
+            200,
+            r#"[{"anilist":99,"themoviedb-season":1}]"#,
+        ));
+        let mappings = vsources_core::mappings::MappingService::new(mock.clone());
+        let provider = provider(&mock).with_mappings(mappings);
+        let streams = provider
+            .resolve(
+                &ctx_for(&mock),
+                &MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 1),
+            )
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert!(
+            mock.requests()
+                .iter()
+                .any(|r| r.url.path() == "/api/flix/99/1")
+        );
+        assert!(
+            mock.requests()
+                .iter()
+                .any(|r| r.url.path() == "/api/v1/search")
+        );
         Ok(())
     }
 

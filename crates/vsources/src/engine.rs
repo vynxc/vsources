@@ -23,6 +23,7 @@ use tokio::sync::mpsc;
 use url::Url;
 use vsources_core::enrich::enrich_stream;
 use vsources_core::error::SourceError;
+use vsources_core::mappings::MappingService;
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{Fetcher, ResolveCtx, ResolvedMedia, Source};
 use vsources_core::types::{CountryCode, MediaRef, SourceInfo, Stream};
@@ -117,6 +118,8 @@ pub struct EngineBuilder {
     sources: Vec<Arc<dyn Source>>,
     /// Provider id allowlist; empty means all.
     allowlist: Vec<String>,
+    /// Whether the caller explicitly selected providers, including all providers.
+    provider_selection_explicit: bool,
     /// Per-provider resolve budget.
     per_source_timeout: Option<Duration>,
     /// Provider fan-out width.
@@ -186,6 +189,7 @@ impl EngineBuilder {
     #[must_use]
     pub fn providers(mut self, ids: &[&str]) -> Self {
         self.allowlist = ids.iter().map(ToString::to_string).collect();
+        self.provider_selection_explicit = true;
         self
     }
 
@@ -213,6 +217,8 @@ impl EngineBuilder {
     /// Resolve through the built-in provider catalog — all 48
     /// English providers (wave 1 + wave 2).
     ///
+    /// `VSOURCES_PROVIDERS` optionally supplies a comma-separated allowlist
+    /// (e.g. from `.env.generated`). Explicit [`Self::providers`] takes precedence.
     /// The set is assembled with the engine's TMDB client, so
     /// [`Self::sources`] is left empty. Requires TMDB metadata; call
     /// [`Self::tmdb`] or set `TMDB_API_KEY`/`TMDB_ACCESS_TOKEN`.
@@ -254,20 +260,32 @@ impl EngineBuilder {
             let Some(tmdb) = tmdb.as_ref() else {
                 return Err(EngineError::NoTmdb);
             };
-            let wave1 = vsources_providers::wave1(Arc::new(tmdb.clone()));
-            let wave2 = vsources_providers::wave2(Arc::new(tmdb.clone()));
+            // One mapping service shared by every anime provider — the
+            // arm/anilist id lookups are deduped and cached across the
+            // whole fan-out.
+            let mappings = MappingService::new(Arc::clone(&fetcher));
+            let wave1 = vsources_providers::wave1(Arc::new(tmdb.clone()), mappings.clone());
+            let wave2 = vsources_providers::wave2(Arc::new(tmdb.clone()), mappings);
             wave1.into_iter().chain(wave2).collect()
         } else {
             self.sources
         };
 
-        let selected: Vec<Arc<dyn Source>> = if self.allowlist.is_empty() {
+        // Generated audit profiles apply only to the default catalog. Explicit
+        // .providers(...) always wins; .providers(&[]) deliberately selects all.
+        let allowlist = if self.default_providers && !self.provider_selection_explicit {
+            std::env::var("VSOURCES_PROVIDERS")
+                .map_or(self.allowlist, |value| parse_provider_allowlist(&value))
+        } else {
+            self.allowlist
+        };
+        let selected: Vec<Arc<dyn Source>> = if allowlist.is_empty() {
             sources
         } else {
             sources
                 .into_iter()
                 .filter(|source| {
-                    let keep = self.allowlist.iter().any(|id| *id == source.info().id);
+                    let keep = allowlist.iter().any(|id| *id == source.info().id);
                     if !keep {
                         tracing::debug!(provider = source.info().id, "filtered by allowlist");
                     }
@@ -285,6 +303,17 @@ impl EngineBuilder {
             concurrency: self.concurrency.unwrap_or(DEFAULT_CONCURRENCY).max(1),
         })
     }
+}
+
+/// Parse a generated provider selection without changing process environment.
+fn parse_provider_allowlist(value: &str) -> Vec<String> {
+    let mut ids = Vec::new();
+    for id in value.split(',').map(str::trim).filter(|id| !id.is_empty()) {
+        if !ids.iter().any(|existing| existing == id) {
+            ids.push(id.to_string());
+        }
+    }
+    ids
 }
 
 /// The default fetcher, with the Cloudflare chain when configured.
@@ -330,6 +359,19 @@ pub struct Engine {
 }
 
 impl Engine {
+    /// Whether known metadata allows a catalog on this request.
+    async fn animation_status(
+        &self,
+        media: &MediaRef,
+        metadata: Option<&ResolvedMedia>,
+    ) -> Option<bool> {
+        let tmdb_id = metadata?.tmdb_id?;
+        self.tmdb
+            .as_ref()?
+            .cached_is_animation(tmdb_id, media.kind)
+            .await
+    }
+
     /// Resolve selected providers for English spoken audio, including verified
     /// embedded track selection when supported. SUB/English subtitle flags alone
     /// do not qualify. Keeps the normal quality-sorted, all-provider behavior.
@@ -357,7 +399,7 @@ impl Engine {
     }
 
     async fn fast_dub_inner(&self, media: &MediaRef) -> Result<Option<Stream>, EngineError> {
-        let sources: Vec<_> = self
+        let mut sources: Vec<_> = self
             .registry
             .all()
             .into_iter()
@@ -370,6 +412,8 @@ impl Engine {
             Some(tmdb) => tmdb.resolve_media(media).await.ok(),
             None => None,
         };
+        let animation = self.animation_status(media, resolved.as_ref()).await;
+        sources.retain(|source| provider_scope_allows(&source.info().id, animation));
         let jobs: Vec<_> = sources
             .into_iter()
             .enumerate()
@@ -471,6 +515,8 @@ impl Engine {
             None => None,
         };
 
+        let animation = self.animation_status(media, resolved.as_ref()).await;
+
         // Pre-box each job's future over a plain iterator, then feed the
         // boxes to `buffer_unordered`: a closure inside a stream
         // combinator that returns a future over `Arc<dyn Source>` trips
@@ -485,6 +531,7 @@ impl Engine {
             .registry
             .all()
             .into_iter()
+            .filter(|source| provider_scope_allows(&source.info().id, animation))
             .enumerate()
             .map(|(index, source)| {
                 self.resolve_source(
@@ -618,6 +665,12 @@ impl Engine {
     pub fn tmdb(&self) -> Option<&TmdbClient> {
         self.tmdb.as_ref()
     }
+}
+
+/// Unknown or animated metadata preserves eligibility. Only definitive non-animation
+/// excludes the animation catalogs; general movie/TV providers remain eligible.
+fn provider_scope_allows(provider: &str, animation: Option<bool>) -> bool {
+    animation != Some(false) || !vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider)
 }
 
 /// The release-name-ish string for a stream with no label: the URL's
@@ -767,6 +820,74 @@ mod tests {
             season: None,
             episode: None,
         }
+    }
+
+    #[test]
+    fn generated_provider_profile_trims_and_deduplicates_ids() {
+        assert_eq!(
+            parse_provider_allowlist(" reanime, vidzee,reanime, ,animekai "),
+            ["reanime", "vidzee", "animekai"]
+        );
+        assert!(parse_provider_allowlist(" , ").is_empty());
+        let builder = EngineBuilder::new().providers(&[]);
+        assert!(
+            builder.provider_selection_explicit,
+            "explicit all must override the environment"
+        );
+    }
+
+    #[tokio::test]
+    async fn non_animation_does_not_resolve_through_a_same_title_anime_catalog()
+    -> Result<(), EngineError> {
+        struct MetadataFetcher {
+            genres: serde_json::Value,
+        }
+        #[async_trait]
+        impl Fetcher for MetadataFetcher {
+            async fn request(
+                &self,
+                request: vsources_core::traits::FetchRequest,
+            ) -> Result<vsources_core::traits::FetchResponse, vsources_core::error::FetchError>
+            {
+                Ok(vsources_core::traits::FetchResponse { url:request.url,status:200,headers:std::collections::BTreeMap::new(),
+                    body:serde_json::json!({"title":"Casablanca","release_date":"1943-01-15","genres":self.genres}).to_string() })
+            }
+        }
+        for (genres, expected) in [
+            (serde_json::json!([{"id":18}]), 1),
+            (serde_json::json!([{"id":16}]), 2),
+            (serde_json::Value::Null, 2),
+        ] {
+            let fetcher: Arc<dyn Fetcher> = Arc::new(MetadataFetcher { genres });
+            let tmdb = TmdbClient::new("test-key", fetcher.clone());
+            let engine = test_builder()
+                .fetcher(fetcher)
+                .tmdb(tmdb)
+                .sources(vec![
+                    StubSource::streaming(
+                        "2dhive",
+                        0,
+                        &["https://cdn.example/anime-music-video.mp4"],
+                    ),
+                    StubSource::streaming(
+                        "vidlink2",
+                        0,
+                        &["https://cdn.example/requested-film.mp4"],
+                    ),
+                ])
+                .build()?;
+            let streams = engine
+                .resolve(&MediaRef::movie(vsources_core::types::MediaId::Tmdb(289)))
+                .await?;
+            assert_eq!(streams.len(), expected);
+            if expected == 1 {
+                assert_eq!(
+                    streams[0].url.as_str(),
+                    "https://cdn.example/requested-film.mp4"
+                );
+            }
+        }
+        Ok(())
     }
 
     #[tokio::test]

@@ -116,6 +116,8 @@ struct MediaEntry {
 
 /// The `anidoor.me` provider: deterministic megaplay embeds.
 pub struct AniDoor {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// Static descriptor.
     info: SourceInfo,
     /// The embed resolver — upstream's post-source extraction stage.
@@ -123,10 +125,18 @@ pub struct AniDoor {
 }
 
 impl AniDoor {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// A provider resolving megaplay embeds through `registry`.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: PROVIDER_ID.to_string(),
                 label: "AniDoor".to_string(),
@@ -153,35 +163,13 @@ impl Source for AniDoor {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves TMDB (getTmdbId + getTmdbNameAndYear) and
-        // searches by name; without pre-resolved media there is no title.
-        let Some(resolved) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let title = display_title(&resolved.name, resolved.year, media);
-        let episode = target_episode(media);
-
-        // The request kind selects which AniList formats may match.
-        let want_movie = media.season.is_none();
-
-        // Steps 1–2: the best media match with its ids.
-        let Some((anilist_id, mal_id)) = media_ids(ctx, &resolved.name, want_movie).await else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 3: the embed-template config.
-        let Some(templates) = fetch_sources_json(ctx).await else {
-            return Err(SourceError::NotFound);
-        };
-
-        // Step 4: build the embed URLs and resolve them.
-        let target = EmbedTarget {
-            anilist_id,
-            mal_id,
-            want_movie,
-            episode,
-        };
-        self.embed_streams(ctx, templates, target, &title).await
+        if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_inner(ctx, media, Some(ids)).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
+        }
+        self.resolve_inner(ctx, media, None).await
     }
 }
 
@@ -291,6 +279,8 @@ impl AniDoor {
                 stream.meta.source_id = Some(self.info.id.clone());
                 stream.meta.source_label = Some(self.info.label.clone());
                 stream.meta.languages.clone_from(&languages);
+                stream.meta.dubbed = Some(template.dub);
+                stream.meta.subbed = Some(!(template.dub));
                 stream.label = Some(label.clone());
                 streams.push(stream);
             }
@@ -642,6 +632,49 @@ fn parse_url(raw: &str) -> Url {
     Url::parse(raw).unwrap_or_else(|e| panic!("the AniDoor URL {raw:?} must parse: {e}"))
 }
 
+impl AniDoor {
+    async fn resolve_inner(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        mapped: Option<vsources_core::mappings::SeasonIds>,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves TMDB (getTmdbId + getTmdbNameAndYear) and
+        // searches by name; without pre-resolved media there is no title.
+        let Some(resolved) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let title = display_title(&resolved.name, resolved.year, media);
+        let episode = target_episode(media);
+
+        // The request kind selects which AniList formats may match.
+        let want_movie = media.season.is_none();
+
+        // Steps 1–2: the best media match with its ids.
+        let ids = match mapped {
+            Some(ids) => Some((Some(ids.anilist_id), ids.mal_id)),
+            None => media_ids(ctx, &resolved.name, want_movie).await,
+        };
+        let Some((anilist_id, mal_id)) = ids else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 3: the embed-template config.
+        let Some(templates) = fetch_sources_json(ctx).await else {
+            return Err(SourceError::NotFound);
+        };
+
+        // Step 4: build the embed URLs and resolve them.
+        let target = EmbedTarget {
+            anilist_id,
+            mal_id,
+            want_movie,
+            episode,
+        };
+        self.embed_streams(ctx, templates, target, &title).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -853,6 +886,8 @@ mod tests {
         assert_eq!(sub.meta.extractor_label.as_deref(), Some("MegaplayStub"));
 
         let dub = &streams[1];
+        assert_eq!(dub.meta.dubbed, Some(true));
+        assert_eq!(dub.meta.subbed, Some(false));
         assert_eq!(
             dub.url.as_str(),
             "https://cdn.example.com/stream-ani-154587-2-dub.m3u8"

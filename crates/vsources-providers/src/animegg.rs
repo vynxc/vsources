@@ -251,6 +251,8 @@ struct KitsuTitles {
 
 /// The `AnimeGG` provider.
 pub struct AnimeGG {
+    /// Shared anime identity mappings, when configured.
+    mappings: Option<vsources_core::mappings::MappingService>,
     /// The descriptor served by `info`.
     info: SourceInfo,
     /// The extractor chain that claims the direct file URLs.
@@ -258,10 +260,18 @@ pub struct AnimeGG {
 }
 
 impl AnimeGG {
+    /// Share cached anime identity mappings with the other providers.
+    #[must_use]
+    pub fn with_mappings(mut self, mappings: vsources_core::mappings::MappingService) -> Self {
+        self.mappings = Some(mappings);
+        self
+    }
+
     /// Build the provider over an extractor registry.
     #[must_use]
     pub fn new(registry: Arc<ExtractorRegistry>) -> Self {
         Self {
+            mappings: None,
             info: SourceInfo {
                 id: ID.to_string(),
                 label: "AnimeGG".to_string(),
@@ -419,6 +429,8 @@ impl AnimeGG {
                 } else {
                     vec![CountryCode::Multi, CountryCode::Ja]
                 };
+                stream.meta.dubbed = Some(is_dub);
+                stream.meta.subbed = Some(!is_dub);
                 stream.meta.source_id = Some(ID.to_string());
                 stream.meta.source_label = Some("AnimeGG".to_string());
                 if let Some(height) = height_of(&raw.quality) {
@@ -441,87 +453,14 @@ impl Source for AnimeGG {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
-        // Upstream resolves the TMDB id, name, and year here; in this
-        // SDK the engine resolves media metadata before the fan-out.
-        let Some(meta) = ctx.media.as_ref() else {
-            return Err(SourceError::NotFound);
-        };
-        let name = meta.name.as_str();
-        let season = if media.kind == MediaType::Series {
-            media.season
-        } else {
-            None
-        };
-        let title_base = match season {
-            Some(_) => format!("{name} {}", media.format_season_and_episode()),
-            None => match meta.year {
-                Some(year) => format!("{name} ({year})"),
-                None => name.to_string(),
-            },
-        };
-        let name_norm = normalize(name);
-        let ep_num = season.map_or(1, |_| media.episode.unwrap_or(1));
-
-        // Step 1: search by title (no AniList needed).
-        let mut hits = search_series(ctx, name).await?;
-        if hits.is_empty() {
-            // AniList alternate title retry: the English or romaji
-            // title may match the site better.
-            for alt in resolve_title_media(ctx, name).await {
-                let Some(alt_title) = alt.english.or(alt.romaji) else {
-                    continue;
-                };
-                if alt_title == name {
-                    continue;
-                }
-                hits = search_series(ctx, &alt_title).await?;
-                if !hits.is_empty() {
-                    break;
-                }
-            }
+        if let Some(mapped) =
+            crate::anime_mapping::title_context(self.mappings.as_ref(), ctx, media).await
+            && let Ok(streams) = self.resolve_by_title(&mapped, media).await
+            && !streams.is_empty()
+        {
+            return Ok(streams);
         }
-        if hits.is_empty() {
-            return Ok(Vec::new());
-        }
-
-        // Pick the best match: the first hit, unless another normalizes
-        // to exactly the title.
-        let mut best_slug = hits[0].slug.clone();
-        for hit in &hits {
-            if normalize(&hit.title) == name_norm {
-                best_slug = hit.slug.clone();
-                break;
-            }
-        }
-
-        // Step 2: get the episode list.
-        let episodes = series_episodes(ctx, &best_slug).await?;
-        let Some(episode) = episodes
-            .iter()
-            .find(|episode| episode.number == ep_num)
-            .or_else(|| episodes.first())
-        else {
-            return Ok(Vec::new());
-        };
-
-        // Step 3: streams for both sub and dub.
-        let mut streams = Vec::new();
-        let mut seen: HashSet<Url> = HashSet::new();
-        for category in ["sub", "dub"] {
-            let Ok(raw) = self.episode_streams(ctx, &episode.slug, category).await else {
-                continue;
-            };
-            for stream in raw {
-                if !seen.insert(stream.url.clone()) {
-                    continue;
-                }
-                let mut resolved = self
-                    .resolve_raw(ctx, &stream, &title_base, category == "dub")
-                    .await;
-                streams.append(&mut resolved);
-            }
-        }
-        Ok(streams)
+        self.resolve_by_title(ctx, media).await
     }
 }
 
@@ -1030,6 +969,96 @@ fn decode_base64_lenient(input: &str) -> Vec<u8> {
         }
     }
     out
+}
+
+impl AnimeGG {
+    async fn resolve_by_title(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        // Upstream resolves the TMDB id, name, and year here; in this
+        // SDK the engine resolves media metadata before the fan-out.
+        let Some(meta) = ctx.media.as_ref() else {
+            return Err(SourceError::NotFound);
+        };
+        let name = meta.name.as_str();
+        let season = if media.kind == MediaType::Series {
+            media.season
+        } else {
+            None
+        };
+        let title_base = match season {
+            Some(_) => format!("{name} {}", media.format_season_and_episode()),
+            None => match meta.year {
+                Some(year) => format!("{name} ({year})"),
+                None => name.to_string(),
+            },
+        };
+        let name_norm = normalize(name);
+        let ep_num = season.map_or(1, |_| media.episode.unwrap_or(1));
+
+        // Step 1: search by title (no AniList needed).
+        let mut hits = search_series(ctx, name).await?;
+        if hits.is_empty() {
+            // AniList alternate title retry: the English or romaji
+            // title may match the site better.
+            for alt in resolve_title_media(ctx, name).await {
+                let Some(alt_title) = alt.english.or(alt.romaji) else {
+                    continue;
+                };
+                if alt_title == name {
+                    continue;
+                }
+                hits = search_series(ctx, &alt_title).await?;
+                if !hits.is_empty() {
+                    break;
+                }
+            }
+        }
+        if hits.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Pick the best match: the first hit, unless another normalizes
+        // to exactly the title.
+        let mut best_slug = hits[0].slug.clone();
+        for hit in &hits {
+            if normalize(&hit.title) == name_norm {
+                best_slug = hit.slug.clone();
+                break;
+            }
+        }
+
+        // Step 2: get the episode list.
+        let episodes = series_episodes(ctx, &best_slug).await?;
+        let Some(episode) = episodes
+            .iter()
+            .find(|episode| episode.number == ep_num)
+            .or_else(|| episodes.first())
+        else {
+            return Ok(Vec::new());
+        };
+
+        // Step 3: streams for both sub and dub.
+        let mut streams = Vec::new();
+        let mut seen: HashSet<Url> = HashSet::new();
+        for category in ["sub", "dub"] {
+            let Ok(raw) = self.episode_streams(ctx, &episode.slug, category).await else {
+                continue;
+            };
+            for stream in raw {
+                if !seen.insert(stream.url.clone()) {
+                    continue;
+                }
+                let mut resolved = self
+                    .resolve_raw(ctx, &stream, &title_base, category == "dub")
+                    .await;
+                streams.append(&mut resolved);
+            }
+        }
+        Ok(streams)
+    }
 }
 
 #[cfg(test)]

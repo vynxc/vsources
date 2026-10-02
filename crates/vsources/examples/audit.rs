@@ -21,9 +21,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tmdb = Arc::new(
         TmdbClient::from_env(fetcher.clone()).ok_or("set TMDB_API_KEY or TMDB_ACCESS_TOKEN")?,
     );
-    let sources: Vec<_> = vsources_providers::wave1(tmdb.clone())
+    let mappings = vsources_core::mappings::MappingService::new(fetcher.clone());
+    let sources: Vec<_> = vsources_providers::wave1(tmdb.clone(), mappings.clone())
         .into_iter()
-        .chain(vsources_providers::wave2(tmdb.clone()))
+        .chain(vsources_providers::wave2(tmdb.clone(), mappings))
         .filter(|source| {
             std::env::var("VSOURCES_AUDIT_PROVIDERS")
                 .map_or(true, |ids| ids.split(',').any(|id| id == source.info().id))
