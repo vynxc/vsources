@@ -10,6 +10,14 @@ accepts ordinary sub/dub results in a separate output directory.
 
 ## Run and view
 
+The audit worker accepts `FLARESOLVERR_URL` (for example,
+`http://127.0.0.1:8191/`) and connects the SDK's existing solver chain.
+The daemon must already be running. Clearance cookies and the solver's user agent
+are reused on retry. A slow first solve can exceed VidFast's native 25-second
+budget; a working daemon does not itself establish playback. Rerun VidFast and
+inspect its decode evidence before promoting it. IP blocks, missing credentials,
+dead APIs and unavailable media are separate failures that a solver cannot repair.
+
 From the repository root with TMDB credentials in `.env`, `.env.local`, or the
 process environment, and `cargo` and FFmpeg on PATH:
 

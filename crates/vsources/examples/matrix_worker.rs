@@ -135,6 +135,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Ok(proxy) = std::env::var("VSOURCES_PROXY") {
         builder = builder.proxy(proxy);
     }
+    if let Ok(base) = std::env::var("FLARESOLVERR_URL") {
+        let transport: Arc<dyn Fetcher> = Arc::new(vsources_net::ChromeFetcher::builder().build()?);
+        let client = vsources_cloudflare::FlareSolverr::new(url::Url::parse(&base)?, transport);
+        builder = builder.cloudflare(vsources_cloudflare::SolverChain::new(vec![Arc::new(
+            vsources_cloudflare::FlareSolverrSolver::new(client),
+        )]));
+    }
     let inner: Arc<dyn Fetcher> = Arc::new(builder.build()?);
     let observed = Arc::new(ObservedFetcher {
         inner,
@@ -158,6 +165,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "PECKLE_FEBBOX_COOKIE",
             "MOVIEBOX_MOBILE_SIGNING_KEY",
             "VSOURCES_PROXY",
+            "FLARESOLVERR_URL",
         ]
         .into_iter()
         .filter(|name| std::env::var(name).is_ok_and(|value| !value.is_empty()))
