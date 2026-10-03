@@ -12,14 +12,13 @@
 //! provider list and drops everything else. Adding a provider back is
 //! one module plus one registry entry.
 //!
-//! Wave 1 — the 25 self-contained scrapers — is assembled by
+//! Wave 1 — the 24 self-contained scrapers — is assembled by
 //! [`wave1`]; the Nuvio-backed waves 2a/2b follow.
 //!
 //! [`Source`]: vsources_core::traits::Source
 
 pub mod acermovies;
 pub mod allwish;
-pub mod anibd;
 pub mod anichan;
 pub mod anidoor;
 pub mod anikage;
@@ -29,7 +28,6 @@ pub mod animeflix;
 pub mod animegg;
 pub mod animekai;
 pub mod animesuge;
-pub mod animezey;
 pub mod animotvslash;
 pub mod aniwaves;
 pub mod atlantic;
@@ -90,7 +88,6 @@ pub use registry::SourceRegistry;
 pub const ANIME_ONLY_PROVIDER_IDS: &[&str] = &[
     "aniwaves",
     "allwish",
-    "anibd",
     "anichan",
     "anidoor",
     "anikage",
@@ -100,7 +97,6 @@ pub const ANIME_ONLY_PROVIDER_IDS: &[&str] = &[
     "animegg",
     "animekai",
     "animesuge",
-    "animezey",
     "animotvslash",
     "hianime",
     "itachi",
@@ -109,7 +105,7 @@ pub const ANIME_ONLY_PROVIDER_IDS: &[&str] = &[
     "reanime",
 ];
 
-/// The wave-1 provider set: the 25 self-contained English scrapers.
+/// The wave-1 provider set: the 24 self-contained English scrapers.
 ///
 /// One TMDB client is shared by every provider that needs id or title
 /// metadata, one extractor registry serves every embed resolution, and
@@ -126,10 +122,9 @@ pub fn wave1(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Vec<Arc<dyn Sou
     let febbox_cookie = std::env::var("PECKLE_FEBBOX_COOKIE").ok();
 
     vec![
-        // Anime (12).
+        // Anime (11).
         Arc::new(aniwaves::AniWaves::new().with_mappings(mappings.clone())),
         Arc::new(allwish::AllWish::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
-        Arc::new(anibd::AniBD::new().with_mappings(mappings.clone())),
         Arc::new(anidoor::AniDoor::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
         Arc::new(anikage::AniKage::with_mappings(mappings.clone())),
         Arc::new(anikoto::Anikoto::new(Arc::clone(&extractors)).with_mappings(mappings.clone())),
@@ -178,7 +173,7 @@ pub fn wave1(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Vec<Arc<dyn Sou
         Arc::new(watchseries::WatchSeries::new(Arc::clone(&extractors), tmdb)),
     ]
 }
-/// The wave-2 provider set: the 23 Nuvio-backed providers (8 anime,
+/// The wave-2 provider set: the 22 Nuvio-backed providers (7 anime,
 /// 15 movies/TV).
 ///
 /// Like [`wave1`], one TMDB client is shared; one extractor registry
@@ -192,14 +187,13 @@ pub fn wave2(tmdb: Arc<TmdbClient>, mappings: MappingService) -> Vec<Arc<dyn Sou
     let seeds = Arc::new(nuvio::speedracelight::SeedStore::new());
 
     vec![
-        // Anime (8).
+        // Anime (7).
         Arc::new(anichan::AniChan::new(Arc::clone(&tmdb), mappings.clone())),
         Arc::new(anikototv::AnikotoTV::new(
             Arc::clone(&tmdb),
             mappings.clone(),
         )),
         Arc::new(animesuge::AnimeSuge::new(Arc::clone(&tmdb)).with_mappings(mappings.clone())),
-        Arc::new(animezey::AnimeZeY::new(Arc::clone(&tmdb)).with_mappings(mappings.clone())),
         Arc::new(
             animotvslash::AniMoTVSlash::new(Arc::clone(&tmdb)).with_mappings(mappings.clone()),
         ),
@@ -253,15 +247,15 @@ mod tests {
     }
 
     #[test]
-    fn wave1_registers_all_25_providers() {
+    fn wave1_registers_all_24_providers() {
         let sources = wave1(tmdb(), mappings());
-        assert_eq!(sources.len(), 25);
+        assert_eq!(sources.len(), 24);
     }
 
     #[test]
-    fn wave2_registers_all_23_providers() {
+    fn wave2_registers_all_22_providers() {
         let sources = wave2(tmdb(), mappings());
-        assert_eq!(sources.len(), 23);
+        assert_eq!(sources.len(), 22);
     }
 
     #[test]

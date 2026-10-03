@@ -1,0 +1,7302 @@
+{
+  "purpose": "Targeted diagnostics after GitHub research, not full provider coverage",
+  "settings": {
+    "source_timeout": 20,
+    "warm_repeats": 1,
+    "english_dub": true,
+    "cards": 1,
+    "header_retries": 2,
+    "seconds": 8,
+    "decode_timeout": 30,
+    "warm_playback": false
+  },
+  "cases": [
+    {
+      "case_id": "inception",
+      "category": "movie",
+      "title": "Inception",
+      "tmdb": 27205,
+      "year": 2010,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "sinners",
+      "category": "movie",
+      "title": "Sinners",
+      "tmdb": 1233413,
+      "year": 2025,
+      "era": "recent",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "title": "Breaking Bad",
+      "tmdb": 1396,
+      "year": 2008,
+      "era": "classic",
+      "kind": "series",
+      "season": 2,
+      "episode": 1,
+      "episode_year": null
+    },
+    {
+      "case_id": "cowboy-bebop",
+      "category": "anime",
+      "title": "Cowboy Bebop",
+      "tmdb": 30991,
+      "year": 1998,
+      "era": "classic",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    },
+    {
+      "case_id": "frieren",
+      "category": "anime",
+      "title": "Frieren: Beyond Journey’s End",
+      "tmdb": 209867,
+      "year": 2023,
+      "era": "recent",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    }
+  ],
+  "rows": [
+    {
+      "provider": "peckle",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.029511+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 48.974328,
+      "cold": {
+        "cards": 0,
+        "http_requests": 0,
+        "ms": 0.09368599999999999,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.007028,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.007028,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 57.018
+    },
+    {
+      "provider": "peckle",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.044950+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 15.022615,
+      "cold": {
+        "cards": 0,
+        "http_requests": 0,
+        "ms": 0.13782399999999997,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012557,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012557,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 15.428
+    },
+    {
+      "provider": "peckle",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.060374+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 15.032887,
+      "cold": {
+        "cards": 0,
+        "http_requests": 0,
+        "ms": 0.116841,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.011831999999999999,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.011831999999999999,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 15.41
+    },
+    {
+      "provider": "netlio",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.099604+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 45.086738000000004,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 73.008375,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012336,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012336,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 127.177
+    },
+    {
+      "provider": "netlio",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.159062+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.372905,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 45.727715,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012872,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012872,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 59.441
+    },
+    {
+      "provider": "netlio",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.235673+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.464848,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 62.783899000000005,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.014833,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.014833,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 76.594
+    },
+    {
+      "provider": "moviebox",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:32.965077+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 47.707562,
+      "cold": {
+        "cards": 1,
+        "http_requests": 4,
+        "ms": 937.6253049999999,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 1,
+          "http_requests": 0,
+          "ms": 0.031488,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.031488,
+      "streams": [
+        {
+          "stream_hash": "057ba143514f3ef67fac",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 814.907,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_426",
+          "header_names": [
+            "Referer"
+          ],
+          "header_hash": "5fce740dfd52f197f429",
+          "private_log_name": "targeted-diagnostic/moviebox-inception-0-baseline.log",
+          "stream_hash": "057ba143514f3ef67fac",
+          "host": "bcdnxw.hakunaymatata.com",
+          "profile": "sdk_headers"
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 1809.082
+    },
+    {
+      "provider": "moviebox",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:34.344492+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.416082,
+      "cold": {
+        "cards": 2,
+        "http_requests": 3,
+        "ms": 549.154181,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 2,
+          "http_requests": 0,
+          "ms": 0.030369999999999998,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.030369999999999998,
+      "streams": [
+        {
+          "stream_hash": "60e76fb63ea35f86c848",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 360,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "cef8814eaf11f6b7c899",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 464.642,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_426",
+          "header_names": [
+            "Referer"
+          ],
+          "header_hash": "5fce740dfd52f197f429",
+          "private_log_name": "targeted-diagnostic/moviebox-sinners-0-baseline.log",
+          "stream_hash": "cef8814eaf11f6b7c899",
+          "host": "bcdnxw.hakunaymatata.com",
+          "profile": "sdk_headers"
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 1028.869
+    },
+    {
+      "provider": "moviebox",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:35.363495+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.752283,
+      "cold": {
+        "cards": 4,
+        "http_requests": 3,
+        "ms": 538.7750209999999,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 4,
+          "http_requests": 0,
+          "ms": 0.032448,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.032448,
+      "streams": [
+        {
+          "stream_hash": "f812bda75197555c4548",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 360,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9eeee41340b6c6c7a23b",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a81a86df6eb7067d69d0",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "18d6413ba25f18d7f23d",
+          "host": "bcdnxw.hakunaymatata.com",
+          "format": "mp4",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Referer"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 264.362,
+          "host_queue_ms": 0.001,
+          "error_kind": "http_426",
+          "header_names": [
+            "Referer"
+          ],
+          "header_hash": "5fce740dfd52f197f429",
+          "private_log_name": "targeted-diagnostic/moviebox-breaking-bad-s2-0-baseline.log",
+          "stream_hash": "a81a86df6eb7067d69d0",
+          "host": "bcdnxw.hakunaymatata.com",
+          "profile": "sdk_headers"
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 818.793
+    },
+    {
+      "provider": "vidfast",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:57.116463+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 43.202647,
+      "cold": {
+        "cards": 0,
+        "http_requests": 5,
+        "ms": 20000.952414,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.483739,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.483739,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25054.432
+    },
+    {
+      "provider": "vidfast",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:07.871060+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.757585,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 10739.490414,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012421,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012421,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 10754.588
+    },
+    {
+      "provider": "vidfast",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:07.886588+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 15.024460999999999,
+      "cold": {
+        "cards": 0,
+        "http_requests": 0,
+        "ms": 0.167713,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.007324,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.007324,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 15.51
+    },
+    {
+      "provider": "anichan",
+      "case_id": "cowboy-bebop",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:55:13.934644+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 40.295585,
+      "cold": {
+        "cards": 0,
+        "http_requests": 9,
+        "ms": 5997.637171,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012523,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012523,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 6046.41
+    },
+    {
+      "provider": "anichan",
+      "case_id": "frieren",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:55:19.725932+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.847301,
+      "cold": {
+        "cards": 0,
+        "http_requests": 8,
+        "ms": 5777.130007000001,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012979000000000001,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012979000000000001,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 5791.27
+    },
+    {
+      "provider": "acermovies",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:21.611786+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 46.51569,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 1827.187041,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.013456,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.013456,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 1882.093
+    },
+    {
+      "provider": "acermovies",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:23.372157+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.286942,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 1745.716615,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.017835,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.017835,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 1760.359
+    },
+    {
+      "provider": "necro",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:57.029907+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 46.874356999999996,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 20000.716525,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 2,
+          "ms": 5000.969185,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.969185,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25057.556
+    },
+    {
+      "provider": "necro",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:22.047923+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.50375,
+      "cold": {
+        "cards": 0,
+        "http_requests": 9,
+        "ms": 20002.094768,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 2,
+          "ms": 5001.071863,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.071863,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25018.003
+    },
+    {
+      "provider": "necro",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:23.717227+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.363545,
+      "cold": {
+        "cards": 0,
+        "http_requests": 5,
+        "ms": 1654.6275110000001,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.013359000000000001,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.013359000000000001,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 1669.292
+    },
+    {
+      "provider": "atlantic",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:25.777480+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 41.465287000000004,
+      "cold": {
+        "cards": 0,
+        "http_requests": 7,
+        "ms": 2352.2988680000003,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.014208,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.014208,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 2403.502
+    },
+    {
+      "provider": "atlantic",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:28.783010+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.219588,
+      "cold": {
+        "cards": 0,
+        "http_requests": 7,
+        "ms": 2990.8864360000002,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012336,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012336,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 3005.523
+    },
+    {
+      "provider": "atlantic",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:31.516551+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.074615,
+      "cold": {
+        "cards": 0,
+        "http_requests": 7,
+        "ms": 2719.057459,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012027,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012027,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 2733.518
+    },
+    {
+      "provider": "vidking",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:57.287479+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 40.439138,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 20000.99852,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5000.5008020000005,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.5008020000005,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25050.03
+    },
+    {
+      "provider": "vidking",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:08.078599+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.226673,
+      "cold": {
+        "cards": 0,
+        "http_requests": 7,
+        "ms": 10776.578506,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.01128,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.01128,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 10791.101
+    },
+    {
+      "provider": "vidking",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:33.094958+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.622088,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 20001.380742999998,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 2,
+          "ms": 5001.035519,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.035519,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25016.349
+    },
+    {
+      "provider": "vidsrcsbs",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:00.681472+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 40.575985,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 20001.156477999997,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.484916,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.484916,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25051.371
+    },
+    {
+      "provider": "vidsrcsbs",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:25.700009+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.113726,
+      "cold": {
+        "cards": 0,
+        "http_requests": 8,
+        "ms": 20002.054527999997,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.915425,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.915425,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25018.521
+    },
+    {
+      "provider": "vidsrcsbs",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:41.440536+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.383979,
+      "cold": {
+        "cards": 0,
+        "http_requests": 18,
+        "ms": 15725.634209999998,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012062999999999999,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.012062999999999999,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 15740.511
+    },
+    {
+      "provider": "nowhdtime",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:54:57.033863+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 49.737165,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 20001.967839999998,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5002.008702,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5002.008702,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25061.624
+    },
+    {
+      "provider": "nowhdtime",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:22.051760+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.730848,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 20001.921747,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5000.988278000001,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.988278000001,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25017.885
+    },
+    {
+      "provider": "nowhdtime",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:47.070004+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 15.006402,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 20001.328690000002,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.570707,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.570707,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25018.238
+    },
+    {
+      "provider": "framextv",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:36.403096+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 39.727758,
+      "cold": {
+        "cards": 91,
+        "http_requests": 20,
+        "ms": 4826.364269,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 91,
+          "http_requests": 0,
+          "ms": 0.271076,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.271076,
+      "streams": [
+        {
+          "stream_hash": "7bdbd7c4fd0a33a12621",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 2160,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "dd4720c6f53031bc99d4",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a9c32dba6a95fa01e614",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "fa6043b2314b3f22eeb3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "09212cadb98b579d9820",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "fb855e33fba9281f8ac2",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "bd457f00c12f423531ec",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0c3ad18aa4df96d94c22",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f12b966a9af033607f46",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7fd52c2b17e8b77b192f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ce2da9cf28d04a42cda3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "46f0f93de97579e6841b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ee42b93cdd5dea8545a7",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "2e8a8d3e06bb4e58c8b9",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "df4578116267e29d4a66",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4a636e4bed8bb3e736b6",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3586975f7e2277db767d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3126d30ecad659965dad",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "2478d0713f69150e09cc",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "81c9567be2104507fd8f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b50688d07736387a822c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ad53a64499db0a51582f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "c22674ea37d10a989803",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "395325ec8c3490c3c705",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0d3c030d417f2ab50e9f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9e15950bf2d5163b20ae",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "04753e08ecedae145761",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "23f3c659c6cb68c6e031",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "90ebe08b815d7bd93093",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "e719a9ff19256f041c6d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "beac1f59b17c607943a9",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4a3cbce01e68a34debf8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b3e64172e1356df9e0a8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "19d26f4b6d61d4a6d876",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "07c12661fa951e25adc9",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "c6432f9b720227ee1e39",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "58eb4165d41f0c5b41da",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7bcb43413a7cbdcd3b7e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0fe9ac2632baa2e5349f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "87c522ab46033d7e6d26",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ba95a475909cc49b60ec",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8655fd371552df65154d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "e1d4348fc258cd6e1dc8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "35366c0b48c62f78b419",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9fa5bfc46e2745f43099",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a7ae29cf2f79b7b7e9c4",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b6482dd2673846e9fc53",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "46d9ed17a90032167e57",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ecaa4f59a204f5bf8151",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ebac91996daf47143517",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "041deffbadf40e44a834",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "52546b592c07f219f888",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "39e8f75c9d6db593d7a6",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7d8b13ab3566912e2a70",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "366ce11ac3b5e4de401f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d1f65e3178dfe3ce8de7",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d1744f0b657e5bfcb763",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "6712da577c7f0b5c9b01",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8a222ed0f91e0a37a7b8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ab68358677463b10bc5a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "45d8e34adec9ce6c653a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ab16a44878eb076cc56b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d4b0b4fbe355717ec468",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a6f318cd8890c3ae1ce3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "156364fbdf8c619b3713",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f98df7d2b2fa821e4af8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "aa19ab4ff0d579ae5443",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4f0e32be1c523795b247",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d8287d1bff9bbda1b278",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "71d17d55c4176785379e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "91740ea2c599072724aa",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8927b94dc83fc4c2b8c1",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "90ea484536fba99c1075",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "cd6d9a71753bec7ffa54",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "68f66a7952eb34317827",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "98568f29d3d70f3291d8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3a6974a35a6cb8d57a77",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "06533939f0bfeb6167c1",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "45523ba1cb706030c64c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4aed0d95010bc41b7070",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "63d88d37e36ca6cf74f5",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "c9ca7507b34e632a662e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "1b298eb80bd91d0f7cbb",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "09c753b530ff320b26c9",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0e60970c1b68cc176f70",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9daeaff52eb2c53a6893",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "214f21b884f9897b25fc",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ca69b3ead39eda718138",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "511673dc17028335d3c0",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "182c46bf05d265c8b70b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "964923d1312f8e309730",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 414.341,
+          "host_queue_ms": 0.0,
+          "error_kind": "upstream_5xx",
+          "header_names": [],
+          "header_hash": "44136fa355b3678a1146",
+          "private_log_name": "targeted-diagnostic/framextv-inception-0-baseline.log",
+          "stream_hash": "09212cadb98b579d9820",
+          "host": "api.framextv.tech",
+          "profile": "sdk_headers"
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 5300.093
+    },
+    {
+      "provider": "framextv",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:42.275432+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.724882000000001,
+      "cold": {
+        "cards": 78,
+        "http_requests": 20,
+        "ms": 5434.6185350000005,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 78,
+          "http_requests": 0,
+          "ms": 0.185555,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.185555,
+      "streams": [
+        {
+          "stream_hash": "646b9e560905a23b8105",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 2160,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "595c7b661d912b7e701f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "cc022c0421be1b6d1284",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "98bc7954513b2c9b164c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "94822bfd1eb9d6b4db12",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d4a3a4a44fc9c166a1cf",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "74fede6e9a6b7838bae3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "fcefd80399521cf90a90",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f450f6b2f0844e708696",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "759dd1a3c35212a99a0c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "93a34eacd7e2f1d42b6b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "cc47dd8eb8d33fed5a10",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8b6562267c81a283e6f7",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3f630f9427ce0ddc1abd",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "06e3b5fa2b0742046ec3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "973e2036a16ad368918f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f06775eab1cf07494788",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "e9cf873e8bcf74331ef3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3d9746f636806ac7864a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b3061ab87cc243a0f855",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "5f9c4f6c95b9e1a1209c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9410549633ff68b3d525",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4f17428de365e3c161c7",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8af91a64354f6139f0f9",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d0918d95492144b48158",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "468f867cad9a1e38510d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7b048a4056703471dbbc",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "db418603fc22b9e34523",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "271a2e9e3290beebfd36",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7d89d6650843eff46f27",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7e7551d415c4f2d1b05c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "014d46240116c47b1f67",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "cc9944bb30cdd9a3c5c9",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "1bea84a0777c3fd3febf",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "43eab92a9286568719a8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "175d86bf8405b5d49e26",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "5ac42b40c8626bf64e94",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "203d3485a7ca120fe9ab",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "44beca5ada7e0a611124",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "41be5e8418bbcba5b20f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "c9b908647a04276d9ada",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "cb219cdd5c18eef0cf0f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "742dbadf9d0e15cfbcac",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "55cd60dfb9b869641647",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "778b22c66fe1951841c0",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f370452ccd42daa1ffdf",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9254224cb261d91ea707",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0ff4571b867c06970f6d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9129b9036893aac1d42c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "2c5b492f945f338a13ba",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "24b7437215cd094bd538",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "757a07e69389f74c0266",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0984c6c65481a6942301",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "202e53d8b1a1f555d716",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "5fdc788b9d941833cd54",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "39090068a705111c6f26",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "fe6ef320eff065611210",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "efd73a6b723664b28197",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3986cabdda12ec90d91a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "67de763778d039675054",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a645d1295e35f856247a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "1025752d84a87581ee94",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "dddbbb4dd17743b8910e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4bc0871c321d38b08799",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "442b431648f731afd1d1",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9d018f121e89ba633a43",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "91ce646ffef1c7d54afd",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 360,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "5e275fa468bc5d9fa251",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "217a166da49e4604e06d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "679a22157eb950b6a5de",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "acbdf6e41fe8e255428a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ace3143d3896ef924594",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "2cbd3b586f24338d535d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f0117bacd8d7ff736b74",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4af21094da9ed1a49e0f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "e8a61482064234bfd86b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "66da99cd563328ebb7a8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "213605a795744de1c136",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": null,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 264.165,
+          "host_queue_ms": 0.0,
+          "error_kind": "upstream_5xx",
+          "header_names": [],
+          "header_hash": "44136fa355b3678a1146",
+          "private_log_name": "targeted-diagnostic/framextv-sinners-0-baseline.log",
+          "stream_hash": "f450f6b2f0844e708696",
+          "host": "api.framextv.tech",
+          "profile": "sdk_headers"
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 5721.871
+    },
+    {
+      "provider": "framextv",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:47.239305+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.857295,
+      "cold": {
+        "cards": 67,
+        "http_requests": 20,
+        "ms": 4676.639494,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 67,
+          "http_requests": 0,
+          "ms": 0.16629899999999997,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.16629899999999997,
+      "streams": [
+        {
+          "stream_hash": "1162ab6976835cbc5327",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 2160,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8d271243b07c5952f417",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "be0567b79668cc376965",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "835e85c33779ac879001",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9dfdcb51598f1cb34138",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d005b1df6a6e2d976669",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "537b0b6d910f96b18a53",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3ce1143a3d8f6a54003b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "37bd2523a628090557d4",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d2368f1a9b969604306c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7d390306fcbd00348f56",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "54180685023ccb0d783a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3b9ced56bcc1d3af2a07",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "615415d6475071ce884b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "1f182366767751d955b1",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9daf160b178530d7ac79",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ee39e9d6987f25cd84fb",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "21249fd02eb30e28f1ca",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4e9b0a6850c00a55b596",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "331c24e2d69606eb9a92",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "005c6ed20f606571df3f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a2f7288027ba7919d30d",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "1b76b24d391b4971e90e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "9a5a6f070f09dd920cdc",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "402bb8ae2ffa972198d0",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "73686f71ee5237364b7a",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "fb26ecc4da1553df1af4",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "233c11d162d78a458f25",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "78591d1b582851cdcafc",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "29a5014947694dcc16c6",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "18d06860e54947381a49",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8c774fac33215e8bdd60",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "a701d8ba95d77dc8274b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "fa0d415fd16ed69591da",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "ba1517a4c42520f39042",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "aca83e4d84cfcb30df58",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8e0673d6702f28fd6e9e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 720,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "acff400a6869d409babb",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0336e7a01934ecc375cf",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "63f86d29db66f6b05ede",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b3e2d1241cc6fb0465d8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "94edb604c52008898af8",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7c9de0b546b97be0c3c7",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "bc1ef4aa949b680e9811",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "6233470a625120079fb5",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0cab4fd8fdc0e5d6939b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "13cc984ffdbaa9254815",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d7d67b2046ef29a882db",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "53a0b0385eacf7aa4aca",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "75d9d778385d072acd38",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d63ca0df9b74215c13a3",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4eac655d577f2a574195",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f806f8bbe2f62ec690d6",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "7245dae599cc740600d4",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "07c69528a78710e6277f",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b86cc6fd0072f5d0da81",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "851239c3a12c278b099c",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0f64db7490e4713bf787",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "683012892bb54ba32d5e",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "94fef972732410c4ab63",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "8b1c104be6a6f111487b",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3fca584fd1deaffde8df",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "e765140ef28c97c17abd",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "f9a2e2180157ee7823b6",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "5ff628414aa05b7874f2",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "3fe444a182757668bb14",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "af59c9049b8776dd46ff",
+          "host": "api.framextv.tech",
+          "format": "unknown",
+          "resolution": 480,
+          "quality": null,
+          "external": false,
+          "header_names": [],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 183,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 514.583,
+          "host_queue_ms": 0.0,
+          "error_kind": "invalid_media",
+          "header_names": [],
+          "header_hash": "44136fa355b3678a1146",
+          "private_log_name": "targeted-diagnostic/framextv-breaking-bad-s2-0-baseline.log",
+          "stream_hash": "3ce1143a3d8f6a54003b",
+          "host": "api.framextv.tech",
+          "profile": "sdk_headers"
+        },
+        {
+          "status": "decode_failed",
+          "exit": 183,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 214.061,
+          "host_queue_ms": 0.0,
+          "error_kind": "invalid_media",
+          "header_names": [
+            "User-Agent"
+          ],
+          "header_hash": "5604e96e10988e6f3336",
+          "private_log_name": "targeted-diagnostic/framextv-breaking-bad-s2-0-1-headers.log",
+          "stream_hash": "3ce1143a3d8f6a54003b",
+          "host": "api.framextv.tech",
+          "profile": "browser_user_agent",
+          "changed_header_names": [
+            "User-Agent"
+          ]
+        },
+        {
+          "status": "decode_failed",
+          "exit": 183,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 264.208,
+          "host_queue_ms": 0.0,
+          "error_kind": "invalid_media",
+          "header_names": [
+            "Referer",
+            "User-Agent"
+          ],
+          "header_hash": "d99d4c9726089f0272f6",
+          "private_log_name": "targeted-diagnostic/framextv-breaking-bad-s2-0-2-headers.log",
+          "stream_hash": "3ce1143a3d8f6a54003b",
+          "host": "api.framextv.tech",
+          "profile": "observed_playback_context",
+          "changed_header_names": [
+            "Referer",
+            "User-Agent"
+          ]
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 5694.404
+    },
+    {
+      "provider": "zxcstream",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:49.802169+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 39.697635000000005,
+      "cold": {
+        "cards": 0,
+        "http_requests": 15,
+        "ms": 1513.925912,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.013596,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.013596,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 1562.494
+    },
+    {
+      "provider": "zxcstream",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:50.162576+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.613584,
+      "cold": {
+        "cards": 0,
+        "http_requests": 15,
+        "ms": 346.279057,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.013458999999999999,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.013458999999999999,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 360.39
+    },
+    {
+      "provider": "zxcstream",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:50.399538+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.324950000000001,
+      "cold": {
+        "cards": 0,
+        "http_requests": 15,
+        "ms": 223.151653,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.01426,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.01426,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 236.943
+    },
+    {
+      "provider": "stellar",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:41.093928+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 39.846046,
+      "cold": {
+        "cards": 5,
+        "http_requests": 17,
+        "ms": 7949.171644999999,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 5,
+          "http_requests": 0,
+          "ms": 0.029573,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.029573,
+      "streams": [
+        {
+          "stream_hash": "fac015b841b74f8c9903",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b84b6eca62dc6d92b475",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "603f4a56eb646d1ad6de",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "0c77b5ba9df3cb62aa82",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "bd8097c665796ceeb715",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 865.114,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_403",
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "header_hash": "ef9ad27d13c2ef8b30cb",
+          "private_log_name": "targeted-diagnostic/stellar-inception-0-baseline.log",
+          "stream_hash": "fac015b841b74f8c9903",
+          "host": "h.themepark.workers.dev",
+          "profile": "sdk_headers"
+        },
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 515.977,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_403",
+          "header_names": [
+            "Origin",
+            "Referer",
+            "User-Agent"
+          ],
+          "header_hash": "f51bf3a3d7e842d12c9e",
+          "private_log_name": "targeted-diagnostic/stellar-inception-0-1-headers.log",
+          "stream_hash": "fac015b841b74f8c9903",
+          "host": "h.themepark.workers.dev",
+          "profile": "browser_user_agent",
+          "changed_header_names": [
+            "User-Agent"
+          ]
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 9379.151
+    },
+    {
+      "provider": "stellar",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:47.070369+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.118456,
+      "cold": {
+        "cards": 5,
+        "http_requests": 17,
+        "ms": 4579.810014,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 5,
+          "http_requests": 0,
+          "ms": 0.031004999999999998,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.031004999999999998,
+      "streams": [
+        {
+          "stream_hash": "3a1352f3043a4d6069c4",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "c79b25ef64fa2e0e58f2",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "e17899efaf5a49b972a8",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "47ecb25014c9b48026f2",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "01bff47e8b34520739b0",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 814.808,
+          "host_queue_ms": 0.001,
+          "error_kind": "http_403",
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "header_hash": "ef9ad27d13c2ef8b30cb",
+          "private_log_name": "targeted-diagnostic/stellar-sinners-0-baseline.log",
+          "stream_hash": "3a1352f3043a4d6069c4",
+          "host": "h.themepark.workers.dev",
+          "profile": "sdk_headers"
+        },
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 1115.26,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_403",
+          "header_names": [
+            "Origin",
+            "Referer",
+            "User-Agent"
+          ],
+          "header_hash": "f51bf3a3d7e842d12c9e",
+          "private_log_name": "targeted-diagnostic/stellar-sinners-0-1-headers.log",
+          "stream_hash": "3a1352f3043a4d6069c4",
+          "host": "h.themepark.workers.dev",
+          "profile": "browser_user_agent",
+          "changed_header_names": [
+            "User-Agent"
+          ]
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 6525.309
+    },
+    {
+      "provider": "stellar",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:54.526984+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 16.023636,
+      "cold": {
+        "cards": 5,
+        "http_requests": 17,
+        "ms": 5509.164152,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 5,
+          "http_requests": 0,
+          "ms": 0.038467999999999995,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.038467999999999995,
+      "streams": [
+        {
+          "stream_hash": "0a25aeb0c4b2b6d60834",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "89b2260e4acdbe702ccc",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "b91aa87e2a55b8fdb9fc",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "d52530921657bdb6f664",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        },
+        {
+          "stream_hash": "4852818d87ff99931689",
+          "host": "h.themepark.workers.dev",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "languages": [
+            "Multi",
+            "En"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 965.306,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_403",
+          "header_names": [
+            "Origin",
+            "Referer"
+          ],
+          "header_hash": "ef9ad27d13c2ef8b30cb",
+          "private_log_name": "targeted-diagnostic/stellar-breaking-bad-s2-0-baseline.log",
+          "stream_hash": "0a25aeb0c4b2b6d60834",
+          "host": "h.themepark.workers.dev",
+          "profile": "sdk_headers"
+        },
+        {
+          "status": "decode_failed",
+          "exit": 8,
+          "frames": 0,
+          "media_seconds": 0.0,
+          "audio_decoded": false,
+          "selected_audio_language": null,
+          "audio_tags": [],
+          "video_codecs": [],
+          "first_frame_ms": null,
+          "decode_ms": 664.811,
+          "host_queue_ms": 0.0,
+          "error_kind": "http_403",
+          "header_names": [
+            "Origin",
+            "Referer",
+            "User-Agent"
+          ],
+          "header_hash": "f51bf3a3d7e842d12c9e",
+          "private_log_name": "targeted-diagnostic/stellar-breaking-bad-s2-0-1-headers.log",
+          "stream_hash": "0a25aeb0c4b2b6d60834",
+          "host": "h.themepark.workers.dev",
+          "profile": "browser_user_agent",
+          "changed_header_names": [
+            "User-Agent"
+          ]
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 7156.548
+    },
+    {
+      "provider": "cineby",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:55:48.770700+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 40.349566,
+      "cold": {
+        "cards": 0,
+        "http_requests": 9,
+        "ms": 20001.596700000002,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.766124000001,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.766124000001,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25051.741
+    },
+    {
+      "provider": "cineby",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:13.788840+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.393891,
+      "cold": {
+        "cards": 0,
+        "http_requests": 3,
+        "ms": 20001.55997,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 2,
+          "ms": 5001.808251,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.808251,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25018.129
+    },
+    {
+      "provider": "cineby",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:38.805967+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.348585,
+      "cold": {
+        "cards": 0,
+        "http_requests": 6,
+        "ms": 20000.907644000003,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.490454,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.490454,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25017.114
+    },
+    {
+      "provider": "videasy",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:06.491921+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 39.742143,
+      "cold": {
+        "cards": 0,
+        "http_requests": 3,
+        "ms": 20000.986635,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5000.301751,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.301751,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25049.511
+    },
+    {
+      "provider": "videasy",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:31.508398+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.643063,
+      "cold": {
+        "cards": 0,
+        "http_requests": 9,
+        "ms": 20000.986004000002,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5001.484098,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.484098,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25016.455
+    },
+    {
+      "provider": "videasy",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:56.524069+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 13.62392,
+      "cold": {
+        "cards": 0,
+        "http_requests": 15,
+        "ms": 20000.661825000003,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5000.906577000001,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.906577000001,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25015.661
+    },
+    {
+      "provider": "videasyto",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:12.125391+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 43.817014,
+      "cold": {
+        "cards": 0,
+        "http_requests": 3,
+        "ms": 20000.58776,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 2,
+          "ms": 5001.493794,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5001.493794,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25053.709
+    },
+    {
+      "provider": "videasyto",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:56:37.141835+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 14.686792,
+      "cold": {
+        "cards": 0,
+        "http_requests": 15,
+        "ms": 20000.490931,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5000.909954,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.909954,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25016.431
+    },
+    {
+      "provider": "videasyto",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:57:02.158920+00:00",
+      "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862",
+      "metadata_ms": 15.018099,
+      "cold": {
+        "cards": 0,
+        "http_requests": 17,
+        "ms": 20001.225202,
+        "status": "resolve_timeout",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 1,
+          "ms": 5000.485153,
+          "status": "resolve_timeout",
+          "error_kind": null,
+          "cache_hit": false
+        }
+      ],
+      "warm_median_ms": 5000.485153,
+      "streams": [],
+      "decodes": [],
+      "status": "resolve_timeout",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25017.075
+    }
+  ],
+  "binary_sha256": "17b993fdd6561e387d179233d94bbf84066adc614cc8633a606e486e15334862"
+}

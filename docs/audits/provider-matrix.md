@@ -2,7 +2,9 @@
 
 The case manifest contains five movies, five TV series, five anime series and
 five anime movies, mixing classics with recent releases and later seasons.
-Every registered provider attempts every case: 48 × 20 = 960 combinations.
+Every registered provider attempts every case. The original run had 48 × 20 =
+960 combinations; after retiring AniBD and AnimeZeY, the catalog has 46 × 20 =
+920 current combinations. Their original evidence remains in history.
 The default anime policy calls the SDK's English-dub resolver. `--no-english-dub`
 accepts ordinary sub/dub results in a separate output directory.
 
@@ -23,6 +25,13 @@ category or result. Select a matrix cell for all its recorded stream and decode
 attempts; switch graph metrics between source resolution, first decoded frame,
 and the combined latency estimate. JSON includes every result and prior attempt;
 CSV exports the currently filtered table.
+
+The dashboard uses Tabler Core 1.6.1 with Overview, Results, and Coverage matrix
+tabs, plus the GitHub Repair log. The latency graph defaults to the fastest 12 providers; choose All providers
+for the full comparison. Click a table row or matrix cell to open playback evidence
+in the side panel. Reset filters clears search, category, result, and latency metric.
+The MIT-licensed UI assets are vendored in `scripts/vendor/tabler` and embedded
+in each generated HTML report, including reports viewed offline.
 
 The runner builds its worker before testing and freezes that exact executable
 for the run. `--no-build` deliberately uses an existing binary. Every result

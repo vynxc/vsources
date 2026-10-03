@@ -1,4 +1,6 @@
 //! `WatchSeries`: eleven TMDB-keyed embed servers.
+//! Its explicit `VidLink` server uses the native API first, preserving headers
+//! and exact TV identity; legacy embed routing remains a fallback.
 //!
 //! Ports `src/source/WatchSeries.js`:
 //!
@@ -126,6 +128,8 @@ pub struct WatchSeries {
     extractors: Arc<ExtractorRegistry>,
     /// TMDB identity and metadata resolution.
     tmdb: Arc<TmdbClient>,
+    /// Native resolver for the `VidLink` server this site already offers.
+    vidlink: crate::vidlink::VidLink,
 }
 
 impl WatchSeries {
@@ -143,6 +147,7 @@ impl WatchSeries {
                 domain_key: None,
             },
             extractors,
+            vidlink: crate::vidlink::VidLink::new(Arc::clone(&tmdb)),
             tmdb,
         }
     }
@@ -164,6 +169,32 @@ impl Source for WatchSeries {
         let is_tv = media.season.is_some();
         let title = embed_title(&name, year, media);
         let (season, episode) = (media.season.unwrap_or(1), media.episode.unwrap_or(1));
+
+        // VidLink is an explicit site server, but generic extraction previously
+        // routed it into the unavailable speedracelight fallback. Resolve its
+        // actual API first and keep exact TV season/episode context.
+        let native_ctx = ResolveCtx {
+            fetcher: ctx.fetcher,
+            media: Some(ResolvedMedia {
+                tmdb_id: Some(tmdb_id),
+                imdb_id: None,
+                name: name.clone(),
+                year,
+                season: media.season,
+                episode: media.episode,
+            }),
+            source_id: Some(ID),
+            referer: None,
+        };
+        if let Ok(native) = self.vidlink.resolve(&native_ctx, media).await
+            && !native.is_empty()
+        {
+            let label = format!("{title} (VidLink)");
+            return Ok(native
+                .into_iter()
+                .map(|stream| tagged(stream, &label))
+                .collect());
+        }
 
         // `const vidkingMeta = tmdbId.season ? null : {…}` — movies only.
         let extract_media = (!is_tv).then(|| ResolvedMedia {
@@ -262,7 +293,9 @@ fn embed_url(raw: &str) -> Result<Url, SourceError> {
 /// extractor-produced stream.
 fn tagged(mut stream: Stream, label: &str) -> Stream {
     stream.label = Some(label.to_string());
-    stream.meta.languages = vec![CountryCode::Multi];
+    if stream.meta.languages.is_empty() {
+        stream.meta.languages = vec![CountryCode::Multi];
+    }
     stream.meta.source_id = Some(ID.to_string());
     stream.meta.source_label = Some(LABEL.to_string());
     stream
@@ -624,5 +657,29 @@ mod tests {
             Err(SourceError::NotFound) => {}
             other => panic!("an unmapped IMDb id must be a NotFound, got {other:?}"),
         }
+    }
+    #[tokio::test]
+    async fn native_vidlink_route_preserves_tv_identity_and_provider_tag() -> Result<(), SourceError>
+    {
+        let mock = Arc::new(ScriptedFetcher::default()
+            .page("/3/tv/1396", r#"{"name":"Breaking Bad","first_air_date":"2008-01-20"}"#)
+            .page("/api/enc-vidlink?text=1396", r#"{"result":"test-cipher"}"#)
+            .page("/api/b/tv/test-cipher/2/1", r#"{"stream":{"qualities":{"720":{"url":"https://cdn.example/episode-s2e1.mp4"}}}}"#));
+        let streams = provider(&mock, &[])
+            .resolve(
+                &ctx_for(&mock, None),
+                &MediaRef::series(MediaId::Tmdb(1396), 2, 1),
+            )
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert_eq!(streams[0].url.path(), "/episode-s2e1.mp4");
+        assert_eq!(streams[0].meta.source_id.as_deref(), Some("watchseries"));
+        assert!(
+            streams[0]
+                .label
+                .as_deref()
+                .is_some_and(|label| label.contains("S02E01") && label.contains("VidLink"))
+        );
+        Ok(())
     }
 }

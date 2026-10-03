@@ -80,10 +80,15 @@ then their existing title matching. Custom provider instances can opt in with
 Global flags: `--flaresolverr URL`, `--proxy URL`, `--tmdb-key KEY`,
 `--timeout SECONDS`, `--concurrency N`, `--json`.
 
-Provider matrix (2026-10-02): **48 providers × 20 titles = 960 current checks**,
-plus 320 before/after repair attempts. The [interactive report](docs/audits/2026-10-02-matrix/index.html)
-shows cold/cached resolve latency, startup/decode timing, headers, audio selection,
-and every failed or empty outcome. [Runner and methodology](docs/audits/provider-matrix.md).
+Provider matrix: the original 2026-10-02 run tested **48 × 20 = 960 cases**.
+After [GitHub research and repairs](docs/audits/2026-10-03-provider-repairs.md), the
+current catalog has **46 × 20 = 920 rows**, **221 playback passes**, and
+**480 earlier rows retained**. VixSrc, FrameXTV, PrimeShows and WatchSeries
+have verified repairs; AniBD and the Portuguese-focused AnimeZeY were retired.
+VidFast's native route is implemented but remains blocked with this SDK client.
+The [interactive report](docs/audits/2026-10-02-matrix/index.html) shows resolve/cache
+latency, decode evidence, required audio selection, all failures and the Repair log.
+[Runner and methodology](docs/audits/provider-matrix.md).
 
 ```sh
 python3 scripts/provider_matrix.py --resume --output docs/audits/2026-10-02-matrix
@@ -238,14 +243,14 @@ trivially reversible — one module plus one registry entry.
 
 | Wave | Providers |
 |------|-----------|
-| 1 — self-contained scrapers (25) | AniWaves, AllWish, AniBD, AniDoor, AniKage, Anikoto, AnimeFlix, AnimeGG, AnimeKai, HiAnime, Itachi, TwoDhive, CineWave, IMDBPlay, MovieBox, Necro, Netlio, NowHDTime, Peckle, PrimeShows, VidFast, VidKing, VidSrcSbs, Vidzee, WatchSeries |
-| 2a — Nuvio-backed anime (8) | AniChan, AnikotoTV, AnimeSuge, AnimeZeY, AniMoTVSlash, NikaStream, ReAnime, StreamXTV |
+| 1 — self-contained scrapers (24) | AniWaves, AllWish, AniDoor, AniKage, Anikoto, AnimeFlix, AnimeGG, AnimeKai, HiAnime, Itachi, TwoDhive, CineWave, IMDBPlay, MovieBox, Necro, Netlio, NowHDTime, Peckle, PrimeShows, VidFast, VidKing, VidSrcSbs, Vidzee, WatchSeries |
+| 2a — Nuvio-backed anime (7) | AniChan, AnikotoTV, AnimeSuge, AniMoTVSlash, NikaStream, ReAnime, StreamXTV |
 | 2b — Nuvio-backed movies/TV (15) | AcerMovies, Atlantic, Cineby, CinebyRocks, CineJoyAllInOne, FrameX, PlayImdb, Raflix, RiveStream, Stellar, VidEasy, VideasyTo, VidLink, VixSrc, ZXCStream |
 
 The three provider waves are registered: `vsources_providers::wave1` assembles the
-self-contained scrapers and `vsources_providers::wave2` the 23
+self-contained scrapers and `vsources_providers::wave2` the 22
 Nuvio-backed providers (the engine assembles both via
-`EngineBuilder::with_default_providers()` — 48 providers total). The
+`EngineBuilder::with_default_providers()` — 46 providers total). The
 extractor registry resolves embeds through `vsources_extractors::hosts::all()`; the Nuvio VidKing-family providers share a speedracelight seed store.
 The registry’s VidKing fallback additionally coalesces results by media.
 ## Architecture

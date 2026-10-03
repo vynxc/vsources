@@ -1,0 +1,1112 @@
+{
+  "checked_at": "2026-10-03T05:10:53.362759+00:00",
+  "scope": "The 22 providers with zero qualifying playback in the October 2 full matrix",
+  "language_policy": "English movies/TV and anime with English dub or English subtitles; fast sub-only anime is allowed. AniBD was subsequently approved for removal if its current sub route failed.",
+  "verification_limits": "Eight-second video/audio decode and tagged selected language; untagged/und language remains explicitly unverified and speech/title identity is not independently transcribed/viewed. No borrowed auth, signing keys, cookies or public signed media URLs.",
+  "providers": [
+    {
+      "id": "anibd",
+      "label": "AniBD",
+      "disposition": "removed",
+      "note": "Site reports it has stopped; episode API returned 404 for five known anime IDs. Removed after the user approved removing it if its sub route did not work.",
+      "current_checks": 0,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 0,
+      "current_statuses": {},
+      "latest_reference_change": "2026-09-16T09:37:53Z",
+      "references": [
+        {
+          "path": "src/source/AniBD.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/AniBD.js",
+          "recent_commits": [
+            {
+              "sha": "dc412990015f70d05a6934535619788b0acf1ccf",
+              "date": "2026-09-16T09:37:53Z",
+              "message": "Task 41b: anime coverage fixes across native + general sources \u2014 DIAGNOSIS (production + sandbox sweeps, all verified live before commit): (1) 4KHDHUB SERIES-ANIME ZERO (multi-season block drift): 4khdhub.one now packs MULTIPLE seasons into ONE .season-content block (kaiju-no-8-series-50 holds S01/S02/S04 items, first .episode-number='S04') so the block-level 'first .episode-number == S{target}' filter discarded every item \u2192 0 for Kaiju No.8/Bleach TYBW/Overlord despite on-site posts. Fix: per-item season resolution (item file-title SxxExx \u2192 enclosing .download-item header badge \u2192 legacy block-level first badge) + per-item episode from title/badge-psa. VERIFIED: Kaiju No.8 S1E1 0\u21922 (1080p real sizes), Bleach TYBW S2E1 6, Overlord S1E1 6; anime movies still fine (Infinity Castle 6). (2) MOVIESDRIVE TV EPISODE-ZERO (hubcloud query tokenization): the SxxExx-less retry query '\u2026Yaiba E1 1080p' floods with unrelated movie files (20 Infinity-Castle hits, 0 episodes \u2014 reproduced) while '\u2026Yaiba S01E01 1080p' returns exactly 1 episode file. Fix: episode-targeted retry now tries zero-padded SxxExx FIRST, bare E-number second. VERIFIED: Demon Slayer S1E1 0\u21922 (1080p+720p Dual-Audio googleusercontent). (3) ANIMEKAI ALWAYS-ZERO (site search strictness): animekai.at search rejects full TMDB titles ('Frieren: Beyond Journey's End' \u2192 0 hits, 'Frieren' \u2192 exact hit; 'Sousou no Frieren' \u2192 0) AND the poster-card anchor has empty text while the title-text anchor is deduped away, AND apostrophe normalization split 'Journey's' vs 'journeys' so even the found slug scored 22<60. Fix: progressive search candidates (full \u2192 pre-colon \u2192 first-2-words \u2192 first-word, curl then got-scraping fallback), most-informative-anchor title preference, apostrophe-dropping normalize; PLUS the zoko payload's real inline VTT subtitles now attached per stream (meta.subtitles) + full /debug/source log telemetry. VERIFIED: Frieren S1E1 0\u21922 (SUB+DUB, English subs), One Piece S1E1 2; /proxy 200 real m3u8 (children https). (4) ANIBD FRIEREN-ZERO (AniList SEARCH_MATCH trap): single-Media lookup returns a 2026 SPINOFF ONA ('Sousou no Frieren: \u25cf\u25cf no Mahou', id 170068) for the main series query; epeng episodes API has no servers for the spinoff \u2192 instant 0. Fix: getAniListCandidates (Page perPage:6, scored: TV format +40, exact-english +30, season-title awareness, year \u00b11) and the wrapper walks top-3 candidates until epeng yields servers; text-search fallback kept. VERIFIED: Frieren S1E1 0\u21921 (playeng 1080p, /proxy+Referer 200 m3u8), One Piece unchanged. (5) ANIMOTVSLASH matcher decay (Task 28 guard FAIL): WP search with the full title returns ONLY the Season-2 posts (base post omitted) so first-productive-rung never saw the base post; $-anchored season regexes missed '-season-2-dub' slugs; and the top pick alone loses when it only offers WebTorrent embeds while the sibling sub post has real players. Fix: ladder now MERGES all rungs (dedupe), rankSeries replaces pickBestSeries ($-unanchored '-season-N' matching, S1 vs S>1 both directions, ties break toward non-dub), and getStreams walks NEAR-EQUAL candidates (within 5 points \u2014 same-season sub/dub variants) shipping the first with resolvable servers; the narrow band prevents cross-season leakage (S1 request never falls to an S2 post). VERIFIED: Frieren S2E1 guard 0\u21922 (720p ANIMO-M + 1080p ANIMO-O videas CDN), S1E1 honest 0 (site is P2P-only there \u2014 no-torrent rule), One Piece honest 0 (same). NOT CODE-FIXABLE (documented): anineko upstream DB outage persists (SQLSTATE 2002), animeworldindia/watchanimeworld.one CF-gates the Render egress IP (works from sandbox, .top\u2192.one migration), animotvslash Frieren-S1/OnePiece currently P2P-only upstream, pantyflix honestly dedupes febbox share-page links (Peckle serves that pool properly), peckle needs its Render FEBBOX_COOKIE (4 streams in production), hianime self-recovered upstream. Baseline STREAM_CLIENT_BUDGET_MS=40000 \u2192 41 PASS / 0 FAIL (animotvslash guard restored). Final 3-title \u00d7 71-source sweep: Inception 40 delivering, BreakingBad S1E1 40, Frieren S1E1 48 (zeros = anime-only sources on non-anime titles + documented upstream cases + do-not-touch). Zero-breakage: do-not-touch (dahmermovies, dahmermovies4k, vixsrc, zxcstream, nowhdtime, animezey) untouched; Task 36 budget architecture untouched.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/dc412990015f70d05a6934535619788b0acf1ccf"
+            },
+            {
+              "sha": "4541ee2fb344637360a627d84c4e426b6662864d",
+              "date": "2026-09-13T08:49:06Z",
+              "message": "Task 19: delete dead sources (movieblast/anidb/flystream) + BollyFlix direct-stream revival + AniChan session-header fix\n\n- Remove movieblast, anidb, flystream completely: wrappers, scrapers,\n  registrations, extractor routing, proxy branches, TMDB secrets,\n  fallback lists, test tooling, stale audit reports (71\u219268 sources)\n- BollyFlix: resolve fastdl links server-side through the GDFlix\n  /mfile/ instant POST (per-page key replay) \u2192 direct\n  video-downloads.googleusercontent.com MKV 480p-2160p; series via\n  fxlinks elinks per-episode pages; 3-worker pool + 18s deadline\n- AniChan: watch APIs now require watch-page Referer + XHR header\n  (intermittent 401 session gate) + one bounded retry\n- AnimeDirect/proxy: drop anidb host special-cases (generic checks kept)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/4541ee2fb344637360a627d84c4e426b6662864d"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            }
+          ]
+        },
+        {
+          "path": "src/providers/anibd.py",
+          "url": "https://github.com/aryaniiil/anime-api/blob/d9a785ad030d6fc6a8ad709291be9612c864449e/src/providers/anibd.py",
+          "recent_commits": [
+            {
+              "date": "2026-09-11T18:35:56Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "moviebox",
+      "label": "MovieBox",
+      "disposition": "configuration_required",
+      "note": "Desktop cards fail playback (mostly HTTP 426). The existing mobile route requires the caller\u2019s MOVIEBOX_MOBILE_SIGNING_KEY; only TMDB configuration is present. No key was bundled or borrowed.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 13,
+        "decode_failed": 7
+      },
+      "latest_reference_change": "2026-09-11T06:27:39Z",
+      "references": [
+        {
+          "path": "src/source/MovieBox.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/MovieBox.js",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "c47b50b2103160b54f8ba7ba85c7d00f43957a90",
+              "date": "2026-08-19T18:51:52Z",
+              "message": "Fix MovieBox: reduce JWT token cache from 7 days to 1 hour\n\nMovieBox's JWT token was cached for 7 days but actually expires within\n~1 hour. With a stale token, API calls return 400 'invalid token' and\nno streams are returned. Reducing TTL to 1 hour ensures the token is\nrefreshed regularly.\n\nVerified: MovieBox now returns streams for Avatar (4), Titanic (1),\nEndgame (4). TDK returns 0 because MovieBox's catalog doesn't have\n'The Dark Knight (2008)' \u2014 their search API only finds 'The Dark Tapes'\nand 'Citizen Vigilante' (no match). This is a catalog limitation, not\na code bug.\n\nNote: AcerMovies returns 429 'Too many requests' from server IPs \u2014\nrate limited at the API level. Works from residential IPs.\nHDHub4u: all download links are 'greenmountmotors' (requires JS\nexecution) \u2014 not fixable server-side.\n\nOnly touches src/source/MovieBox.js (1 line change).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/c47b50b2103160b54f8ba7ba85c7d00f43957a90"
+            },
+            {
+              "sha": "053bcadd21117cdb38670369f2f2914384033dce",
+              "date": "2026-08-13T02:58:00Z",
+              "message": "Fix AniVault, MovieBox, AniDB, AniPriv8 errors\n\n1. AniVault \u2014 Connection reset by peer (rt.animeheaven.me):\n   - Added 'co.animeheaven.me' to DirectStream DIRECT_CDN_HOSTS\n   - Added 'animeheaven' to needsProxy in StreamResolver\n   - Now routes through /proxy, avoiding Connection reset\n\n2. MovieBox \u2014 429 Too Many Requests (hakunaymatata.com):\n   - Source now sets requestHeaders: { Referer: 'https://movie-box.co/' }\n   - StreamResolver routes hakunaymatata URLs through /proxy WITH Referer\n   - The CDN requires Referer to avoid rate limiting\n\n3. AniDB \u2014 HLS segment .xls error (file-1-f1-v1-a1.xls):\n   - Proxy now detects .xls extension as HLS playlist (same as .txt)\n   - Overrides Content-Type from 'application/vnd.ms-excel' to 'video/mp2t'\n     so Stremio's player accepts the MPEG-TS data\n\n4. AniPriv8 \u2014 stuck on loading:\n   - Content-Type override now more robust (already worked, now also handles\n     .xls and text/html segment edge cases)\n\n5. AnimeWorld \u2014 stuck on loading:\n   - Works locally (HTTP 200, valid #EXTM3U) \u2014 likely Render timeout.\n   - No code change needed \u2014 the proxy handles it correctly.\n\nNo existing source structure modified \u2014 only extractor hosts, proxy\nContent-Type overrides, and MovieBox requestHeaders added.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/053bcadd21117cdb38670369f2f2914384033dce"
+            }
+          ]
+        },
+        {
+          "path": "src/index.ts",
+          "url": "https://github.com/streamn-noah/moviebox-api/blob/a50b7437babd5f986b095ec08f529a0f94631a0b/src/index.ts",
+          "recent_commits": [
+            {
+              "date": "2026-07-24T16:31:17Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "necro",
+      "label": "Necro",
+      "disposition": "unresolved",
+      "note": "Current references still depend on the shared speedracelight seed/backend or generic embed fallback. Fresh seed requests return 502; targeted SDK resolves are empty or time out. Newer codec samples did not establish an accessible replacement backend.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "resolve_timeout": 10,
+        "empty": 10
+      },
+      "latest_reference_change": "2026-09-11T06:27:39Z",
+      "references": [
+        {
+          "path": "src/source/Necro.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/Necro.js",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "07684fde4eccc5e9c57d4266f8112dcd22299a68",
+              "date": "2026-08-10T08:22:27Z",
+              "message": "Fix anime wrong content: block vidking for series + fix AniKage loading\n\nRoot causes of wrong anime playing:\n1. Necro, CineWave, VidSrcSbs, VidSrcTo passed meta.vidking for SERIES\n   (not just movies). The speedracelight API uses fuzzy title matching\n   and returns WRONG content for anime/series \u2014 e.g. playing a Chinese\n   anime when user searched for Jujutsu Kaisen.\n\n   Fix: Only pass meta.vidking for MOVIES (tmdbId.season ? null).\n   Series/anime rely on their own extractors (VidSrc, Vidzee, etc.).\n\n2. AniKage stuck on loading screen \u2014 the proxy didn't detect AniKage's\n   variant playlist URLs (/stream/{token}) as HLS playlists. The\n   relative segment URLs (/stream/...) resolved against the proxy host\n   (phoenix-hgs3.onrender.com) \u2192 404 \u2192 infinite loading.\n\n   Fix: Added /stream/ path detection to the proxy's HLS check.\n   Now variant playlists are buffered and all segment URLs are\n   rewritten to absolute /proxy URLs with the correct Referer.\n\nSources fixed:\n- Necro.js: vidking for movies only\n- CineWave.js: vidking for movies only (was ALL content)\n- VidSrcSbs.js: vidking for movies only (was ALL content)\n- VidSrcTo.js: vidking for movies only (was ALL content)\n- index.js: /stream/ path detection in proxy HLS check\n\nVerified:\n- JJK S1E1: AniBD (23:56 \u2713), Megaplay (23:55 \u2713), AniKage (proxy \u2713)\n- All anime source streams show correct duration (~24min for JJK ep1)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/07684fde4eccc5e9c57d4266f8112dcd22299a68"
+            },
+            {
+              "sha": "c1f9834733b134fd76aeae31f02c61129b0700e2",
+              "date": "2026-08-07T17:38:28Z",
+              "message": "Add Necro + WatchSeries sources \u2014 TMDB-based embed sources\n\nTwo new TMDB-based sources with embed URLs resolved via VidKing extractor:\n\n1. Necro (necro.pages.dev) \u2014 5 embed sources:\n   VidSrc.me, 2Embed, VidSrc.to, Embed.su, MultiEmbed\n\n2. WatchSeries (watchseries.lc) \u2014 11 server options:\n   VidSrc.mov, VidSrc.fyi, VidRock, Vidnest, VidKing, VidLink, VidFast,\n   2Embed, MultiEmbed, SuperFlix, Peachify\n\nBoth use TMDB IDs directly \u2014 no search needed. Same pattern as CineWave:\npass meta.vidking for the VidKing extractor to resolve via speedracelight.\n\nNOT included:\n  - vidbox.vc \u2014 CF Managed Challenge on API endpoints (/api/hdmovies/embed,\n    /api/stream/ all return 403). The homepage loads via got-scraping but\n    the stream API is CF-protected. Cannot extract streams server-side.\n  - streamie.site \u2014 2KB SPA shell with no content, no API, no stream URLs.\n\nNo existing sources or extractors modified.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/c1f9834733b134fd76aeae31f02c61129b0700e2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "netlio",
+      "label": "Netlio",
+      "disposition": "unresolved",
+      "note": "Current GitHub catalog is maintained; Inception is absent and sampled series links fail the liveness path. All twenty fresh SDK recheck cases remain empty. No newer working protocol change was found.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-12T07:57:47Z",
+      "references": [
+        {
+          "path": "src/source/Netlio.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/Netlio.js",
+          "recent_commits": [
+            {
+              "sha": "58e5314eeede8da42c61d9482fac38e515510e4e",
+              "date": "2026-09-12T07:57:47Z",
+              "message": "Task 16: direct-playable-only sweep \u2014 MoviesHunt gdflix revival + poison-card gates\n\n- movieshunt_v2.cjs: gdflix.dev\u2192new3.gdflix.io rotation + indexserver\n  subdomain drift (max.\u2192light.) \u2014 match ANY subdomain, HEAD-verify each\n  candidate; add pub-*.r2.dev token-link fallback (verified 206 video/mkv);\n  busycdn verified 500, deliberately not shipped. Haiwaan: 4\u21927 streams.\n- Pantyflix.js: drop febbox.com/share watch-page URLs (HTML poison) and\n  ZIP/RAR archives (PK/Rar! magic) \u2014 pack uploads are not streams.\n- Netlio.js: pre-ship liveness probe (single-stream source; proxied path\n  makes server verdicts accurate) \u2014 dead 502 cards no longer ship.\n- animeworld.cjs: streamAlive gate before resolve (proxied path, accurate).\n- NowHDTime.js: playUrl probe upgraded to ship gate \u2014 nhdapi upstream\n  outages now drop the card instead of shipping JSON-error HLS.\n- Zero-breakage: regression 12/12, decrypt 35/35, boot 71/30, audit:\n  remaining flags are datacenter-IP artifacts on DIRECT urls (Persian-\n  Stremio/VidLink) documented in Task 14 \u2014 player IP differs, not gated.\n- Scripts: task16_* diagnostics (abhilinks/gdtot/vcloud/gdflix recon).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/58e5314eeede8da42c61d9482fac38e515510e4e"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "239bc9088da047ce2492642da83cf0337b1faf0a",
+              "date": "2026-08-08T21:27:12Z",
+              "message": "Fix Netlio for anime \u2014 episode number mapping + wildcard CDN matching\n\nTwo issues prevented Netlio from showing anime streams:\n\n1. Episode number mapping:\n   The Netlio API uses absolute episode numbers (e.g., S12 starts at ep\n   244, not 1). Stremio requests S12E1 but the API has episode 244.\n   Fix: fetch all non-empty episodes sorted, pick the Nth one where N =\n   Stremio's per-season episode number.\n\n2. CDN host matching:\n   The Netlio extractor only matched a fixed list of CDN domains. Netlio\n   uses dozens of rotating CDN domains \u2014 new ones weren't matched.\n   Fix: match by URL path pattern instead (cf-master, /v4/, /hls3/)\n   which covers all Netlio CDN URLs regardless of domain.\n\n3. Skip unresolvable URLs:\n   Some episodes have multimovies.rpmhub.site URLs which require browser-\n   side JS decryption. These are now skipped.\n\nVerified:\n- Naruto Shippuden S12E1: 3 Netlio streams (was 0)\n- Naruto Shippuden S13E5: streams available\n- HOTD S1E1: 1 stream (no regression)\n- Spider-Man 2: 1 stream (no regression)\n\nOnly modified: src/source/Netlio.js, src/extractor/Netlio.js\nNo other sources or extractors touched.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/239bc9088da047ce2492642da83cf0337b1faf0a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nowhdtime",
+      "label": "NowHDTime",
+      "disposition": "unresolved",
+      "note": "Current extension source still references nhdapi/vidnest. The nhdapi service times out here; targeted SDK tests time out. No confirmed playable alternate was found.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-10-02T14:02:03Z",
+      "references": [
+        {
+          "path": "src/all/nowhdtime/src/eu/kanade/tachiyomi/animeextension/all/nowhdtime/Nowhdtime.kt",
+          "url": "https://github.com/salmanbappi/sb-extensions-source/blob/463d5325d2ef969b7292716261ae3e6346c75aae/src/all/nowhdtime/src/eu/kanade/tachiyomi/animeextension/all/nowhdtime/Nowhdtime.kt",
+          "recent_commits": [
+            {
+              "date": "2026-10-02T14:02:03Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "peckle",
+      "label": "2Peckle",
+      "disposition": "configuration_required",
+      "note": "The upstream FebBox quality flow requires the caller\u2019s PECKLE_FEBBOX_COOKIE. No owned session is configured. Anonymous metadata does not establish playback.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-11T06:27:39Z",
+      "references": [
+        {
+          "path": "src/source/Peckle.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/Peckle.js",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "c3988020bcad0e6fda5f167f52b30bdd6468c72d",
+              "date": "2026-08-11T20:14:43Z",
+              "message": "Fix HiAnime false matches, AnimeKai matching, 2Peckle error logging\n\nHiAnime: Added fuzzy title matching (score >= 60) to prevent returning\nwrong anime for non-anime titles like Supergirl.\n\nAnimeKai: Same fuzzy matching fix applied.\n\n2Peckle: Added console.error logging for cookie/proxy failures.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/c3988020bcad0e6fda5f167f52b30bdd6468c72d"
+            },
+            {
+              "sha": "30f099f3b94bb34ac10d40895e938bdb0e5dddc8",
+              "date": "2026-08-11T04:30:43Z",
+              "message": "Optimize 2Peckle for Render free tier \u2014 parallel fetch, fewer files\n\nPerformance optimizations to fit within 30s source timeout on Render:\n1. Fetch TMDB name + ShowBox proxy ID in parallel (saves ~2s)\n2. List top-level files only first (skip subdirs if videos found)\n3. Limit to 2 files for quality resolution (was 5)\n4. Fetch video qualities in parallel via Promise.all\n\nResult: 8 streams in ~14s total (was 30s+ with old sequential approach)\nStreams include: 4K HDR HEVC 10-bit, 1080p Original MKV, 1080p HLS,\n720p HLS, 360p HLS \u2014 all with enriched metadata.\n\nEnv var: FEBBOX_COOKIE (also checks FEBBOX_COOKIES, FEBBOX_API_KEY,\nFEBBOX_JWT as fallbacks)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/30f099f3b94bb34ac10d40895e938bdb0e5dddc8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "primeshows",
+      "label": "PrimeShows",
+      "disposition": "repaired",
+      "note": "Migrated to www.primeshows.org and the new TV query format. Current app explicitly offers VidLink; resolves that server through the working native adapter. Nine movie/TV samples pass.",
+      "current_checks": 20,
+      "current_playback_passes": 9,
+      "movie_tv_passes": 9,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "played": 9,
+        "empty": 11
+      },
+      "latest_reference_change": "2026-09-18T16:57:57Z",
+      "references": [
+        {
+          "path": "src/source/PrimeShows.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/PrimeShows.js",
+          "recent_commits": [
+            {
+              "sha": "db083964a2958922437cb792e600c97dec7476ef",
+              "date": "2026-09-18T16:57:57Z",
+              "message": "Task 56b: PrimeShows site-migration fix \u2014 watch pages now JS-cookie-gated (hv=1 interstitial, 676b, no iframe); send cookie + self-heal retry parses rotated cookie; SRV_MAP parse ships ALL 14 server embeds from ONE fetch (was 6 ?server= fetches); legacy ?server= + playerFrame fallbacks kept",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/db083964a2958922437cb792e600c97dec7476ef"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "2872f6675ef3b6d6c1a7357f9a0d2480bc27b16d",
+              "date": "2026-08-11T04:44:02Z",
+              "message": "Fix Cinejoy timeout on Render, parallelize PrimeShows, add sourceLabel\n\nCinejoy \u2014 not showing on Render (scrypt PoW timeout):\n  Added 8s time limit to solvePoW() \u2014 on Render's free tier (0.1 CPU),\n  scrypt is 5-10x slower. Without a time limit, the source hangs until\n  the 30s timeout. Now it gracefully returns [] if PoW can't be solved\n  in 8s, allowing other sources to return streams.\n\nPrimeShows \u2014 parallelized server fetches:\n  Changed from sequential (6 servers \u00d7 8s = 48s) to parallel\n  (all 6 servers fetched simultaneously via Promise.allSettled).\n  Added sourceId + sourceLabel to stream meta.\n\nVegaMovies \u2014 added sourceLabel to stream meta:\n  Streams now show 'from VegaMovies' in the title.\n\nNote on PrimeShows/VegaMovies: These sources return the same embed URLs\nas other sources (VidSrcSbs, WatchSeries, etc.). The ExtractorRegistry\ncaches by URL \u2014 once extracted by the first source, subsequent sources\nwith the same URL get the cached result with the first source's label.\nThis is by design to prevent duplicate streams. The streams ARE returned,\njust attributed to whichever source was processed first.\n\nZinkMovies: Returns 0 results for some movies \u2014 the site's search\nmay not find all titles. This is a site coverage issue, not a bug.\n\nNo regression: all other sources unaffected.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/2872f6675ef3b6d6c1a7357f9a0d2480bc27b16d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vidfast",
+      "label": "VidFast",
+      "disposition": "native_added_blocked",
+      "note": "New native player/CSRF/codec protocol is implemented and fixture tested. Separate curl protocol probe decoded eight seconds with eng audio; the SDK client receives a genuine Cloudflare challenge on vc/pro. The reachable bz alias returned a server error with the referenced codec. Twenty SDK rerun rows remain empty; not counted as repaired.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-17T23:49:03Z",
+      "references": [
+        {
+          "path": "src/source/VidFast.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/VidFast.js",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "a1d6c5abad9566fd0d51811ccf43031e3ede503c",
+              "date": "2026-08-07T12:48:56Z",
+              "message": "Fix anime mismatch: remove vidking fallback for series/anime across all sources\n\nThe speedracelight API (used by VidKing extractor) returns wrong content\nfor anime/series requests \u2014 e.g. 'Supergirl' for Jujutsu Kaisen,\n'Spider-Man' for Witch Hat Atelier, 'Obsession' for Naruto.\n\nROOT CAUSE: Sources passed meta.vidking with season/episode data for\nALL content including anime/series. The speedracelight API is\nmovie-focused and returns wrong titles for anime TMDB IDs.\n\nFIX: Only pass meta.vidking for MOVIES (no season). For series/anime,\nvidkingMeta is null \u2014 the embed URLs resolve through their own\ndedicated extractors instead of the speedracelight fallback.\n\nFixed sources (vidking now movies-only):\n  - VidFast, VidKing, CineWave, VegaMovies (embed sources)\n  - Movie4kTo (already fixed in previous commit)\n  - NineAnime, HiAnime, AnimeFlix (anime sources \u2014 vidking removed entirely)\n  - Kokoshka, CineHDPlus, Cuevana, HomeCine, PrimeShows, Movix,\n    FilmpalastTO, Frembed, FrenchCloud, MegaKino, MeineCloud,\n    MostraGuarda, VerHdLink, Eurostreaming, Einschalten\n\nNOT affected: AniDB and AniNeko (new anime sources with direct HLS \u2014\nthey don't use vidking at all).\n\n4KHDHub, MoviesDrive, MoviesHunt, Fmovies \u2014 not affected (they use\nhubcloud/FSL/MP4 streams, not vidking).\n\nAll existing movie streams remain working (vidking still used for\nmovies). Series/anime now rely on their own extractors + 4KHDHub/\nMoviesDrive/CineWave HdHub API for content.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/a1d6c5abad9566fd0d51811ccf43031e3ede503c"
+            },
+            {
+              "sha": "a41aee8e8a1a2c616469cf27a355064e92220c59",
+              "date": "2026-08-06T16:06:34Z",
+              "message": "Add VidFast + VegaMovies sources (30 sources total)\n\nTwo new sources following the same structure as VidKing:\n\n1. VidFast (vidfast.vc) \u2014 Next.js React SPA embed player. Stream URLs\n   are loaded client-side, so we pass meta.vidking for the VidKing\n   extractor to resolve via speedracelight's TMDB-based API.\n   URLs: /movie/{tmdbId} or /tv/{tmdbId}/{season}/{episode}\n\n2. VegaMovies (vegamovies.enterprises) \u2014 DataLife Engine site behind\n   Cloudflare. Search POST triggers CF challenge, so we pass meta.vidking\n   for the VidKing extractor to resolve via speedracelight. VegaMovies\n   content is in speedracelight's database.\n   Country codes: multi, hi, en (VegaMovies has Hindi + English content)\n\nBoth sources:\n- Use getTmdbId + getTmdbNameAndYear for metadata\n- Pass meta.vidking with name/year/tmdbId/season/episode\n- VidKing extractor resolves via speedracelight API (Yoru, Omen, etc.)\n- Stream format: HLS with Referer header (plays through Stremio proxy)\n- Same behaviorHints as all other VidKing-resolved streams\n\nNo existing sources or extractors modified. 4KHDHub, MoviesDrive,\nCineWave, VidKing, anime sources \u2014 all unchanged.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/a41aee8e8a1a2c616469cf27a355064e92220c59"
+            }
+          ]
+        },
+        {
+          "path": "samples/vidfast.py",
+          "url": "https://github.com/smy778/EncDecEndpoints/blob/f78498e8a3ffb5a326ba9a0ab82b595880365a28/samples/vidfast.py",
+          "recent_commits": [
+            {
+              "date": "2026-09-17T23:49:03Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vidking",
+      "label": "VidKing",
+      "disposition": "unresolved",
+      "note": "Current references still depend on the shared speedracelight seed/backend or generic embed fallback. Fresh seed requests return 502; targeted SDK resolves are empty or time out. Newer codec samples did not establish an accessible replacement backend.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-11T06:27:39Z",
+      "references": [
+        {
+          "path": "src/source/VidKing.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/VidKing.js",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "a1d6c5abad9566fd0d51811ccf43031e3ede503c",
+              "date": "2026-08-07T12:48:56Z",
+              "message": "Fix anime mismatch: remove vidking fallback for series/anime across all sources\n\nThe speedracelight API (used by VidKing extractor) returns wrong content\nfor anime/series requests \u2014 e.g. 'Supergirl' for Jujutsu Kaisen,\n'Spider-Man' for Witch Hat Atelier, 'Obsession' for Naruto.\n\nROOT CAUSE: Sources passed meta.vidking with season/episode data for\nALL content including anime/series. The speedracelight API is\nmovie-focused and returns wrong titles for anime TMDB IDs.\n\nFIX: Only pass meta.vidking for MOVIES (no season). For series/anime,\nvidkingMeta is null \u2014 the embed URLs resolve through their own\ndedicated extractors instead of the speedracelight fallback.\n\nFixed sources (vidking now movies-only):\n  - VidFast, VidKing, CineWave, VegaMovies (embed sources)\n  - Movie4kTo (already fixed in previous commit)\n  - NineAnime, HiAnime, AnimeFlix (anime sources \u2014 vidking removed entirely)\n  - Kokoshka, CineHDPlus, Cuevana, HomeCine, PrimeShows, Movix,\n    FilmpalastTO, Frembed, FrenchCloud, MegaKino, MeineCloud,\n    MostraGuarda, VerHdLink, Eurostreaming, Einschalten\n\nNOT affected: AniDB and AniNeko (new anime sources with direct HLS \u2014\nthey don't use vidking at all).\n\n4KHDHub, MoviesDrive, MoviesHunt, Fmovies \u2014 not affected (they use\nhubcloud/FSL/MP4 streams, not vidking).\n\nAll existing movie streams remain working (vidking still used for\nmovies). Series/anime now rely on their own extractors + 4KHDHub/\nMoviesDrive/CineWave HdHub API for content.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/a1d6c5abad9566fd0d51811ccf43031e3ede503c"
+            },
+            {
+              "sha": "0d3546c3b4bbeb67d0f0ce995e10ce468c942a17",
+              "date": "2026-08-06T13:32:01Z",
+              "message": "088a09a9-785e-44ac-a3b4-f2fe06089893",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/0d3546c3b4bbeb67d0f0ce995e10ce468c942a17"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vidsrcsbs",
+      "label": "VidSrcSbs",
+      "disposition": "unresolved",
+      "note": "Current references still depend on the shared speedracelight seed/backend or generic embed fallback. Fresh seed requests return 502; targeted SDK resolves are empty or time out. Newer codec samples did not establish an accessible replacement backend.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "resolve_timeout": 16,
+        "empty": 4
+      },
+      "latest_reference_change": "2026-09-15T06:32:46Z",
+      "references": [
+        {
+          "path": "src/source/VidSrcSbs.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/VidSrcSbs.js",
+          "recent_commits": [
+            {
+              "sha": "e8d377c2bc1da1ed970edb57c7e8379e438b557a",
+              "date": "2026-09-15T06:32:46Z",
+              "message": "Task 32: fix vidsrcsbs zero-stream regression + close its series gap \u2014 (1) VidKing per-tmdbId cache/in-flight dedup baked the FIRST caller's meta.sourceId into shared result objects, so the resolver's final URL+sourceId dedup dropped every later caller's cards (vidsrcsbs/cinewave/vidfast/primeshows/necro/verhdlink/meinecloud all zeroed whenever another source raced first); _rebrandForCaller now clones shared results and stamps the caller's own identity on cache-hit + dedup paths (Mutiny: 1 source got vidking cards -> 11 sources incl vidsrcsbs 4x4K; Frieren merged 118->178, YourName 148->182). (2) VidSrcSbs now passes vidking meta for series too (tmdbId+season+episode exact \u2014 old wrong-content note predates tmdbId-exact API; BB S01E01 verified: Breaking Bad S01E01 2160p/1080p/720p/480p Yoru + 1080p Omen, previously matched NO extractor at all); baseline 36 PASS / 0 FAIL",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/e8d377c2bc1da1ed970edb57c7e8379e438b557a"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "07684fde4eccc5e9c57d4266f8112dcd22299a68",
+              "date": "2026-08-10T08:22:27Z",
+              "message": "Fix anime wrong content: block vidking for series + fix AniKage loading\n\nRoot causes of wrong anime playing:\n1. Necro, CineWave, VidSrcSbs, VidSrcTo passed meta.vidking for SERIES\n   (not just movies). The speedracelight API uses fuzzy title matching\n   and returns WRONG content for anime/series \u2014 e.g. playing a Chinese\n   anime when user searched for Jujutsu Kaisen.\n\n   Fix: Only pass meta.vidking for MOVIES (tmdbId.season ? null).\n   Series/anime rely on their own extractors (VidSrc, Vidzee, etc.).\n\n2. AniKage stuck on loading screen \u2014 the proxy didn't detect AniKage's\n   variant playlist URLs (/stream/{token}) as HLS playlists. The\n   relative segment URLs (/stream/...) resolved against the proxy host\n   (phoenix-hgs3.onrender.com) \u2192 404 \u2192 infinite loading.\n\n   Fix: Added /stream/ path detection to the proxy's HLS check.\n   Now variant playlists are buffered and all segment URLs are\n   rewritten to absolute /proxy URLs with the correct Referer.\n\nSources fixed:\n- Necro.js: vidking for movies only\n- CineWave.js: vidking for movies only (was ALL content)\n- VidSrcSbs.js: vidking for movies only (was ALL content)\n- VidSrcTo.js: vidking for movies only (was ALL content)\n- index.js: /stream/ path detection in proxy HLS check\n\nVerified:\n- JJK S1E1: AniBD (23:56 \u2713), Megaplay (23:55 \u2713), AniKage (proxy \u2713)\n- All anime source streams show correct duration (~24min for JJK ep1)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/07684fde4eccc5e9c57d4266f8112dcd22299a68"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "watchseries",
+      "label": "WatchSeries",
+      "disposition": "repaired",
+      "note": "Its explicit VidLink server now resolves through the native adapter before the failing generic backend, preserving exact TV identity. Nine movie/TV samples pass. Shares the VidLink upstream with PrimeShows and the standalone route.",
+      "current_checks": 20,
+      "current_playback_passes": 9,
+      "movie_tv_passes": 9,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "played": 9,
+        "empty": 9,
+        "resolve_timeout": 2
+      },
+      "latest_reference_change": "2026-09-11T06:27:39Z",
+      "references": [
+        {
+          "path": "src/source/WatchSeries.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/WatchSeries.js",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "8120562215ab49dd5f074c17d9e311cb1d3458a1",
+              "date": "2026-08-09T22:36:24Z",
+              "message": "Fix WatchSeries/Movie4kTo/VidLink: show movie streams + revert VidKing to /proxy\n\nProblem: After v4.1.8, WatchSeries and Movie4kTo stopped showing streams\nfor movies because meta.vidking was removed for series only, but the\nproxyHeaders approach for VidKing didn't work reliably (Stremio's\nproxyHeaders doesn't apply to segments on different CDN hosts like\nprimecrown.top).\n\nFixes:\n1. WatchSeries/Movie4kTo/VidLink: pass meta.vidking for MOVIES only\n   - Movies need vidking to resolve embed URLs (vidlink.pro, 2embed, etc.)\n     that have no dedicated extractor\n   - Series/anime skip vidking to avoid wrong content from speedracelight's\n     fuzzy title matching\n   - WatchSeries's vidking.net server URLs are still claimed by the VidKing\n     extractor (URL-based match, not meta.vidking) \u2014 this is correct\n\n2. VidKing extractor: reverted to /proxy routing (from proxyHeaders)\n   - proxyHeaders didn't work because Stremio only applies them to the\n     main URL's host, not to segment URLs on other hosts (primecrown.top)\n   - /proxy rewrites all URLs in the m3u8 to absolute /proxy URLs with\n     the correct Referer \u2014 reliable but slower\n   - Reliability > speed (user confirmed streams were not playing with\n     proxyHeaders approach)\n\nThis restores movie stream playback for WatchSeries, Movie4kTo, and\nVidLink while keeping the series/anime wrong-content fix.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/8120562215ab49dd5f074c17d9e311cb1d3458a1"
+            },
+            {
+              "sha": "3d2e4677ed2c922a1e3f80ee574e2d325d08d41d",
+              "date": "2026-08-09T21:35:41Z",
+              "message": "Fix WatchSeries wrong anime + speed up Yoru streams (proxyHeaders instead of /proxy)\n\nTwo fixes:\n\n1. WatchSeries showing random anime for movies/series\n   - WatchSeries passed meta.vidking for ALL content types (movies AND\n     series/anime), but the speedracelight API uses fuzzy title matching\n     and returns wrong content for series/anime\n   - Same issue as Movie4kTo (fixed in v4.1.1) \u2014 now only passes\n     meta.vidking for MOVIES, not series/anime\n   - Series/anime rely on their own embed extractors (VidSrc, Vidzee, etc.)\n\n2. Yoru from X streams take too long to load\n   - VidKing extractor was routing ALL streams through /proxy endpoint,\n     which adds per-segment latency (proxy fetches m3u8, rewrites URLs,\n     serves rewritten content \u2014 slow for 189KB playlists with 1481\n     segments)\n   - Changed to return DIRECT m3u8 URLs with requestHeaders (Referer)\n   - Stremio's built-in proxy (proxyHeaders) applies the Referer to the\n     m3u8 AND all segments \u2014 much faster than our Node.js proxy\n   - The speedracelight m3u8 playlists contain ABSOLUTE segment URLs\n     (https://primecrown.top/...), so Stremio can fetch them directly\n     with the Referer \u2014 no URL rewriting needed\n   - This benefits ALL sources using VidKing: VidLink, VidSrcSbs,\n     CineWave, Movie4kTo, VidSrcTo, WatchSeries, etc.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/3d2e4677ed2c922a1e3f80ee574e2d325d08d41d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "anichan",
+      "label": "AniChan",
+      "disposition": "unresolved",
+      "note": "Anonymous session bootstrap succeeds; episode metadata advertises sub/dub, but current server requests return no cards. Targeted Cowboy Bebop/Frieren SDK checks remain empty. The September domain/session updates were already ported.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-13T17:12:22Z",
+      "references": [
+        {
+          "path": "src/source/AniChan.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/AniChan.js",
+          "recent_commits": [
+            {
+              "sha": "f5b5fd707179c6617eb3a4364c884c4b7205d3b6",
+              "date": "2026-09-13T17:12:22Z",
+              "message": "Task 21: AniChan session-cookie burn recovery \u2014 force-refresh anichan_ws on 401-session + 2-round servers retry\n\nRoot cause: server rejects the cached session cookie long before its\nembedded expiry (hours-long 401 {\"detail\":\"session\"} lockouts while the\ncookie still parses unexpired). apiGet now drops the cached cookie and\nmints a fresh one on the first session rejection; servers endpoint gets\na second bounded retry with backoff against the heavy random gating.\n\nRecheck verdicts: anichan 0/5 -> 5/5 rounds with streams (sub always,\ndub ~site-gate rate); allwish 7/7 stable sub+dub (no change needed);\nanimesuge + anikototv confirmed ALIVE end-to-end (sub+dub, direct\nnexabloom m3u8) \u2014 Task 17 'dead' classification was stale.\n\nSpot-check: boot 68/30 clean, final_regression 11/12 (only documented\ncinehdplus datacenter-IP artifact), decrypt 35/35, 9-source sample all\ngreen after title-catalog correction.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/f5b5fd707179c6617eb3a4364c884c4b7205d3b6"
+            },
+            {
+              "sha": "4541ee2fb344637360a627d84c4e426b6662864d",
+              "date": "2026-09-13T08:49:06Z",
+              "message": "Task 19: delete dead sources (movieblast/anidb/flystream) + BollyFlix direct-stream revival + AniChan session-header fix\n\n- Remove movieblast, anidb, flystream completely: wrappers, scrapers,\n  registrations, extractor routing, proxy branches, TMDB secrets,\n  fallback lists, test tooling, stale audit reports (71\u219268 sources)\n- BollyFlix: resolve fastdl links server-side through the GDFlix\n  /mfile/ instant POST (per-page key replay) \u2192 direct\n  video-downloads.googleusercontent.com MKV 480p-2160p; series via\n  fxlinks elinks per-episode pages; 3-worker pool + 18s deadline\n- AniChan: watch APIs now require watch-page Referer + XHR header\n  (intermittent 401 session gate) + one bounded retry\n- AnimeDirect/proxy: drop anidb host special-cases (generic checks kept)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/4541ee2fb344637360a627d84c4e426b6662864d"
+            },
+            {
+              "sha": "8cda8ef14590556a11e20d14e71cc5a7fc1aec53",
+              "date": "2026-09-13T07:16:54Z",
+              "message": "Task 18: revive 8 broken sources \u2014 megaplay decrypt, anichan.to session, movieshunt lookup API, streamxtv embed gate, videasyto deadline\n\n- movieshuntv2: movieshunt.casa search moved to /lookup.php JSON API (/?s= now\n  301s to a JS page) \u2014 swap searchSite() to the new endpoint with legacy HTML\n  fallback. BB S1E1 18 streams; current titles up to 2160p pixeldrain (206\n  verified). Old-title abhilinks archives remain upstream-dead (documented).\n- megaplay family (anikoto/anikage/2dhive/anidoor/animesuge/anikototv/allwish/\n  streamxtv-anime): megaplay.buzz getSources(New) now returns an encrypted\n   blob instead of plaintext sources.file. New src/nuvio/megaplay_decrypt.cjs\n  decrypts AES-256-CBC (key/IV from the site's own newclient.min.js) and ships\n  the m3u8 DIRECT (CDN hard-403s datacenter IPs \u2014 player-IP fetch only) with\n  the API's multi-language subtitle tracks attached (7 langs verified).\n  Megaplay extractor Step-4 page-through-proxy poison removed (returns []).\n- animesuge: joined NUVIO_SOURCE_IDS (its decrypted nexabloom m3u8 matched no\n  extractor and was silently dropped); nexabloom/vyrnex added to\n  NO_REFERER_HOSTS so decrypted m3u8s ship direct instead of /proxy-403.\n- anichan: anichan.net 301s to anichan.to whose /api/watch endpoints are now\n  session-gated \u2014 POST /api/watch/session (empty Turnstile token OK) yields\n  the anichan_ws cookie; cached and attached to /api/watch calls. Title\n  matcher gained a first-word equality rule (TMDB 'Naruto Shipp\u016bden' vs\n  AniList 'Naruto: Shippuuden' containment miss). 3 streams (sub+dub) live.\n- streamxtv: NuvioExtractor ships non-media embed-page URLs raw (vidsrc-embed.ru\n  HTML = guaranteed mpv error). New EMBED_PAGE_HOST_PATTERN bypass returns []\n  so the registry fallback chain resolves via Megaplay/VidSrc/Vidzee/VidKing;\n  unresolvable ones drop cleanly. Primary framextv sweep verified live.\n- videasyto: speedracelight per-request 12s deadline via transparent fetch\n  shim \u2014 verified live hang of 127s on one server stalled the whole sweep past\n  the deadline; shim turns it into a caught per-server failure. Endgame sweep\n  127s -> 13s, 4 streams.\n- Verified unchanged/healthy: stellarrip (5 streams, flaky PoW windows),\n  animeworldindia/animeflix (alive, zephyrix ~1/3 per-IP rate limit),\n  movieblast + bollyflix (upstream CDN delivery dead/CF-gated server-side \u2014\n  documented, no code fix possible), anidb.app 503 (service dying), flystream\n  (Anubis PoW WAF), vixsrc (code-disabled MediaFlow stub), zxcstream (upstream\n  IP-block by design).\n\nZero-breakage: boot 71/30 clean; regression 11/12 (cinehdplus m3u8 probe 403 =\nvimeos IP rate-limit after audit hammering, code path unchanged); decrypt\n35/35; Endgame 122 / BB 103 streams; playability sweep: StreamXTV/MoviesHunt/\nVideasy.to now HLS/VIDEO, zero megaplay poison cards.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/8cda8ef14590556a11e20d14e71cc5a7fc1aec53"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "animezey",
+      "label": "AnimeZeY",
+      "disposition": "removed",
+      "note": "Portuguese-focused catalog: live Naruto results include Portuguese titles/dubs, consistent with the upstream Portuguese/Japanese audio flags. Removed under the language policy.",
+      "current_checks": 0,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 0,
+      "current_statuses": {},
+      "latest_reference_change": "2026-09-25T17:32:57Z",
+      "references": [
+        {
+          "path": "src/nuvio/animezey.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/animezey.cjs",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "47b442faf412f33529d7a1cd28353a1216febcac",
+              "date": "2026-08-18T17:23:43Z",
+              "message": "Update cinejoy, zxcstream, animezey with improved scrapers + add hub_extractor + got_scraping_helper\n\nUpdated 3 sources with improved Nuvio scrapers from uploaded files:\n\n1. cinejoy.cjs (REPLACED):\n   - NEW: Validates each m3u8 URL via HTTP GET with Range:bytes=0-3 and\n     checks for #EXTM3U magic before including it in results.\n   - Only returns qualities that actually exist for this title.\n   - OLD version returned all 4 qualities blindly (4K/1080p/720p/480p)\n     even when the addon server didn't have them \u2014 caused 503s on playback.\n   - Verified: Titanic returns 4 streams (all qualities pass validation),\n     TDK returns 1 stream (only 480p exists on addon server),\n     Matrix/Avatar return 4 streams each.\n\n2. zxcstream.cjs (REPLACED):\n   - NEW: Acknowledges the /backend/token IP block (422 'Blocked IP tried\n     to access:') and returns the player page URL as an iframe stream.\n   - The player page handles the token POST from the user's residential\n     browser IP \u2192 no block \u2192 video plays.\n   - Also tries /backend_/embed/sentinel directly first (in case the IP\n     is not blocked or a cached token exists).\n   - OLD version tried to POST to /backend/token which always failed\n     with 405/422 from server IPs.\n   - Verified: Returns 1 stream per movie (player page iframe).\n\n3. animezey.cjs (NEW WRAPPER around obfuscated original):\n   - The obfuscated scraper is now animezey_orig.cjs (renamed from\n     animezey.cjs).\n   - The new wrapper sanitizes invisible BOM (U+FEFF) and zero-width-space\n     (U+200B/U+2060) chars from stream names \u2014 these were injected by the\n     source as an anti-debugging watermark and broke Stremio's title display.\n   - Parses real quality values from cleaned names when upstream left blank.\n   - Falls back to stable 'HD' label if no quality marker found.\n   - Hardens error handling so a worker 429 never crashes the addon.\n   - Verified: Wrapper loads successfully, sanitizes output, handles 429\n     errors gracefully (returns [] instead of crashing).\n\nAlso added 2 shared helper files:\n\n4. hub_extractor.cjs (REPLACED stub with FULL VERSION):\n   - Multi-strategy HTTP: got-scraping \u2192 curl \u2192 plain fetch\n   - Resolves hubcloud/hubcdn/pixeldrain/gyanigurus/hindifire/magiclinks\n     download links to direct Google Drive URLs.\n   - Used by hdhub4u.cjs and any scraper encountering hub links.\n   - The stub was a passthrough \u2014 this full version actually resolves\n     the download chains server-side.\n\n5. got_scraping_helper.cjs (NEW):\n   - Shared got-scraping loader for CommonJS modules.\n   - got-scraping is ESM-only, so this helper uses dynamic import() and\n     caches the loaded function for subsequent calls.\n   - Convenience httpGet() with got-scraping + plain fetch fallback.\n   - Used by hub_extractor.cjs.\n\nFile changes:\n  Renamed: src/nuvio/animezey.cjs \u2192 src/nuvio/animezey_orig.cjs (obfuscated original)\n  Replaced: src/nuvio/zxcstream.cjs, src/nuvio/cinejoy.cjs, src/nuvio/hub_extractor.cjs\n  Added: src/nuvio/animezey.cjs (new wrapper), src/nuvio/got_scraping_helper.cjs (new helper)\n  Fixed: animezey.cjs require paths updated to use .cjs extension\n\nVerified end-to-end (Titanic tmdb:597):\n  Cinejoy:    4 streams (4K HEVC, 1080p, 720p, 480p \u2014 all validated)\n  ZXCStream:  1 stream (player page iframe)\n  HDHub4u:    1 stream (480p googleusercontent direct)\n  UHDMovies:  5 streams (googleusercontent direct + proxy)\n  AnimeZeY:   0 streams locally (workers.dev rate-limited 429 \u2014 may work from Render IP)\n\nNo regressions:\n  4khdhub: 12 streams, fourkhdhubone: 4, movieshunt: 7\n  anikage: 9 streams (Demon Slayer), animesalt: 1 stream (Demon Slayer)\n  Total /stream/movie/tmdb:597.json: 98 streams (no decrease from previous)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/47b442faf412f33529d7a1cd28353a1216febcac"
+            },
+            {
+              "sha": "9ee37d7c7af4ebc3fed118ffd05bfdcb8acf32fc",
+              "date": "2026-08-18T16:42:27Z",
+              "message": "Re-add 5 sources from uploaded Nuvio scrapers (cinejoy, hdhub4u, uhdmovies, zxcstream, animezey)\n\nAdded 5 sources using uploaded Nuvio-style scraper files. Each scraper is a\nCommonJS module placed in src/nuvio/*.cjs, wrapped by a Source class in\nsrc/source/*.js that calls callNuvioProvider + buildStreamResults.\n\nSources added:\n  1. cinejoy (cinejoy.cjs) \u2014 movies/series via HdHub addon resolve endpoint\n     Returns 4 HLS m3u8 streams per movie (4K HEVC, 1080p, 720p, 480p) from\n     hdhub.thevolecitor.qzz.io/resolve/cj/tmdb/{id}/{quality}.m3u8\n     Verified: 4 streams with enriched metadata (height=2160/1080/720/480)\n\n  2. hdhub4u (hdhub4u.cjs) \u2014 movies/series via new1.hdhub4u.af search\n     Parses quality headings (h3/h4/h5) and extracts hubcloud/hubcdn/\n     pixeldrain/gdrive download links. hub_extractor.cjs stub is a\n     passthrough \u2014 lets HubExtractor/HubCloud/DirectStream handle resolution\n     downstream.\n     Verified: 10 streams for Avatar (hubcloud.cx \u2192 gpdl.hubcloud.cx CDN,\n     /extract returns 302 to playable URL)\n\n  3. uhdmovies (uhdmovies.cjs) \u2014 movies-only via googleusercontent direct URLs\n     Obfuscated scraper (23KB) that resolves driveseed.org gateway \u2192 direct\n     GDrive URLs from video-downloads.googleusercontent.com.\n     Verified: 7 streams for Avatar, 6 for Matrix, 3 for Titanic\n     (/extract returns 302 to playable googleusercontent URL)\n\n  4. zxcstream (zxcstream.cjs) \u2014 movies/series via player.zxcstream.xyz\n     Generates sha512 auth token, calls /backend/token + /backend_/embed/sentinel\n     to get embed URL. Falls back to embed page URL.\n     Returns 1 stream (embed URL) \u2014 may need dedicated extractor for full\n     resolution.\n\n  5. animezey (animezey.cjs) \u2014 anime-only sub+dub via workers.dev\n     Obfuscated scraper (47KB) with worker domain rotation.\n     Workers may be rate-limited (429) from some IPs.\n\nFiles added (11):\n  Sources: ZXCStream.js, Cinejoy.js, AnimeZeY.js, UHDMovies.js, HDHub4u.js\n  Scrapers: zxcstream.cjs, cinejoy.cjs, animezey.cjs, uhdmovies.cjs, hdhub4u.cjs\n  Stub: hub_extractor.cjs (passthrough for hdhub4u)\n\nFiles edited (2):\n  src/source/index.js \u2014 added 5 imports + 5 constructor calls\n  src/extractor/NuvioExtractor.js \u2014 added 4 source IDs to NUVIO_SOURCE_IDS\n    (zxcstream, cinejoy, animezey, uhdmovies \u2014 NOT hdhub4u which uses\n    HubExtractor/HubCloud downstream)\n\nFixes applied to uploaded files:\n  - hdhub4u.cjs: fixed broken '$('aref]')' selectors \u2192 '$('a[href]')' (3 occurrences)\n    The '[h' was stripped during file upload (terminal escape artifact).\n  - hdhub4u.cjs: replaced 'cheerio-without-node-native' with 'cheerio' (standard)\n  - hdhub4u.cjs: updated require path './hub_extractor.js' \u2192 './hub_extractor.cjs'\n\nNo regressions:\n  - Server boots cleanly (77 sources, 37 extractors)\n  - /stream/movie/tmdb:19995.json returns 135 streams (no decrease)\n  - All previously-working sources unchanged\n  - hdhub4u hubcloud URLs resolved by existing HubCloud extractor (302 \u2192 CDN)\n  - uhdmovies googleusercontent URLs resolved by DirectStream (302 \u2192 direct)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/9ee37d7c7af4ebc3fed118ffd05bfdcb8acf32fc"
+            }
+          ]
+        },
+        {
+          "path": "src/source/AnimeZeY.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/AnimeZeY.js",
+          "recent_commits": [
+            {
+              "sha": "b0f60535feefe5f82cb08ec08b71c1f849b38d29",
+              "date": "2026-09-25T17:32:57Z",
+              "message": "Task 92: hubcloud Download\u2192direct-playable (liveness gate on 403-flapping workers.dev token URLs + pixeldrain ?download stripped at extractor AND card-assembly layers); anime Naruto/Shippuden diacritic fix (NFD fold in animekai/hianime/cinewave matchers \u2014 \u016b previously zeroed every match); animezey empty-streak 10min cooldown (429 rotation hammering class); UnlimPlay extractor (unlimplay.com EMBEDS map + _sl=1 loader + f.php _hlsextract worker; wired as CineHDPlus 4th delivery path, claims before ExternalUrl fallback); guard: boot extractors 33\u219234 + 2 new Shippuden guards. E2E local: Shippuden 25\u219284 cards (28 anime), Naruto 40\u219281, 0 pixeldrain ?download, 0 external",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/b0f60535feefe5f82cb08ec08b71c1f849b38d29"
+            },
+            {
+              "sha": "8a175a6bb6cb970486f7429bbd917093646b55d3",
+              "date": "2026-09-19T11:05:32Z",
+              "message": "Task 62 fix5: animezey liveness gate \u2014 the worker (animezey16082023.workers.dev) changed its blob crypto and answers freshly minted download.aspx URLs with 500 'OperationError: Decryption failed' (upstream-side; obfuscated provider cannot be re-keyed). Cards now probe with their own headers (6s cap) and dead URLs are dropped \u2192 honest zero instead of listed-but-unplayable; self-heals when the worker rotates back. Local: 2 dead GoT cards dropped, rest of the resolve untouched.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/8a175a6bb6cb970486f7429bbd917093646b55d3"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "acermovies",
+      "label": "AcerMovies",
+      "disposition": "unresolved",
+      "note": "Current api2 search/quality protocol was already ported. Targeted fresh SDK movie calls remain empty; upstream documents unresolved source cache and per-IP quota issues. English/dual-audio catalog evidence does not justify language-based removal.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-24T20:47:55Z",
+      "references": [
+        {
+          "path": "src/source/AcerMovies.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/AcerMovies.js",
+          "recent_commits": [
+            {
+              "sha": "2f214ea023baf7cf65499e35efe712951aeeb1be",
+              "date": "2026-09-24T20:47:55Z",
+              "message": "Task 87: egress-class recheck (hindmoviez RECOVERED 54 cards, IP unchanged 74.220.48.71 \u2014 tarpit lifted, not rotation; kmmovies/animezey still gated) + AcerMovies deep RE: NO API migration target (live site JS = identical surface, requestOnline dead code 404/405, no alt hosts, 429 ban LIFTED from prod egress) \u2014 real failure = sourceUrl {fromCache:false} for 0/17 titles incl acer's own trending 2026 list (~3s/answer, modpro 403s DC incl acer's backend). Fix: canary sourceUrl POST + DEFINITIVE_MISS sentinel short-circuits the 3x ladder (5s vs 9.5s, ~5 POSTs vs ~9) + 30min negative cache (repeat probes 1ms, zero upstream) + value-stable cache keys (TmdbId object identity bug also fixed the 24h fallback cache) + series/unsupported = definitive. E2E: canary short-circuit + negative-cache hit verified; guard 44/0; merged 142 cards 0 magnets/html.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/2f214ea023baf7cf65499e35efe712951aeeb1be"
+            },
+            {
+              "sha": "feca12d2db5ba6e349c870b8a936ee42c3f74a12",
+              "date": "2026-09-23T08:26:51Z",
+              "message": "Task 84b: prod-verify refinements \u2014 (1) framextv SWEEP-SHARING: delegates to streamxtv.cjs's shared-sweep getStreams (module-level 90s cache + in-flight dedup) \u2014 both sources hit the SAME api.framextv.tech; two independent 20-provider sweeps = 40 near-parallel requests tripping the API burst throttle from Render; now ONE sweep serves both, framextv re-labels to FrameX branding, own sweep kept as fallback; (2) streamxtv: deadline 22s\u219226s, per-attempt 7s\u21929s (halved API load justifies the larger budget; prod logs still showed 7s timeouts); (3) acermovies: relay pacing \u2014 the shared public relay is itself CF-edge rate-limited (measured 429 HTML from any IP after bursts), so relay 429 now pauses relay attempts 90s (_relayCooldownUntil) instead of hammering; unit tests 5/5 environment-aware (relay-outage windows assert paced propagation). Prod verify 8/11: framextv 0\u21921 card (fix engaged), acer relay engaged (relay itself in rate-limit window), persian 503-flap window (fast-fail by design), merged 141\u2192176 cards 4K=82 0 magnets/html, honest-zeros all fast-fail.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/feca12d2db5ba6e349c870b8a936ee42c3f74a12"
+            },
+            {
+              "sha": "03934be1b6987f131285ff4ab50fde5ef5af9044",
+              "date": "2026-09-23T07:56:20Z",
+              "message": "Task 84: fix 3 of the 8 zero sources with distinct strategies \u2014 (1) framextv: transport RE-FLIP to got-scraping-first (Task 65 flip is stale; prod evidence: streamxtv same API same config delivers 3-9 cards while framextv fetch-first timed out every provider at 7s, cascade burned 31s/provider \u2192 count 0; now mirrors streamxtv: got-first, 1 retry, 8s, same-site Referer) + framextv delivered 4 cards in merged sandbox dist; (2) persianstremio: clean rewrite replacing obfuscated module whose internal 12s timeout guaranteed death on an upstream that measures 18.6-21.1s (Task 84 re-measure: 200 @18.6-21s with real 4K streams) \u2014 25s budget, identical output shape, TMDB imdbId chain, fallback endpoint; verified 14 streams Inception incl 2160p BluRay @5s; (3) acermovies: egress-relay fallback via test.cors.workers.dev (Task 84 live A/B: same POST relayed = 200 @0.5s real results while direct = 429; relay egress is CF ranges, outside acer's per-IP window) \u2014 cooldown now resolves through relay instead of honest-zero, direct 429 flips to relay same-request, cache-fill unchanged; relay unit 5/5. Other 5 zeros evidence-locked as upstream-blocked (uhdmovies ad-gated safelink, kmmovies/animeworldindia ASN-selective blocks incl CF-worker egress, anineko upstream DB outage, stellarrip IP-class gate now proven to include CF-worker egress too). Sandbox E2E 0.1CPU/448MB: registry 73, merged Dune2 120\u2192212 cards cc=max-age=150, 85 4K, 0 magnets/html, 41 brands, FrameX+PersianStremio in dist. Baseline guard 42 PASS / 0 FAIL.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/03934be1b6987f131285ff4ab50fde5ef5af9044"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "atlantic",
+      "label": "Atlantic",
+      "disposition": "unresolved",
+      "note": "September gate/CDN protocol changes were already ported. All three targeted fresh resolves are empty; no new independently playable endpoint was confirmed.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-24T16:49:08Z",
+      "references": [
+        {
+          "path": "src/nuvio/atlantic.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/atlantic.cjs",
+          "recent_commits": [
+            {
+              "sha": "a6926becb0094282285f0f4365b79d394a723e65",
+              "date": "2026-09-24T16:49:08Z",
+              "message": "Task 86: fix 4 of the 12 zero sources \u2014 Atlantic Helios protocol + gate-a seed rotation, ZXCStream ololmo route, CineHDPlus vimeus-outage fallback chain, MeineCloud 30s tarpit timeout; verhdlink no-throw retry",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/a6926becb0094282285f0f4365b79d394a723e65"
+            },
+            {
+              "sha": "6cd8e3aa339d46d6738af5284460d4222061cfe1",
+              "date": "2026-09-22T00:30:23Z",
+              "message": "Task 79b: wrapArtemis hostname-match fix + atlantic payload TTL 10min->60s\n\n- wrapArtemis matched hosts against the URL STRING: the totallyacdn\n  alternative never matched 'https://totallyacdn.org/' (preceded by '/' from\n  '//' \u2014 not a dot or string start), so aphrodite cards shipped UNWRAPPED and\n  ate the headerless trailer-302 at play time (prod playprobe: raw 302).\n- atlantic source ttl 10min -> 60s: payload workers rotate signed payloads\n  every ~30-60s now; old TTL cached guaranteed-dead URLs.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/6cd8e3aa339d46d6738af5284460d4222061cfe1"
+            },
+            {
+              "sha": "720032b8dee3897bbaadf29fe0f9fcdcaf3ed8c0",
+              "date": "2026-09-22T00:19:33Z",
+              "message": "Task 79: atlantic gate protocol 2026-09-22 \u2014 seed rotation + new stellar.b.v1 gate + browser headers + decoy guards\n\n- gate a (aphrodite.a.v1) seed ROTATED upstream: old M/X tables \u2192 bootstrap\n  403 3/3 (Task 78 root cause). New seed extracted from the live bundle\n  (aphrodite-gate-DNDGgaS1.js) via WebCrypto key-logging; masterKey verified\n  against the browser's importKey bytes. Bootstrap 200 again.\n- gate b (stellar.b.v1) is NEW: POST stellar.hls.lol/gate/handshake, session\n  headers X-S-* on /resolve GETs. Unsigned resolve returns a decoy SPA-shell\n  edge placeholder (atlantic.st/edge-*) \u2014 guarded (hostname check).\n- payload workers (peraspera/totallyacdn) now soft-decoy requests lacking\n  browser fetch headers (200 HTML SPA shell): HEADERS upgraded with\n  Accept/Accept-Language/Sec-Fetch-* (site's own hls.js XHR set); /proxy\n  sends the same set at play time for these hosts.\n- unsigned content fallback serves DECOY catalog entries (693134 \u2192 'Coyote\n  vs. Acme') \u2014 wrong-title guard drops them (token-overlap match).\n- j.type:'hls' marker no longer required (upstream dropped it).\n- sandbox (0.1 CPU) E2E: SquidGame Nova card validated+shipped; decoy guard\n  proven live; merged rounds healthy (135 cards, subs 100%, html 0).\n- baseline guard 42 PASS / 0 FAIL (atlantic Inception count=1).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/720032b8dee3897bbaadf29fe0f9fcdcaf3ed8c0"
+            }
+          ]
+        },
+        {
+          "path": "src/source/Atlantic.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/Atlantic.js",
+          "recent_commits": [
+            {
+              "sha": "6cd8e3aa339d46d6738af5284460d4222061cfe1",
+              "date": "2026-09-22T00:30:23Z",
+              "message": "Task 79b: wrapArtemis hostname-match fix + atlantic payload TTL 10min->60s\n\n- wrapArtemis matched hosts against the URL STRING: the totallyacdn\n  alternative never matched 'https://totallyacdn.org/' (preceded by '/' from\n  '//' \u2014 not a dot or string start), so aphrodite cards shipped UNWRAPPED and\n  ate the headerless trailer-302 at play time (prod playprobe: raw 302).\n- atlantic source ttl 10min -> 60s: payload workers rotate signed payloads\n  every ~30-60s now; old TTL cached guaranteed-dead URLs.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/6cd8e3aa339d46d6738af5284460d4222061cfe1"
+            },
+            {
+              "sha": "2c3a633f6e1edc26dd3a2a22f8a3958f745d82e6",
+              "date": "2026-09-19T04:52:03Z",
+              "message": "Task 60 fix2: retire Atlantic advisory shipping; wrap both payload CDNs\n\nLive verification on 2026-09-19: peraspera AND totallyacdn 302 headerless\nrequests to a YouTube trailer (yqr1BnpY628) \u2014 iOS players never send custom\nheaders, so direct+requestHeaders shipping (old ipGated advisory) hung every\nAtlantic card at loading. Cards now ship ONLY when the master+child validate\nfrom our IP, always through the addon /proxy (origin+referer+hls=1 injected,\nchildren rewritten whole-tree). Gate is intermittent (Render passed 03:5x,\n429 04:1x) \u2014 when gated, Atlantic drops honestly instead of shipping a\ntrailer-hang card.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/2c3a633f6e1edc26dd3a2a22f8a3958f745d82e6"
+            },
+            {
+              "sha": "e65e5b75c88b3784c56446f1f9bdd87af41441d0",
+              "date": "2026-09-18T08:47:40Z",
+              "message": "Task 55: Atlantic lands in-budget (Fetcher transport + deadline + unified subs) + ZXCStream new protocol, player-page card removed\n\nAtlantic (production zero-cards fix):\n- All upstream GETs route through the addon Fetcher (family:4, got-scraping\n  CF fallback) \u2014 bare undici fetch stalls on Render during resolve storms\n  (Task 55 measured: inline natsuki 2x5s dead while Fetcher path returned 48).\n- Inline granite/natsuki subtitle stages REMOVED \u2014 StreamResolver's unified\n  stack (siteSubtitles.cjs) runs the SAME providers once per title and merges\n  into EVERY source's cards (user contract: one subtitle provider set for\n  movies/series/kdramas/animes).\n- Shared 10.5s deadline races every stage so getStreams always RETURNS inside\n  the 13s client budget instead of being truncated to zero cards.\n- Datacenter-gated (workers.dev) master-fetch failures now ship one advisory\n  direct card (429-from-our-IP class, Task 48/41/44) \u2014 strict validation kept\n  for non-gated hosts.\n- Wrapper empty-retry skipped when first attempt exceeds 8s.\n\nZXCStream (mpv error fix):\n- Protocol RE'd from the deployed bundle: new SECRET 23423653, obfuscated\n  FIELD_MAP, /backend/a1b2c3 token POST (requires relative path + mediaType;\n  verified 200 live), sentinel with hashed params.\n- Player-PAGE fallback card REMOVED \u2014 an HTML URL shipped as a stream was a\n  guaranteed mpv error (user report). Only server-extracted real media ships;\n  honest zero when their backend is down (it is mid-migration today: token\n  route flapping 200/404, sentinel 502 site-wide, their own frontend 400s).\n\nVerified: baseline 43 PASS / 0 FAIL; local full resolve 138 cards, Atlantic\n2160p card present, 0 html cards, 138/138 cards carry unified subs.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/e65e5b75c88b3784c56446f1f9bdd87af41441d0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cineby",
+      "label": "Cineby",
+      "disposition": "unresolved",
+      "note": "Current references still depend on the shared speedracelight seed/backend or generic embed fallback. Fresh seed requests return 502; targeted SDK resolves are empty or time out. Newer codec samples did not establish an accessible replacement backend.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-21T05:04:20Z",
+      "references": [
+        {
+          "path": "src/nuvio/cineby.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/cineby.cjs",
+          "recent_commits": [
+            {
+              "sha": "1ad88d52b005b90dbcf81fe090869fae865b2ddd",
+              "date": "2026-09-18T06:31:28Z",
+              "message": "Task 54 fix4: salsa ships DIRECT (datacenter-egress IP block) + hdhub4u lh3 thumbnail guard\n\nDECISIVE EVIDENCE: salsa436jam.com 404s EVERYTHING from our Render\ndatacenter egress (got-scraping AND plain fetch \u2014 fingerprint fallback\ncan't rescue an IP block) while serving plain fetch 200 #EXTM3U (with the\nvidking referer) to other IPs. The playlist signature is not IP-enforced\n(Render-signed URL fetched 200 from a different IP). There never was a\n'dead salsa' class \u2014 it was the IP block all along.\n\n- NuvioExtractor DATACENTER_DIRECT_RE: salsa hosts ship DIRECT +\n  requestHeaders (player residential IP + vidking referer via Stremio\n  proxyHeaders) \u2014 peraspera class, same as atlantic/vixsrc.\n- cineby.cjs: REMOVED the fix-era salsa pre-flight (server-side probes\n  would wrongly drop ALL salsa cards from the Render perspective).\n- streamGate: salsa removed from GATED_HOST_RE (direct cards + no-referer\n  probe = false-dead).\n- hdhub4u_v2: headOk() guard on both lh3 emit sites (movieshunt pattern) \u2014\n  Google Photos identity-pixel thumbnails shipped as 'streams' now fall\n  through to pixeldrain instead of shipping dead cards.\n- marker: task54-fix4-salsa-direct.\n- Baseline: 42/41 PASS with rotating single flakes (atlantic/animotvslash \u2014\n  upstream congestion; atlantic also failed on the pre-fix3 tree).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/1ad88d52b005b90dbcf81fe090869fae865b2ddd"
+            },
+            {
+              "sha": "e9d56cb731449882e2411a6cdd2ae2a4e552881f",
+              "date": "2026-09-18T05:29:11Z",
+              "message": "Task 54: fix 'stuck on loading screen' for ALL sources \u2014 playback-priority gate + dead-card purge\n\nROOT CAUSE (production-proven): after the 13s client budget, background\ncontinuation kept resolving at FULL concurrency (10 chains, minutes-class)\nand monopolized the single 0.1-CPU Render instance. Player /proxy requests\n(playlist, init, segments) queued behind scraping -> eternal loading screen\nfor every source. Proof: sun.peakstorm.top/r6/*.m3u8 via /proxy = 0 bytes in\n20s during churn vs 200 + 653KB in 1.08s once idle.\n\nFixes:\n- playbackGate.cjs: pressure counter; /proxy + /range-proxy raise it\n  (res.on('close') releases on finish AND abort); post-budget background\n  starts wait for a quiet window (bounded 45s) and the tail concurrency cap\n  drops 10 -> 2 (env STREAM_BACKGROUND_MAX_CONCURRENT). In-budget resolves\n  are never gated.\n- boot-time warmup REMOVED (user standing request; original repo has no\n  pre-warm) \u2014 50+ TLS handshakes raced scale-from-zero traffic.\n- VidKing extractor: vimeos.(zip|net) (Omen) shipped DIRECT without the\n  vidking referer \u2014 the referer is what 403s them (matrix: 403 with, full\n  tree 200/206 without). Matches nuvioHelpers NO_REFERER_HOSTS policy.\n- cineby.cjs: salsa436jam URLs pre-flighted (ranged GET, 4s, parallel);\n  definitive 404/410 dropped \u2014 the API hands out dead hdmovie CDN paths\n  (all 5 language variants shared one 404 path).\n\nBaseline guard: 43 PASS / 0 FAIL. Local sanity: Oak Street 44->160 streams,\nsalsa cards 0, vimeos unwrapped, peakstorm still proxied+referer.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/e9d56cb731449882e2411a6cdd2ae2a4e552881f"
+            },
+            {
+              "sha": "6ad4158c56ec28a1eb9a295cc9baf10176053a96",
+              "date": "2026-09-16T06:20:22Z",
+              "message": "Task 40 fix: shared seed store (srlSeed.cjs) \u2014 production TV evidence: cineby Frieren S1E1 = 0 @30.1s while sandbox delivered 4 in 11.7s. Root cause: the speedracelight API ROTATES seeds on every /seed request; cineby (global fetch) and the VidKing extractor / VidEasy (speedracelight.js fetchSeed) both sit in StreamResolver wave-1 and fetch /seed?mediaId=<same id> concurrently \u2014 each new seed request invalidates the other's seed mid-flight \u2192 decrypt failures (reproduced: parallel-seed probing all returned 'bad seed or tampered payload') \u2192 401 \u2192 invalidate \u2192 refetch \u2192 invalidates the other again \u2192 retry cascade blows the wrapper's 30s race \u2192 provider returns nothing. Fix: new src/utils/srlSeed.cjs process-wide store (25s TTL cache + in-flight promise registry) so concurrent /seed fetches for the same mediaId coalesce into ONE upstream request; speedracelight.js fetchSeed rewired through it (fetch semantics + 429 Retry-After unchanged), cineby.cjs fetchSeed/invalidateSeed rewired through it too; provider per-fetch timeout 15s\u219212s and the cineby 401-retry round is elapsed-guarded (<12s) so a retry can never blow the 30s race. VERIFIED: concurrency test cineby + fetchAllProviders racing tmdb:209867 \u2192 ONE seed fetch, cineby 4 streams (1080P/720P/360P/Auto) + VidKing Yoru 3 sources in 5.8s; baseline STREAM_CLIENT_BUDGET_MS=40000 \u2192 40 PASS / 0 FAIL (all guards intact incl cineby Inception count=7). Zero-breakage: do-not-touch untouched; speedracelight.js change is cache-plumbing only (same public API).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/6ad4158c56ec28a1eb9a295cc9baf10176053a96"
+            }
+          ]
+        },
+        {
+          "path": "src/source/Cineby.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/Cineby.js",
+          "recent_commits": [
+            {
+              "sha": "207dd9467360c0136a10b0c1ec7a4da4616489e0",
+              "date": "2026-09-21T05:04:20Z",
+              "message": "Task 73: speedracelight outage fast-fail (scoped 120s, self-recovering, 3 layers: srlSeed store + cineby/videasy wrappers + fetchSeed client) \u2014 frees wave-0 slots during the confirmed vidking outage; baseline guard truthful updates (72 sources, movieblast re-port, outage-aware cineby, network-aware videasyto) 42/0",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/207dd9467360c0136a10b0c1ec7a4da4616489e0"
+            },
+            {
+              "sha": "858b5d849f24cea31b15bee9905e44ada0f78c5f",
+              "date": "2026-09-16T06:05:38Z",
+              "message": "Task 40: cineby.by reverse engineering + full clean rewrite of the cineby source \u2014 RE chain: cineby.by (Laravel Livewire catalog, TMDB-driven) iframes vidking.net embeds (/embed/movie/<tmdbId>, /embed/tv/<tmdbId>/<s>/<e>) whose VideoPlayer-D5eTfQPp.js SPA calls api.speedracelight.com with per-media seed + XOR keystream 'mvm1' cipher (decryptPayload now imported from the shared speedracelight.js port \u2014 single implementation). (1) cineby.cjs rewritten from obfuscated blob to clean module: verbatim current-bundle server registry (Yoru/cdn 2160p OK, Breach/m4uhd Auto-HLS OK, hdmovie\u2192Vyse(English)/Fade(Hindi) split locally with the bundle's exact-match qualityFilter semantics, Killjoy german, Omen, Raze \u2014 all attempted; Cypher/downloader2 + Neon/vsrc dropped as verified permanent-404); ONE cached seed per mediaId shared across all provider calls (parallel seed fetches invalidate each other \u2192 decrypt failures, reproduced), 401/decrypt-fail \u2192 invalidate \u2192 refetch \u2192 single retry, 429 Retry-After respected; per-card real metadata only (API quality labels, bundle server names, inline VTT subtitles attached per stream; api.playhq.net sub proxy skipped \u2014 verified 400 server-side; HLS size estimation removed \u2014 was fabricated segment sampling); master.m3u8 playlist emitted as 'Auto (all variants)' resilience card; 4K-first sort. (2) Cineby.js wrapper: baseUrl \u2192 https://cineby.by, direct cached require (VidEasy pattern) with preloaded TMDB title/year/imdbId (saves a TMDB round-trip), TMDB original_language \u2192 honest audio labels (ja anime / ko K-drama / en) via central TMDB_PRIMARY key, empty-retry x2 + 30s race (< SOURCE_TIMEOUT 35s), removed obsolete peakstorm referer rewrite (scraper emits vidking.net referer natively). (3) nuvioHelpers NO_REFERER_HOSTS += vimeos.net \u2014 Task 40 verified the same inverted hotlink gate as vimeos.zip (403 with ANY referer, 200 #EXTM3U without) so Omen/lamovie cards route direct-HLS. (4) cineby joins PRIORITY_SOURCE_IDS wave-1 (speedracelight latency + seed 429 backoff). VERIFIED sandbox: Inception 11 cards (2160p\u2192480p Yoru + Auto Yoru/Breach masters + Vyse English + Fade Hindi + hdmovie Tamil/Telugu + Omen Vimeos, eng VTT subs attached), Frieren S1E1 4 cards, One Piece 2160p master, Mutiny 2026 12 cards incl 2160p 4K; /proxy playability probes 200 m3u8 on Yoru 2160p + Breach Auto; merged /stream 103 cards with 11 cineby (4K label + Audio: English flags); baseline STREAM_CLIENT_BUDGET_MS=40000 \u2192 40 PASS / 0 FAIL with new 'cineby Inception >= 2' guard (count=7). Zero-breakage: do-not-touch sources (dahmermovies, dahmermovies4k, vixsrc, zxcstream, nowhdtime, animezey) untouched; only additive vimeos.net host in shared routing regex (objectively correct \u2014 referer-agnostic host).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/858b5d849f24cea31b15bee9905e44ada0f78c5f"
+            },
+            {
+              "sha": "09e437eb533660befa0e71a3ca813a3e0f0a7d57",
+              "date": "2026-09-12T05:39:18Z",
+              "message": "Fix mpv playback errors across Raflix, ZXCStream + 9 more sources\n\nUser reported '[mpv] unrecognized file format' on Raflix and ZXCStream.\nRoot cause class: stream URLs that return HTML pages (landing pages,\nCloudflare challenges, embed shells) shipped to players as if playable.\nSystematic byte-level audit of every source found and fixed:\n\nRaflix: movies shipped api.anicine-embed.workers.dev HTML SPA shells.\n  Reverse-engineered the CinePro worker API from its JS bundle\n  (/v1/token -> /v1/movies|tv with Bearer auth) and resolve real HLS\n  sources server-side, decoding the signed proxy blobs to get the true\n  upstream m3u8 + required Referer. New dedicated 'raflixnuvio'\n  sourceId routes ONLY these through NuvioExtractor /proxy with\n  whole-tree rewriting; raw embeds keep flowing through the registry.\n  E2E verified: master->variant->segment all 200, segment = real\n  MPEG-TS bytes.\n\nZXCStream: sentinel embed API is IP-blocked (HTTP 422) from servers,\n  so the provider shipped the raw player.zxcstream.xyz page (CF\n  'Just a moment' HTML) as a fallback. Removed the fallback entirely \u2014\n  zero playable URLs beats a guaranteed mpv error.\n\nCineby: shared VidKing backend (moon.peakstorm.top) hotlink-gates by\n  Referer INVERTED \u2014 403s the cineby.at header its own provider stamps\n  on every stream, serves the same files with vidking.net (verified\n  200 HLS vs 403 HTML). Rewrite headers per-host before shipping.\n\nKMMovies: 15 hubcloud.foo/drive download PAGES shipped raw because\n  NuvioExtractor (registered before HubExtractor) direct-shipped them.\n  NuvioExtractor now defers hub-family hosts to the HubExtractor\n  fallback chain which resolves them into real direct files. Audit:\n  CF-challenge HTML -> VIDEO bytes.\n\nBollyFlix: series bundles emit fxlinks.rest/elinks WordPress landing\n  pages that are never resolved (real links load via JS) \u2014 pure poison.\n  Liveness gate drops HTML/erroring streams.\n\nVerHdLink: mirrors resolve via SuperVideo extractor to hfs*.serversicuro.cc\n  session m3u8s that stochastically serve an HTML JS-gate instead of the\n  playlist. Liveness probes added at BOTH output paths (SuperVideo\n  extractor + VidKing extractor fallback).\n\nHindMoviez/DahmerMovies/DahmerMovies4k/MovieBlast: upstreams now behind\n  401 JS-cookie / 403 CF-managed challenges. These play through the\n  server /proxy, so a scrape-time liveness probe accurately predicts\n  playability \u2014 dead/gated streams dropped (clean absence instead of\n  guaranteed playback errors). New shared filterDeadStreams() helper in\n  nuvioHelpers.js.\n\nNetlio extractor: bare '*.workers.dev' hostname match hijacked URLs\n  from unrelated embed APIs (Raflix's anicine worker) \u2014 now requires\n  Netlio path markers (cf-master|/v4/|/hls3/), matching its real CDN\n  URL shapes.\n\nAudit tooling: task14_audit.mjs classifies every shipped stream URL by\nthe bytes a player receives (HLS/DASH/VIDEO vs HTML/JSON/CF-challenge).\nAfter fixes: 26-27 of 28 sources deliver real video bytes on both test\ntitles (was: 10 sources in the poison/error class). Remaining: VidLink\n428/429 is datacenter rate-limiting on DIRECT urls (player IP differs);\nNetlio/PersianStremio/AnimeWorld/CineHDPlus each drop 1-of-N streams to\nupstream CDN gates \u2014 sources still deliver working streams.\n\nRegression 12/12 (incl. cinehdplus vimeos check), decrypt 35/35,\nboot clean 71/30. Zero behavior change for healthy paths.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/09e437eb533660befa0e71a3ca813a3e0f0a7d57"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "framextv",
+      "label": "FrameXTV",
+      "disposition": "repaired",
+      "note": "Unwraps the owned API media proxy and carries Origin/Referer; retains explicit Origin headers. Bounded HLS/TS metadata selects English audio and rejects known foreign-only tracks. Anime with Japanese audio and English subtitle metadata remains eligible outside dub-only mode.",
+      "current_checks": 20,
+      "current_playback_passes": 10,
+      "movie_tv_passes": 10,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "played": 10,
+        "empty": 10
+      },
+      "latest_reference_change": "2026-09-23T08:26:51Z",
+      "references": [
+        {
+          "path": "src/nuvio/framextv.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/framextv.cjs",
+          "recent_commits": [
+            {
+              "sha": "feca12d2db5ba6e349c870b8a936ee42c3f74a12",
+              "date": "2026-09-23T08:26:51Z",
+              "message": "Task 84b: prod-verify refinements \u2014 (1) framextv SWEEP-SHARING: delegates to streamxtv.cjs's shared-sweep getStreams (module-level 90s cache + in-flight dedup) \u2014 both sources hit the SAME api.framextv.tech; two independent 20-provider sweeps = 40 near-parallel requests tripping the API burst throttle from Render; now ONE sweep serves both, framextv re-labels to FrameX branding, own sweep kept as fallback; (2) streamxtv: deadline 22s\u219226s, per-attempt 7s\u21929s (halved API load justifies the larger budget; prod logs still showed 7s timeouts); (3) acermovies: relay pacing \u2014 the shared public relay is itself CF-edge rate-limited (measured 429 HTML from any IP after bursts), so relay 429 now pauses relay attempts 90s (_relayCooldownUntil) instead of hammering; unit tests 5/5 environment-aware (relay-outage windows assert paced propagation). Prod verify 8/11: framextv 0\u21921 card (fix engaged), acer relay engaged (relay itself in rate-limit window), persian 503-flap window (fast-fail by design), merged 141\u2192176 cards 4K=82 0 magnets/html, honest-zeros all fast-fail.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/feca12d2db5ba6e349c870b8a936ee42c3f74a12"
+            },
+            {
+              "sha": "03934be1b6987f131285ff4ab50fde5ef5af9044",
+              "date": "2026-09-23T07:56:20Z",
+              "message": "Task 84: fix 3 of the 8 zero sources with distinct strategies \u2014 (1) framextv: transport RE-FLIP to got-scraping-first (Task 65 flip is stale; prod evidence: streamxtv same API same config delivers 3-9 cards while framextv fetch-first timed out every provider at 7s, cascade burned 31s/provider \u2192 count 0; now mirrors streamxtv: got-first, 1 retry, 8s, same-site Referer) + framextv delivered 4 cards in merged sandbox dist; (2) persianstremio: clean rewrite replacing obfuscated module whose internal 12s timeout guaranteed death on an upstream that measures 18.6-21.1s (Task 84 re-measure: 200 @18.6-21s with real 4K streams) \u2014 25s budget, identical output shape, TMDB imdbId chain, fallback endpoint; verified 14 streams Inception incl 2160p BluRay @5s; (3) acermovies: egress-relay fallback via test.cors.workers.dev (Task 84 live A/B: same POST relayed = 200 @0.5s real results while direct = 429; relay egress is CF ranges, outside acer's per-IP window) \u2014 cooldown now resolves through relay instead of honest-zero, direct 429 flips to relay same-request, cache-fill unchanged; relay unit 5/5. Other 5 zeros evidence-locked as upstream-blocked (uhdmovies ad-gated safelink, kmmovies/animeworldindia ASN-selective blocks incl CF-worker egress, anineko upstream DB outage, stellarrip IP-class gate now proven to include CF-worker egress too). Sandbox E2E 0.1CPU/448MB: registry 73, merged Dune2 120\u2192212 cards cc=max-age=150, 85 4K, 0 magnets/html, 41 brands, FrameX+PersianStremio in dist. Baseline guard 42 PASS / 0 FAIL.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/03934be1b6987f131285ff4ab50fde5ef5af9044"
+            },
+            {
+              "sha": "fafa06376d73d96b996a40a51c5b62391699a64a",
+              "date": "2026-09-20T01:18:35Z",
+              "message": "Task 65: 8 named zero-stream sources fixed + anime matrix verified\n\n- movielinkbd: season-aware post ordering (site publishes one post per season; relevance ranking left S1 posts outside PAGE_CAP \u2192 honest zero for every season-1 episode) + PAGE_CAP 4\u21926. GoT S1E1/S2E1 + SquidGame E1 verified.\n- kmmovies: CF verdict propagation \u2014 first magiclinks.lol challenge aborts the whole batch loop (production burned 35s\u00d7N on identical challenge pages); honest fast zero from datacenter egress, 7 streams incl 4K verified device-side.\n- framextv: transport order flipped \u2014 api.framextv.tech is NOT CF-protected (Render native fetch 200/357ms) while the got-scraping batch got tarpit-hung >14s (zoko pattern). Local 4-5 streams.\n- movieshuntv2: early-exit poll (\u22652 streams or 36s cap) replaces the fixed 30s race that discarded slow season-pack chains; lh3.googleusercontent 403-image verdict ships the card (identity-pixel = datacenter hotlink block, real file for device IPs \u2014 Task 62 class) with lh3Playable classifier. JJK anime + GoT series verified.\n- desiflix: per-attempt timeout 12s\u219230s (both upstream endpoints now answer in 18-23s; 12s guaranteed every attempt died). Inception 5 streams verified.\n- persianstremio: upstream is ALIVE but fresh-tt lookups take 17-20s; budget 14s\u219226s + race 33s (was expiring before the answer ever arrived).\n- hindmoviez: liveness probe dropOnNetworkError=false \u2014 the worker CDN tarpits Render (no headers >12s) but serves 200 video/x-matroska in 1.8s to device IPs; timeouts are not death (Task 38 semantics).\n- streamGate: lh3.googleusercontent.com 403+image/* \u2192 'unknown' not 'dead' (hotlink-block \u2260 removed; Task 54 thumbnail class 200+image stays dead).\n- cinehdplus verified series-only by design (movies route through the verhdlink source); animeflix site search broken upstream (wp-json + ?s= both empty); stellarrip IP-gate unchanged (18/18 servers answer playback-unavailable to datacenter).\n- Local E2E: movielinkbd 1/series, movieshuntv2 1/JJK, desiflix 4/movie, hindmoviez 1/movie, cinehdplus 1/series, kmmovies 7/movie. Baseline guard 6/6.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/fafa06376d73d96b996a40a51c5b62391699a64a"
+            }
+          ]
+        },
+        {
+          "path": "src/source/FrameX.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/FrameX.js",
+          "recent_commits": [
+            {
+              "sha": "de859d5551eb3694b2fe12e692736315591f9890",
+              "date": "2026-09-20T01:27:36Z",
+              "message": "Task 65 wave2: framextv race 25s\u219233s (full 20-provider sweep lands 26.4s, old race discarded it 1.4s early); desiflix endpoint ladder reordered (workers.dev first \u2014 manifest.desitvhub TARPITS datacenter egress, 3\u00d730s retries burned the budget on it) + retries 3\u21922",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/de859d5551eb3694b2fe12e692736315591f9890"
+            },
+            {
+              "sha": "6162435e161e052b5949dea0ab7f97fbfc7afc91",
+              "date": "2026-09-15T07:35:15Z",
+              "message": "Task 33: exact metadata everywhere + moviesdrivev2 production timeout-wall fix \u2014 (1) moviesdrive_v2: deadline-driven partial delivery (quality pool raced vs 21s budget, completed chains delivered at deadline instead of all-or-nothing discard at the 30s race cap \u2014 production showed 32.6s/count-0 while sandbox resolved 4 streams in 3.3s), per-hop timeouts 15s\u21928s / 10s\u21926s, TMDB 10-min TTL cache, parallel fallback searches, wrapper audio label from per-file language detection (English files no longer mislabeled Hindi+English); (2) animesuge: EXACT title+year matching only \u2014 loose tiers removed (substring/word-overlap let live-action Mutiny 2026 match the 1985 anime 'Odin: Starlight Mutiny' at score 80), premiere year from page dateCreated/Premiered anchors, gate \u00b11 movies/S1 \u00b13 TV S>=2, near-exact = <=2-edit same-token-count variants (Shippuuden class); Mutiny\u21920, JJK/Shippuden/Frieren exact verified; (3) framex metadata-only: hardcoded [multi,en,ja,ko] source default leaked 'Audio: English, Japanese, Korean' onto English-only films (API audioTracks null live-probed) \u2014 TMDB probe now covers movies+series and injects real audio language (anime\u2192Japanese, origLang\u2192name, else English) when API omits tracks; quality marker dedup + server==provider dedup kills 'headhunter 1080p headhunter 1080p'; counts/URLs untouched (Mutiny 8 cards unchanged, BB\u2192English, Shippuden\u2192Japanese); baseline 36 PASS / 0 FAIL",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/6162435e161e052b5949dea0ab7f97fbfc7afc91"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stellar",
+      "label": "Stellar",
+      "disposition": "unresolved",
+      "note": "Challenge/resolve flow returns signed cards, but three targeted tests fail playback with current headers. Upstream/CDN failure remains; no successful header repair was found.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "decode_failed": 10,
+        "empty": 10
+      },
+      "latest_reference_change": "2026-09-19T02:00:51Z",
+      "references": [
+        {
+          "path": "src/nuvio/stellar.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/stellar.cjs",
+          "recent_commits": [
+            {
+              "sha": "99990e126c83188da087f26a380f87c9ffd0d2ca",
+              "date": "2026-09-11T07:22:46Z",
+              "message": "Fix Stellar 403 playback: upstream added Origin/Referer hotlink gate\n\nRoot cause (proven live, 5 diagnostic rounds):\n- stellar.gdn CDN workers now reject requests without stellar.gdn auth:\n  * Orbit segments (a.themepark.workers.dev/seg/) -> 403 'Forbidden'\n  * Nova master (h.themepark.workers.dev/hls) -> 403 'Origin not allowed'\n- Players (ffmpeg/hls) never send those headers -> playback error screenshots\n- Second layer: variant playlists on cdn.reallyfast.ch/v/<token> match no\n  urlIsM3u8 pattern -> proxy served them raw -> segment URLs stayed absolute\n  upstream -> player fetched them without Origin -> 403 (real player path)\n- Spurious default Range: bytes=0- truncates/400s some workers playlists\n\nFix (all additive, existing consumers byte-identical):\n- Stellar.js: HLS streams carry headers {Referer, Origin: stellar.gdn} ->\n  buildStreamResults emits meta.nuvioReferer + meta.nuvioOrigin -> NuvioExtractor\n  routes /proxy?url=...&referer=&origin= (Orbit via playlist-match, Nova via\n  forceHls for extensionless /hls)\n- /proxy: opt-in origin= param forwarded upstream AND propagated onto every\n  rewritten m3u8 URL together with hls=1 so the whole tree authenticates and\n  rewrites recursively (variants + EXT-X-MAP + EXT-X-MEDIA + segments)\n- /proxy: default Range injection suppressed for hls/forceHls requests\n- nuvioHelpers.js: plumb s.headers.Origin -> meta.nuvioOrigin (also lets the\n  pre-existing-but-ignored origin= params of other sources work as intended)\n- stellar.cjs probeMasterPlaylist sends Origin/Referer (Nova quality+audio\n  detection restored)\n\nVerified end-to-end for Mutiny (tt32338669): Orbit 4K master/variant/audio/\ninit/segment all 200/206 through proxy with real fMP4 bytes (723KB moof),\nNova master/variant/segment 200 (977KB); E2E suite ALL PASS; final regression\n12/12; decrypt suite 35/35; token TTL measured >= 5.4 min (no expiry issue)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/99990e126c83188da087f26a380f87c9ffd0d2ca"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "ac954f2293ad512d812d1f89ba7110d030c19b9c",
+              "date": "2026-09-05T05:41:36Z",
+              "message": "12edd1df-ac75-470f-88ac-49725db4629c",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/ac954f2293ad512d812d1f89ba7110d030c19b9c"
+            }
+          ]
+        },
+        {
+          "path": "src/source/Stellar.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/Stellar.js",
+          "recent_commits": [
+            {
+              "sha": "d43e0a26d7edec2a27b20b70a5a1f6e7c3b99496",
+              "date": "2026-09-19T02:00:51Z",
+              "message": "Task 59 fix4: race caps 32s -> 34.5s (cold chains measured 33-34s land in r1)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/d43e0a26d7edec2a27b20b70a5a1f6e7c3b99496"
+            },
+            {
+              "sha": "164c379d8213f4a35573c4a1a870c96876bd6172",
+              "date": "2026-09-19T00:31:19Z",
+              "message": "Task 59: revive sources stuck at zero streams (merged-resolve audit)\n\nRoot causes found by production /debug/stream audit (status/durationMs/queueMs\nper source, Inception/GoT/SquidGame/Frieren x 2 rounds):\n\n1. hdhub4uv2 fast-zero everywhere: site migrated new5.hdhub4u.cl -> new6\n   (302 verified). ORIGIN bumped + sitemap <loc> regex now DERIVES from\n   ORIGIN (future new7 = one-line change). Local: 6 streams incl 2160p.\n2. Internal self-cut timers chopped chains that DO finish inside the 40s\n   client budget under Render 0.1-CPU contention (measured: bollyflix cut\n   at 25.0s of a 26-28s chain -> zero cards every cold round):\n   - BollyFlix 20s/25s -> 30s/32s\n   - Stellar 14s/25s -> 30s/32s\n   - RiveStream 30s -> 32s\n   - UHDMovies 12s retry -> 30s\n3. desiflix promoted BACKGROUND_ONLY -> wave-2: its 23-32s chain now starts\n   in-request and lands inside the 40s budget instead of only in the\n   background tail whose per-instance cache multi-instance Render loses.\n4. NowHDTime probe accepts video/* responses (API now returns kind:mp4;\n   its upstream goodstream.cc currently 403s everyone = honest zero until\n   they recover, but recovery no longer ships as false-born-dead).\n\nNot touched (verified upstream-side, honest zeros correct): netlio movies\n(hls/movie/* removed from its GitHub API; series fine), zxcstream (backend\nstill down), stellarrip (drought).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/164c379d8213f4a35573c4a1a870c96876bd6172"
+            },
+            {
+              "sha": "ba2c2f07b68e635d8b3d8db055368f5432981606",
+              "date": "2026-09-16T00:43:51Z",
+              "message": "Task 38: fix uhdmovies/bollyflix/stellar/stellarrip zero-stream class + rewrite 4khdhub/fourkhdhubone for greenmotors era + revive CineFreak \u2014 DIAGNOSIS (new /debug/rawfetch native-fetch probe + /debug/source console-log capture): (1) 4khdhub.one replaced direct hubcloud.ist/hubdrive.tips hrefs with greenmotors.cc ad-funnel links (?id=<encrypted>) \u2014 the ad-funnel landing HTML embeds a localStorage token that decodes fully server-side (atob\u2192atob\u2192ROT13\u2192atob\u2192JSON.o\u2192atob) to the real hubcloud.ist/drive/<id> URL, no browser needed; old content-file/episode selectors also changed (per-quality content-file blocks with file-title, .season-item per-season packs with .badge-psa Episode-NN). 4khdhub_one.cjs rewritten: JSON search unchanged, new block parsers, server-side greenmotors decode w/ 30-min cache, 8-parallel batch + early-exit + 3-per-quality diversity, hubdrive.pics skipped (login-gated 401), Tailwind 'gap-2 mb-3' false-size trap avoided \u2014 movie Inception 6 cards incl 2160p 65.95GB REMUX in 1.4s, BB S05E01 3 episode cards 1.3s. (2) FourKHDHub.js (4khdhub.link) now 301s to 4khdhub.one \u2014 ported to the same shared scraper, keeps own id/labels; both registrations deliver. (3) uhdmovies/bollyflix/stellar/stellarrip 0s were TRANSIENT upstream windows (gateway flakes, gdflix CF, stellar availability flickers) that the 60s negative cache then amplified \u2014 new shared withRetryOnEmpty() wrapper (1 bounded retry, elapsed-guarded) wired into all 4 wrappers; all 4 verified delivering on production again (bollyflix 5, stellarrip 5, stellar 2 incl Orbit 4K, uhdmovies 2160p 17.5GB). bollyflix root cause class proven: dl.fastdlserver\u2192new4.gdflix.io CF-blocks Render native fetch (403 Just-a-moment) while got-scraping passes. (4) CineFreak REVIVED (deleted in Task 19): cinefreak.net alive, /?s= is now a JS shell over search-api.php (JSON results with slug+title+quality); posts embed generate.php?id={b64} \u2192 new5.cinecloud.site/f/{id}newgo32; /w/{id} page carries the DIRECT video-downloads.googleusercontent.com URL anonymously (cold-cache fallback: POST /d/{id} CSRF + hex-encoded status API poll); cinecloud CF-challenges undici (403) but passes got-scraping/curl \u2014 fetchPage uses got-scraping primary + curl fallback; movies get 3 qualities (480p/720p/1080p), TV combo-packs parse bare anchors w/ quality-in-link-text, year gate movies-only (site uses air-years for TV), season bonus matching, parallel resolve. (5) uhdmovies/bollyflix/fourkhdhubone join PRIORITY_SOURCE_IDS wave-1. (6) Baseline: source count 70\u219271 + 3 new Task-38 guards (fourkhdhubone/4khdhub Inception >= 3, cinefreak >= 2). VERIFIED sandbox: /stream tt1375666 184 cards all 7 targets present; playability probes \u2014 cinefreak/uhdmovies(4K 17.5GB)/bollyflix 206+MATROSKA via range-proxy, stellar 4K + stellarrip valid HLS m3u8, 4khdhub 2160p REMUX 206+EBML on 4/5 mirrors; baseline 39 PASS / 0 FAIL (animotvslash EXTERNAL skip unchanged)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/ba2c2f07b68e635d8b3d8db055368f5432981606"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "videasy",
+      "label": "VidEasy",
+      "disposition": "unresolved",
+      "note": "Current references still depend on the shared speedracelight seed/backend or generic embed fallback. Fresh seed requests return 502; targeted SDK resolves are empty or time out. Newer codec samples did not establish an accessible replacement backend.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-21T05:04:20Z",
+      "references": [
+        {
+          "path": "src/nuvio/videasy.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/videasy.cjs",
+          "recent_commits": [
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "aeab3e670aaae86816f86a28baa9c5a8ecb8521c",
+              "date": "2026-09-09T05:44:50Z",
+              "message": "c93e87db-7296-4a18-bbb6-0ea0f660a32c",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/aeab3e670aaae86816f86a28baa9c5a8ecb8521c"
+            },
+            {
+              "sha": "552b857d8eb72e479df2e6ef986c1eed82622b43",
+              "date": "2026-09-09T05:11:34Z",
+              "message": "640e206a-9411-4435-93dc-e6f18623874e",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/552b857d8eb72e479df2e6ef986c1eed82622b43"
+            }
+          ]
+        },
+        {
+          "path": "src/source/VidEasy.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/VidEasy.js",
+          "recent_commits": [
+            {
+              "sha": "207dd9467360c0136a10b0c1ec7a4da4616489e0",
+              "date": "2026-09-21T05:04:20Z",
+              "message": "Task 73: speedracelight outage fast-fail (scoped 120s, self-recovering, 3 layers: srlSeed store + cineby/videasy wrappers + fetchSeed client) \u2014 frees wave-0 slots during the confirmed vidking outage; baseline guard truthful updates (72 sources, movieblast re-port, outage-aware cineby, network-aware videasyto) 42/0",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/207dd9467360c0136a10b0c1ec7a4da4616489e0"
+            },
+            {
+              "sha": "5fd31a85164fbb1e97603658066fef02f03cbb7b",
+              "date": "2026-09-15T00:19:20Z",
+              "message": "Task 31: fix moviesdrive/videasy/videasy.to zero-stream failures in production \u2014 moviesdrivev2 added to PRIORITY_SOURCE_IDS (queue time on Render 0.1-CPU instances pushed its 8-hop chain past the 35s SOURCE_TIMEOUT every request), retry-on-empty added to MoviesDriveV2 wrapper (2 bounded retries, chain fails fast ~2-5s), VidEasy wrapper race 45s->30s (beyond resolver 35s cutoff the retry loop could never deliver). Verified: all three sources deliver cards with 4K on movie+series production paths (Endgame 4K mkv via range-proxy + 2160p HLS via /proxy with vidking referer rewrite), /debug/stream shows queueMs=0 status=ok for all three, baseline 36 PASS / 0 FAIL",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5fd31a85164fbb1e97603658066fef02f03cbb7b"
+            },
+            {
+              "sha": "937fd83fdea86d6615994fd38b39fdb5d15ae5c8",
+              "date": "2026-09-12T06:43:38Z",
+              "message": "Fix videasy/videasyto: retry empty sweeps + drop rejected Referer on vimeos-backed streams\n\n- videasyto.cjs + VidEasy.js: retry (max 2) when a speedracelight sweep\n  returns 0 streams \u2014 upstream servers 404/500 stochastically per run\n  (verified: consecutive sweeps landed Nitrogen-only / Hydrogen-only),\n  so one empty sweep zeroed both source cards at once\n- nuvioHelpers.js: add *.vimeos.zip to NO_REFERER_HOSTS \u2014 the vidsrc-\n  family CDN (backs speedracelight m4uhd-server streams) has an inverted\n  hotlink gate: deterministic 403 on Referer: vidking.net (stamped on\n  every stream by the scraper), 200 with no Referer. Those cards now\n  ship as direct HLS and play (master 200 / variant 200 / segment 206\n  MPEG-TS verified live)\n\nZero-breakage: regression 12/12, decrypt 35/35, boot 71/30 clean",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/937fd83fdea86d6615994fd38b39fdb5d15ae5c8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "videasyto",
+      "label": "VideasyTo",
+      "disposition": "unresolved",
+      "note": "Current references still depend on the shared speedracelight seed/backend or generic embed fallback. Fresh seed requests return 502; targeted SDK resolves are empty or time out. Newer codec samples did not establish an accessible replacement backend.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-16T22:30:12Z",
+      "references": [
+        {
+          "path": "src/nuvio/videasyto.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/videasyto.cjs",
+          "recent_commits": [
+            {
+              "sha": "8dc6cdf43ed6c6e499beac053f6952d34c2bd6fc",
+              "date": "2026-09-13T21:58:02Z",
+              "message": "Task 22: videasyto fast-sweep + all-source deep audit \u2014 3 sources revived, full 68-source verdict matrix\n\nvideasyto speedup (user-requested review):\n- Live-measured latency distribution: every USEFUL speedracelight response\n  lands in 250-400ms; the 9.7-12s tail is pure waste (500s/hangs). First\n  sweep now converges at 8s per-request cap, retries stay patient at 12s;\n  wrapper race 50s->32s (anything past the resolver 35s cutoff is waste).\n- Wall: 127s (pre-Task18) -> 11.5s -> 9s. Count unchanged across 5-round\n  A/B (4-5 vs 12s baseline 4-6). Subtitles verified (24 tracks on Dune 2),\n  stream magic-byte verified (valid HLS master).\n\nAll-source deep verification (68 sources x title matrix, 2-round cross-check):\n- 59/68 return streams; every EMPTY root-caused:\n  * anineko \u2014 upstream MySQL down (SQLSTATE HY000 on site), code fine\n  * peckle/pantyflix \u2014 febbox-cookie class (deployment env / by-design skip)\n  * zxcstream (422 by design) + animezey/vixsrc/dahmermovies/dahmermovies4k/\n    nowhdtime \u2014 do-not-touch list\n- stellar (stellar.gdn): AES key seed rotated upstream again \u2014 re-extracted\n  'iwTL6oi-...:' from live Next.js chunk J() literal (sandbox-decoded the\n  obfuscated string tables to confirm digest+AES-GCM flow, PoW unchanged).\n  /debug 3/3 titles, 1080p Orbit/Nova direct HLS.\n- hindmoviez: double domain migration bridged via fetch shim \u2014 hshare.ink->\n  hshare.lol (public page, sign endpoint dead -> synthetic success),\n  hcloud.ink->hcloud.shop; nested url= decoder reaches workers.dev MKVs.\n  Provider cap 25s->30s (measured 20s scraper + 2s liveness). 8 streams\n  incl 2160p 4K dual-audio, EBML magic verified.\n- moviesdrivev2: hubcloud TLD rotation .cx->.ist \u2014 all hardcoded regexes\n  broadened ([a-z]+), base remembered from fetched links for search/pixel/\n  gpdl. Dune2 resolves to direct googleusercontent.\n- nikastream/animesdigital/reanime/hdhub4uv2: false alarms (wrong matrix\n  titles round-1) \u2014 pass with proper titles.\n\nZero-breakage: boot 68/30 clean, final_regression 12/12 (cinehdplus probe\nhealthy this round), decrypt 35/35, no removed-source leakage.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/8dc6cdf43ed6c6e499beac053f6952d34c2bd6fc"
+            },
+            {
+              "sha": "8cda8ef14590556a11e20d14e71cc5a7fc1aec53",
+              "date": "2026-09-13T07:16:54Z",
+              "message": "Task 18: revive 8 broken sources \u2014 megaplay decrypt, anichan.to session, movieshunt lookup API, streamxtv embed gate, videasyto deadline\n\n- movieshuntv2: movieshunt.casa search moved to /lookup.php JSON API (/?s= now\n  301s to a JS page) \u2014 swap searchSite() to the new endpoint with legacy HTML\n  fallback. BB S1E1 18 streams; current titles up to 2160p pixeldrain (206\n  verified). Old-title abhilinks archives remain upstream-dead (documented).\n- megaplay family (anikoto/anikage/2dhive/anidoor/animesuge/anikototv/allwish/\n  streamxtv-anime): megaplay.buzz getSources(New) now returns an encrypted\n   blob instead of plaintext sources.file. New src/nuvio/megaplay_decrypt.cjs\n  decrypts AES-256-CBC (key/IV from the site's own newclient.min.js) and ships\n  the m3u8 DIRECT (CDN hard-403s datacenter IPs \u2014 player-IP fetch only) with\n  the API's multi-language subtitle tracks attached (7 langs verified).\n  Megaplay extractor Step-4 page-through-proxy poison removed (returns []).\n- animesuge: joined NUVIO_SOURCE_IDS (its decrypted nexabloom m3u8 matched no\n  extractor and was silently dropped); nexabloom/vyrnex added to\n  NO_REFERER_HOSTS so decrypted m3u8s ship direct instead of /proxy-403.\n- anichan: anichan.net 301s to anichan.to whose /api/watch endpoints are now\n  session-gated \u2014 POST /api/watch/session (empty Turnstile token OK) yields\n  the anichan_ws cookie; cached and attached to /api/watch calls. Title\n  matcher gained a first-word equality rule (TMDB 'Naruto Shipp\u016bden' vs\n  AniList 'Naruto: Shippuuden' containment miss). 3 streams (sub+dub) live.\n- streamxtv: NuvioExtractor ships non-media embed-page URLs raw (vidsrc-embed.ru\n  HTML = guaranteed mpv error). New EMBED_PAGE_HOST_PATTERN bypass returns []\n  so the registry fallback chain resolves via Megaplay/VidSrc/Vidzee/VidKing;\n  unresolvable ones drop cleanly. Primary framextv sweep verified live.\n- videasyto: speedracelight per-request 12s deadline via transparent fetch\n  shim \u2014 verified live hang of 127s on one server stalled the whole sweep past\n  the deadline; shim turns it into a caught per-server failure. Endgame sweep\n  127s -> 13s, 4 streams.\n- Verified unchanged/healthy: stellarrip (5 streams, flaky PoW windows),\n  animeworldindia/animeflix (alive, zephyrix ~1/3 per-IP rate limit),\n  movieblast + bollyflix (upstream CDN delivery dead/CF-gated server-side \u2014\n  documented, no code fix possible), anidb.app 503 (service dying), flystream\n  (Anubis PoW WAF), vixsrc (code-disabled MediaFlow stub), zxcstream (upstream\n  IP-block by design).\n\nZero-breakage: boot 71/30 clean; regression 11/12 (cinehdplus m3u8 probe 403 =\nvimeos IP rate-limit after audit hammering, code path unchanged); decrypt\n35/35; Endgame 122 / BB 103 streams; playability sweep: StreamXTV/MoviesHunt/\nVideasy.to now HLS/VIDEO, zero megaplay poison cards.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/8cda8ef14590556a11e20d14e71cc5a7fc1aec53"
+            },
+            {
+              "sha": "937fd83fdea86d6615994fd38b39fdb5d15ae5c8",
+              "date": "2026-09-12T06:43:38Z",
+              "message": "Fix videasy/videasyto: retry empty sweeps + drop rejected Referer on vimeos-backed streams\n\n- videasyto.cjs + VidEasy.js: retry (max 2) when a speedracelight sweep\n  returns 0 streams \u2014 upstream servers 404/500 stochastically per run\n  (verified: consecutive sweeps landed Nitrogen-only / Hydrogen-only),\n  so one empty sweep zeroed both source cards at once\n- nuvioHelpers.js: add *.vimeos.zip to NO_REFERER_HOSTS \u2014 the vidsrc-\n  family CDN (backs speedracelight m4uhd-server streams) has an inverted\n  hotlink gate: deterministic 403 on Referer: vidking.net (stamped on\n  every stream by the scraper), 200 with no Referer. Those cards now\n  ship as direct HLS and play (master 200 / variant 200 / segment 206\n  MPEG-TS verified live)\n\nZero-breakage: regression 12/12, decrypt 35/35, boot 71/30 clean",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/937fd83fdea86d6615994fd38b39fdb5d15ae5c8"
+            }
+          ]
+        },
+        {
+          "path": "src/source/VideasyTo.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/VideasyTo.js",
+          "recent_commits": [
+            {
+              "sha": "2d8291467744d57229fb55002a0a3f7917b1b2a7",
+              "date": "2026-09-16T22:30:12Z",
+              "message": "Task 43: fix 'only 7-8 sources show streams' \u2014 three-wave scheduling + in-flight dedupe. DIAGNOSIS (production isolated runs, Sep 2026): wave-1 held 23 sources, many slow or zero-yield (stellarrip drought 22.8s/0, cinejoyaio crypto 0, anineko DB outage, nikastream 20-30s) \u2014 on Render 0.1 CPU with 10 slots they hogged the entire 15s cold budget while fast productive sources (raflix 7@2.1s, cinewave 46@1.5s, hdhub4uv2 6@4.1s, movieshuntv2 5@10.1s) queued behind and never started; cold request settled ~11 sources at ~46% deliver yield \u2192 user saw 7-8 sources. FIX: (1) data-driven three-wave scheduling \u2014 wave-0 ORDERED light-first (moviebox/vidlink2/vidfast/vidking/vidsrcsbs/vegamovies \u2192 proven cold landers 4khdhub/fourkhdhubone/playimdb/cineby/hdhub4uv2/acermovies \u2192 heavy aggregators necro/watchseries/cinewave last), wave-1 medium (8-16s: movieshuntv2/streamxtv/moviesdrivev2/uhdmovies/bollyflix/stellar/... \u2014 partial cold landing, rest cache), wave-2 background-only (stellarrip/cinejoyaio/desiflix/videasyto Playwright/verhdlink/movix/persianstremio \u2014 never landed cold anyway); anime-only sources type-aware: wave-1 for series (primary anime deliverers), wave-2 for movies (anime movies covered by general wave-0/1 sources). Slot churn verified locally: movie 9 settled/9 delivering (was ~46% yield), Frieren S1E1 34 settled/23 delivering incl 7 anime sources cold. (2) Source.handle in-flight dedupe \u2014 a new request for the same title now SHARES the background continuation's running scrape instead of double-scratching (halved effective CPU on every retry/race; unit-tested: concurrent share, cache-after-settle, error-share + retry, sequential-during-inflight). Final card order unaffected (urlResults re-sorted by height/bytes/priority). Baseline STREAM_CLIENT_BUDGET_MS=40000 \u2192 41 PASS / 0 FAIL. Zero-breakage: do-not-touch (dahmermovies, dahmermovies4k, vixsrc, zxcstream, nowhdtime, animezey) code untouched (wave assignment is resolver-level only); Task 36 budget architecture untouched (partial contract intact, totalMs 15011).",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/2d8291467744d57229fb55002a0a3f7917b1b2a7"
+            },
+            {
+              "sha": "8dc6cdf43ed6c6e499beac053f6952d34c2bd6fc",
+              "date": "2026-09-13T21:58:02Z",
+              "message": "Task 22: videasyto fast-sweep + all-source deep audit \u2014 3 sources revived, full 68-source verdict matrix\n\nvideasyto speedup (user-requested review):\n- Live-measured latency distribution: every USEFUL speedracelight response\n  lands in 250-400ms; the 9.7-12s tail is pure waste (500s/hangs). First\n  sweep now converges at 8s per-request cap, retries stay patient at 12s;\n  wrapper race 50s->32s (anything past the resolver 35s cutoff is waste).\n- Wall: 127s (pre-Task18) -> 11.5s -> 9s. Count unchanged across 5-round\n  A/B (4-5 vs 12s baseline 4-6). Subtitles verified (24 tracks on Dune 2),\n  stream magic-byte verified (valid HLS master).\n\nAll-source deep verification (68 sources x title matrix, 2-round cross-check):\n- 59/68 return streams; every EMPTY root-caused:\n  * anineko \u2014 upstream MySQL down (SQLSTATE HY000 on site), code fine\n  * peckle/pantyflix \u2014 febbox-cookie class (deployment env / by-design skip)\n  * zxcstream (422 by design) + animezey/vixsrc/dahmermovies/dahmermovies4k/\n    nowhdtime \u2014 do-not-touch list\n- stellar (stellar.gdn): AES key seed rotated upstream again \u2014 re-extracted\n  'iwTL6oi-...:' from live Next.js chunk J() literal (sandbox-decoded the\n  obfuscated string tables to confirm digest+AES-GCM flow, PoW unchanged).\n  /debug 3/3 titles, 1080p Orbit/Nova direct HLS.\n- hindmoviez: double domain migration bridged via fetch shim \u2014 hshare.ink->\n  hshare.lol (public page, sign endpoint dead -> synthetic success),\n  hcloud.ink->hcloud.shop; nested url= decoder reaches workers.dev MKVs.\n  Provider cap 25s->30s (measured 20s scraper + 2s liveness). 8 streams\n  incl 2160p 4K dual-audio, EBML magic verified.\n- moviesdrivev2: hubcloud TLD rotation .cx->.ist \u2014 all hardcoded regexes\n  broadened ([a-z]+), base remembered from fetched links for search/pixel/\n  gpdl. Dune2 resolves to direct googleusercontent.\n- nikastream/animesdigital/reanime/hdhub4uv2: false alarms (wrong matrix\n  titles round-1) \u2014 pass with proper titles.\n\nZero-breakage: boot 68/30 clean, final_regression 12/12 (cinehdplus probe\nhealthy this round), decrypt 35/35, no removed-source leakage.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/8dc6cdf43ed6c6e499beac053f6952d34c2bd6fc"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vixsrc",
+      "label": "VixSrc",
+      "disposition": "repaired",
+      "note": "Replaced fabricated empty-token playlist with the current API \u2192 signed embed \u2192 HLS flow; verifies and selects English audio. Ten movie/TV samples pass.",
+      "current_checks": 20,
+      "current_playback_passes": 10,
+      "movie_tv_passes": 10,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "played": 10,
+        "empty": 10
+      },
+      "latest_reference_change": "2026-09-17T22:01:45Z",
+      "references": [
+        {
+          "path": "src/source/VixSrc.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/VixSrc.js",
+          "recent_commits": [
+            {
+              "sha": "c52bd5d920555bc79bd1b5c8f28f7664cad80ba3",
+              "date": "2026-09-17T22:01:45Z",
+              "message": "Task 51: fix all zero-stream sources \u2014 hdhub4u hblinks.lol funnel rotation (TLD-agnostic), vixsrc revival (playlist API + player-IP proxyHeaders, was structurally dead since port), pantyflix Fetcher transport (h2 GOAWAY instant-fail), kmmovies got-scraping CF fallback (magiclinks Render gate), GOAWAY retries (raflix/imdbplay/bollyflix), VidKing shared-cache title-poisoning fix (Mutiny card)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/c52bd5d920555bc79bd1b5c8f28f7664cad80ba3"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "2c972b9e4205883ed57aa410131db1b6732d8b05",
+              "date": "2026-08-26T16:06:36Z",
+              "message": "e555ddcf-f9ac-469b-a269-3de67bc88f43",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/2c972b9e4205883ed57aa410131db1b6732d8b05"
+            }
+          ]
+        },
+        {
+          "path": "src/providers/sources/vixsrc.py",
+          "url": "https://github.com/J0hnBloodborne/Nautilus/blob/5f990b112d2acb32f3d64862358aee614b16eead/src/providers/sources/vixsrc.py",
+          "recent_commits": [
+            {
+              "date": "2026-07-01T21:32:45Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zxcstream",
+      "label": "ZXCStream",
+      "disposition": "unresolved",
+      "note": "September dynamic fields/token/CryptoJS protocol was already ported. Three fresh SDK lookups are empty; no newer working protocol change was found.",
+      "current_checks": 20,
+      "current_playback_passes": 0,
+      "movie_tv_passes": 0,
+      "movie_tv_checks": 10,
+      "current_statuses": {
+        "empty": 20
+      },
+      "latest_reference_change": "2026-09-25T21:14:06Z",
+      "references": [
+        {
+          "path": "src/nuvio/zxcstream.cjs",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/nuvio/zxcstream.cjs",
+          "recent_commits": [
+            {
+              "sha": "a85e9ba258fb971fb284ec0c42f0b8160217a6be",
+              "date": "2026-09-25T21:14:06Z",
+              "message": "Task 93 fix2: zxcstream sentinel timeout 12s\u219218s \u2014 live-measured sentinel flap 200(fast)\u2192502\u2192500 with 14-16.5s latency while their origin struggles; 12s cap turned slow-but-alive windows into status-0 zeros (prod-vantage rawfetch confirmed token 200 @361ms then sentinel timeout at 12s from Render egress). 18s fits the 35s budget (token ~0.3-2s + attestation ~2s). Guard 45/1 unchanged.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/a85e9ba258fb971fb284ec0c42f0b8160217a6be"
+            },
+            {
+              "sha": "76f3934126e29d6dfd5a22d438e74cdfaf41e553",
+              "date": "2026-09-25T21:03:50Z",
+              "message": "Task 93: verify Task 92 fixes on prod + zxcstream 6th token-route rotation fix. Prod verified: Naruto 112 cards / 17 anime / 6 brands, Shippuden 28+, hubcloud download cards direct-playable (FSL R2 206, pixeldrain 206 inline, workers.dev direct+headers), 0 pixeldrain-?download / 0 external / 0 hubcloud page URLs, unlimplay extractor live (34), guard 45/1 (cinefreak sandbox class). /status triage of 14 non-delivering: 6 already self-recovered (movieblast/moviesdrivev2/raflix/vegamovies2/desiflix/pantyflix), animeflix fine on anime (Frieren 2), netlio = upstream data store shrunk to 799 titles (honest), nowhdtime = nhdapi added server-held API key (needs future RE), zxcstream FIXED: all /backend/* routes 404/302\u2192404 \u2014 new route /backend_/tanginamogagotarantado (chunk 039fto~pe9a.s.js), protocol unchanged (5-field body still required \u2014 3-field=400), sentinel 502 flap self-healed mid-task, E2E local 1 stream on both probes.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/76f3934126e29d6dfd5a22d438e74cdfaf41e553"
+            },
+            {
+              "sha": "a6926becb0094282285f0f4365b79d394a723e65",
+              "date": "2026-09-24T16:49:08Z",
+              "message": "Task 86: fix 4 of the 12 zero sources \u2014 Atlantic Helios protocol + gate-a seed rotation, ZXCStream ololmo route, CineHDPlus vimeus-outage fallback chain, MeineCloud 30s tarpit timeout; verhdlink no-throw retry",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/a6926becb0094282285f0f4365b79d394a723e65"
+            }
+          ]
+        },
+        {
+          "path": "src/source/ZXCStream.js",
+          "url": "https://github.com/SaugatXthaa/PhoeniX/blob/f882b5a5246620c2b5218e1aa0dca6157815ec00/src/source/ZXCStream.js",
+          "recent_commits": [
+            {
+              "sha": "e65e5b75c88b3784c56446f1f9bdd87af41441d0",
+              "date": "2026-09-18T08:47:40Z",
+              "message": "Task 55: Atlantic lands in-budget (Fetcher transport + deadline + unified subs) + ZXCStream new protocol, player-page card removed\n\nAtlantic (production zero-cards fix):\n- All upstream GETs route through the addon Fetcher (family:4, got-scraping\n  CF fallback) \u2014 bare undici fetch stalls on Render during resolve storms\n  (Task 55 measured: inline natsuki 2x5s dead while Fetcher path returned 48).\n- Inline granite/natsuki subtitle stages REMOVED \u2014 StreamResolver's unified\n  stack (siteSubtitles.cjs) runs the SAME providers once per title and merges\n  into EVERY source's cards (user contract: one subtitle provider set for\n  movies/series/kdramas/animes).\n- Shared 10.5s deadline races every stage so getStreams always RETURNS inside\n  the 13s client budget instead of being truncated to zero cards.\n- Datacenter-gated (workers.dev) master-fetch failures now ship one advisory\n  direct card (429-from-our-IP class, Task 48/41/44) \u2014 strict validation kept\n  for non-gated hosts.\n- Wrapper empty-retry skipped when first attempt exceeds 8s.\n\nZXCStream (mpv error fix):\n- Protocol RE'd from the deployed bundle: new SECRET 23423653, obfuscated\n  FIELD_MAP, /backend/a1b2c3 token POST (requires relative path + mediaType;\n  verified 200 live), sentinel with hashed params.\n- Player-PAGE fallback card REMOVED \u2014 an HTML URL shipped as a stream was a\n  guaranteed mpv error (user report). Only server-extracted real media ships;\n  honest zero when their backend is down (it is mid-migration today: token\n  route flapping 200/404, sentinel 502 site-wide, their own frontend 400s).\n\nVerified: baseline 43 PASS / 0 FAIL; local full resolve 138 cards, Atlantic\n2160p card present, 0 html cards, 138/138 cards carry unified subs.",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/e65e5b75c88b3784c56446f1f9bdd87af41441d0"
+            },
+            {
+              "sha": "5ac7cfce2a973350592334b1d880fd584d5bef7e",
+              "date": "2026-09-11T06:27:39Z",
+              "message": "Remove filmeonlinehd/antova/cuevana; fix upstream-changed sources; harden & document\n\nRemoval (74 -> 71 sources, zero leakage):\n- Delete src/source/{FilmeOnlineHD,Antova,Cuevana}.js + src/extractor/Antova.js\n- Clean src/source/index.js registrations; no refs left in NUVIO_SOURCE_IDS / PRIORITY_SOURCE_IDS\n\nUpstream fixes (direct playable streams):\n- animeflix: migrate to 9animes.me.uk (identical WP structure) - baseUrl switch only\n- kmmovies: handle new magiclinks host set (hubcloud/gdflix/gdtot/filepress), lazy-resolved by HubExtractor\n- cinehdplus: POST form search + vimeus.com per-episode embeds; vimeos.net added to FileMoon hosts\n- HubCloud: apply JS href overrides to defeat DMCA decoy worker pages (benefits all hubcloud-backed sources)\n\nInfrastructure (Tasks 3-6):\n- StreamXTV + FrameX 20-provider catalogs, audioTracks wired end-to-end\n- src/utils/site-secrets.cjs: centralized env-overridable secrets (byte-identical behavior)\n- src/utils/stream-decrypt.cjs + cf-fetch.cjs + /proxy?xor= selective decrypt pipeline\n- docs/SOURCE_ONBOARDING.md onboarding guide\n\nVerified: boot 71/30 clean; tt4154796 = 109 streams; tt0903747 = 84; kmmovies hubcloud 15; decrypt suite 35/35; secrets suite all pass",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/5ac7cfce2a973350592334b1d880fd584d5bef7e"
+            },
+            {
+              "sha": "9ee37d7c7af4ebc3fed118ffd05bfdcb8acf32fc",
+              "date": "2026-08-18T16:42:27Z",
+              "message": "Re-add 5 sources from uploaded Nuvio scrapers (cinejoy, hdhub4u, uhdmovies, zxcstream, animezey)\n\nAdded 5 sources using uploaded Nuvio-style scraper files. Each scraper is a\nCommonJS module placed in src/nuvio/*.cjs, wrapped by a Source class in\nsrc/source/*.js that calls callNuvioProvider + buildStreamResults.\n\nSources added:\n  1. cinejoy (cinejoy.cjs) \u2014 movies/series via HdHub addon resolve endpoint\n     Returns 4 HLS m3u8 streams per movie (4K HEVC, 1080p, 720p, 480p) from\n     hdhub.thevolecitor.qzz.io/resolve/cj/tmdb/{id}/{quality}.m3u8\n     Verified: 4 streams with enriched metadata (height=2160/1080/720/480)\n\n  2. hdhub4u (hdhub4u.cjs) \u2014 movies/series via new1.hdhub4u.af search\n     Parses quality headings (h3/h4/h5) and extracts hubcloud/hubcdn/\n     pixeldrain/gdrive download links. hub_extractor.cjs stub is a\n     passthrough \u2014 lets HubExtractor/HubCloud/DirectStream handle resolution\n     downstream.\n     Verified: 10 streams for Avatar (hubcloud.cx \u2192 gpdl.hubcloud.cx CDN,\n     /extract returns 302 to playable URL)\n\n  3. uhdmovies (uhdmovies.cjs) \u2014 movies-only via googleusercontent direct URLs\n     Obfuscated scraper (23KB) that resolves driveseed.org gateway \u2192 direct\n     GDrive URLs from video-downloads.googleusercontent.com.\n     Verified: 7 streams for Avatar, 6 for Matrix, 3 for Titanic\n     (/extract returns 302 to playable googleusercontent URL)\n\n  4. zxcstream (zxcstream.cjs) \u2014 movies/series via player.zxcstream.xyz\n     Generates sha512 auth token, calls /backend/token + /backend_/embed/sentinel\n     to get embed URL. Falls back to embed page URL.\n     Returns 1 stream (embed URL) \u2014 may need dedicated extractor for full\n     resolution.\n\n  5. animezey (animezey.cjs) \u2014 anime-only sub+dub via workers.dev\n     Obfuscated scraper (47KB) with worker domain rotation.\n     Workers may be rate-limited (429) from some IPs.\n\nFiles added (11):\n  Sources: ZXCStream.js, Cinejoy.js, AnimeZeY.js, UHDMovies.js, HDHub4u.js\n  Scrapers: zxcstream.cjs, cinejoy.cjs, animezey.cjs, uhdmovies.cjs, hdhub4u.cjs\n  Stub: hub_extractor.cjs (passthrough for hdhub4u)\n\nFiles edited (2):\n  src/source/index.js \u2014 added 5 imports + 5 constructor calls\n  src/extractor/NuvioExtractor.js \u2014 added 4 source IDs to NUVIO_SOURCE_IDS\n    (zxcstream, cinejoy, animezey, uhdmovies \u2014 NOT hdhub4u which uses\n    HubExtractor/HubCloud downstream)\n\nFixes applied to uploaded files:\n  - hdhub4u.cjs: fixed broken '$('aref]')' selectors \u2192 '$('a[href]')' (3 occurrences)\n    The '[h' was stripped during file upload (terminal escape artifact).\n  - hdhub4u.cjs: replaced 'cheerio-without-node-native' with 'cheerio' (standard)\n  - hdhub4u.cjs: updated require path './hub_extractor.js' \u2192 './hub_extractor.cjs'\n\nNo regressions:\n  - Server boots cleanly (77 sources, 37 extractors)\n  - /stream/movie/tmdb:19995.json returns 135 streams (no decrease)\n  - All previously-working sources unchanged\n  - hdhub4u hubcloud URLs resolved by existing HubCloud extractor (302 \u2192 CDN)\n  - uhdmovies googleusercontent URLs resolved by DirectStream (302 \u2192 direct)",
+              "url": "https://github.com/SaugatXthaa/PhoeniX/commit/9ee37d7c7af4ebc3fed118ffd05bfdcb8acf32fc"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": "2026-10-02-provider-diagnostics.json",
+  "full_rechecks": [
+    "2026-10-02-matrix/report.json",
+    "2026-10-02-netlio-recheck/report.json"
+  ],
+  "private_evidence_directory": "/tmp/vsources-zero-research-20261002"
+}

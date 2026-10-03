@@ -1,0 +1,1436 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-10-03T03:42:38.360415+00:00",
+  "case_manifest": "/mnt/ALPH/code/vsources/docs/audits/provider-matrix-cases.json",
+  "manifest_sha256": "93409fca7f0f107fba6bd6306b28fee330bc93aeb1366a5b949c1fc173ab77ee",
+  "complete": true,
+  "expected": 20,
+  "finished": 20,
+  "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+  "binary_builds": [
+    "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6"
+  ],
+  "configured_env": [
+    "TMDB_API_KEY"
+  ],
+  "providers": [
+    {
+      "base_url": "https://netlio.vercel.app/",
+      "content_types": [
+        "Movie",
+        "Series"
+      ],
+      "country_codes": [
+        "Multi",
+        "Hi",
+        "En"
+      ],
+      "domain_key": null,
+      "id": "netlio",
+      "label": "Netlio",
+      "priority": 0
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "casablanca",
+      "category": "movie",
+      "title": "Casablanca",
+      "tmdb": 289,
+      "year": 1942,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "matrix",
+      "category": "movie",
+      "title": "The Matrix",
+      "tmdb": 603,
+      "year": 1999,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "inception",
+      "category": "movie",
+      "title": "Inception",
+      "tmdb": 27205,
+      "year": 2010,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "dune-2",
+      "category": "movie",
+      "title": "Dune: Part Two",
+      "tmdb": 693134,
+      "year": 2024,
+      "era": "recent",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "sinners",
+      "category": "movie",
+      "title": "Sinners",
+      "tmdb": 1233413,
+      "year": 2025,
+      "era": "recent",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "twilight-zone",
+      "category": "series",
+      "title": "The Twilight Zone",
+      "tmdb": 6357,
+      "year": 1959,
+      "era": "classic",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    },
+    {
+      "case_id": "friends",
+      "category": "series",
+      "title": "Friends",
+      "tmdb": 1668,
+      "year": 1994,
+      "era": "classic",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    },
+    {
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "title": "Breaking Bad",
+      "tmdb": 1396,
+      "year": 2008,
+      "era": "classic",
+      "kind": "series",
+      "season": 2,
+      "episode": 1,
+      "episode_year": null
+    },
+    {
+      "case_id": "severance-s2",
+      "category": "series",
+      "title": "Severance",
+      "tmdb": 95396,
+      "year": 2022,
+      "era": "recent",
+      "kind": "series",
+      "season": 2,
+      "episode": 1,
+      "episode_year": 2025
+    },
+    {
+      "case_id": "last-of-us-s2",
+      "category": "series",
+      "title": "The Last of Us",
+      "tmdb": 100088,
+      "year": 2023,
+      "era": "recent",
+      "kind": "series",
+      "season": 2,
+      "episode": 1,
+      "episode_year": 2025
+    },
+    {
+      "case_id": "cowboy-bebop",
+      "category": "anime",
+      "title": "Cowboy Bebop",
+      "tmdb": 30991,
+      "year": 1998,
+      "era": "classic",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    },
+    {
+      "case_id": "death-note",
+      "category": "anime",
+      "title": "Death Note",
+      "tmdb": 13916,
+      "year": 2006,
+      "era": "classic",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    },
+    {
+      "case_id": "aot-s3",
+      "category": "anime",
+      "title": "Attack on Titan",
+      "tmdb": 1429,
+      "year": 2013,
+      "era": "classic",
+      "kind": "series",
+      "season": 3,
+      "episode": 2,
+      "episode_year": 2018
+    },
+    {
+      "case_id": "frieren",
+      "category": "anime",
+      "title": "Frieren: Beyond Journey’s End",
+      "tmdb": 209867,
+      "year": 2023,
+      "era": "recent",
+      "kind": "series",
+      "season": 1,
+      "episode": 2,
+      "episode_year": null
+    },
+    {
+      "case_id": "solo-leveling-s2",
+      "category": "anime",
+      "title": "Solo Leveling",
+      "tmdb": 127532,
+      "year": 2024,
+      "era": "recent",
+      "kind": "series",
+      "season": 2,
+      "episode": 1,
+      "episode_year": 2025
+    },
+    {
+      "case_id": "akira",
+      "category": "anime_movie",
+      "title": "Akira",
+      "tmdb": 149,
+      "year": 1988,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "spirited-away",
+      "category": "anime_movie",
+      "title": "Spirited Away",
+      "tmdb": 129,
+      "year": 2001,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "your-name",
+      "category": "anime_movie",
+      "title": "Your Name.",
+      "tmdb": 372058,
+      "year": 2016,
+      "era": "classic",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "suzume",
+      "category": "anime_movie",
+      "title": "Suzume",
+      "tmdb": 916224,
+      "year": 2022,
+      "era": "recent",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    },
+    {
+      "case_id": "boy-heron",
+      "category": "anime_movie",
+      "title": "The Boy and the Heron",
+      "tmdb": 508883,
+      "year": 2023,
+      "era": "recent",
+      "kind": "movie",
+      "season": null,
+      "episode": null,
+      "episode_year": null
+    }
+  ],
+  "settings": {
+    "source_timeout": 35,
+    "decode_timeout": 40,
+    "seconds": 8,
+    "cards": 1,
+    "workers": 1,
+    "warm_repeats": 3,
+    "english_dub": true,
+    "warm_playback": true
+  },
+  "methodology": [
+    "First resolve per title in a persistent provider process; shared upstream caches may already be warm from preceding titles.",
+    "HTTP request counts refer to Fetcher request/probe invocations; transport redirects and internal host denial caches are not separately counted.",
+    "Warm calls immediately reuse the same CachedSource instance. HTTP request counts distinguish cache reuse from retry or negative caching.",
+    "FFmpeg progress reports bound first-frame timing to the first positive progress sample; this is headless decode, not device rendering.",
+    "Playback requires video frames, near-full requested duration, decoded audio, and process exit zero.",
+    "Known anime-only catalogs returning media for non-anime requests are marked wrong_catalog and excluded from recommendations. Transport decoding evidence is retained.",
+    "Audio language tags and SDK dub labels are metadata evidence; spoken language is not independently transcribed in this matrix.",
+    "At most the configured card count is sampled, stopping at first playable card. Unexamined cards are not classified as working.",
+    "Combined first-frame paths are sums of separately measured metadata, source resolve, preceding failed decode attempts and successful startup.",
+    "Header recovery is a controlled diagnostic on the same URL. Recovered results do not qualify for the generated environment until fixed in the SDK.",
+    "Repeat playback starts a fresh FFmpeg process with the selected cached signed URL; its player/CDN timing is distinct from immediate source-cache latency.",
+    "Each playback host is decoded serially; host queue time is recorded separately. Unsupported categories are attempted, not silently skipped."
+  ],
+  "fast_dub_compatible": [],
+  "rows": [
+    {
+      "provider": "netlio",
+      "case_id": "casablanca",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.050491+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 49.882155,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 79.20130999999999,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.017255,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0070480000000000004,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006861,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.0070480000000000004,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 139.425,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "matrix",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.129914+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 14.278498,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 64.787073,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.017065999999999998,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0068000000000000005,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.00631,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.0068000000000000005,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 79.401,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.196527+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 13.752633,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 52.489813000000005,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.017737999999999997,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006849,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006562,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.006849,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 66.598,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "dune-2",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.266809+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 13.902756,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 56.02202,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.017174,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0066159999999999995,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006347,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.0066159999999999995,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 70.261,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "sinners",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.342403+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 13.966602,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 61.309168,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.014353,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002049,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.001511,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002049,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 75.58,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "twilight-zone",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.453973+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 48.008851,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 63.23192399999999,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012468,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002285,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.001657,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002285,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 111.551,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "friends",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.523507+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 13.795892,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 55.429618,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.013347,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002467,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.00164,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002467,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 69.521,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "breaking-bad-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.634569+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 14.47068,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 96.209951,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.018406,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006824,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0065509999999999995,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.006824,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 111.049,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "severance-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.703775+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 14.229594,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 54.623471,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.018021,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006934,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006599,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.006934,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 69.19,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "last-of-us-s2",
+      "category": "series",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T03:42:35.812282+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 41.15944,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 66.98800800000001,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.018882999999999997,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0068850000000000005,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006471,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.0068850000000000005,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 108.496,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "cowboy-bebop",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:35.928278+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 43.716349,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 71.910299,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.018681999999999997,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.007154,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.00656,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.007154,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 115.979,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "death-note",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.029780+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 41.16049,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 59.96945,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.018380999999999998,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0070090000000000005,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006829,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.0070090000000000005,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 101.487,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "aot-s3",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.241771+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 50.677648999999995,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 160.803708,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.022241,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002363,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.001722,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002363,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 211.984,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "frieren",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.452399+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 40.759145,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 169.451415,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.016241,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002177,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.001701,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002177,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 210.607,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "solo-leveling-s2",
+      "category": "anime",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.548934+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 42.059749000000004,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 54.076513,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.014998,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.00231,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.001698,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.00231,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 96.511,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "akira",
+      "category": "anime_movie",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.750177+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 38.203656,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 162.62473699999998,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.015387,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0022170000000000002,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.0017430000000000002,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.0022170000000000002,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 201.223,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "spirited-away",
+      "category": "anime_movie",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.861938+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 43.223609,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 68.150656,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.014316,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002067,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.00181,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002067,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 111.743,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "your-name",
+      "category": "anime_movie",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:36.962265+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 43.112848,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 56.782133,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.014755,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002153,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.008263,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.008263,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 100.31,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "suzume",
+      "category": "anime_movie",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:37.167541+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 40.75947,
+      "cold": {
+        "cards": 0,
+        "http_requests": 2,
+        "ms": 164.124819,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.012352,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.002087,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.001534,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.002087,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 205.25,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    },
+    {
+      "provider": "netlio",
+      "case_id": "boy-heron",
+      "category": "anime_movie",
+      "english_dub_required": true,
+      "checked_at": "2026-10-03T03:42:37.359995+00:00",
+      "binary_sha256": "099b1bee68fe7bd5915017c3645813534c1bde989fbaeef420ae4040539c29c6",
+      "metadata_ms": 46.131665000000005,
+      "cold": {
+        "cards": 0,
+        "http_requests": 1,
+        "ms": 145.958473,
+        "status": "empty",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.017564,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006860000000000001,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        },
+        {
+          "cards": 0,
+          "http_requests": 0,
+          "ms": 0.006657,
+          "status": "empty",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.006860000000000001,
+      "streams": [],
+      "decodes": [],
+      "status": "empty",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 192.438,
+      "request_scope_matches": true,
+      "identity_status": "provider_identity_not_independently_viewed",
+      "cache_playback_valid": true
+    }
+  ],
+  "history": [],
+  "summary": [
+    {
+      "id": "netlio",
+      "label": "Netlio",
+      "attempted": 20,
+      "expected": 20,
+      "played": 0,
+      "header_recovered": 0,
+      "cold_median_ms": 65.8875405,
+      "warm_median_ms": 0.006708,
+      "categories": {
+        "movie": {
+          "attempted": 5,
+          "played": 0
+        },
+        "series": {
+          "attempted": 5,
+          "played": 0
+        },
+        "anime": {
+          "attempted": 5,
+          "played": 0
+        },
+        "anime_movie": {
+          "attempted": 5,
+          "played": 0
+        }
+      }
+    }
+  ],
+  "recommendations": {
+    "movie": {
+      "providers": [],
+      "uncovered_cases": [
+        "casablanca",
+        "dune-2",
+        "inception",
+        "matrix",
+        "sinners"
+      ]
+    },
+    "series": {
+      "providers": [],
+      "uncovered_cases": [
+        "breaking-bad-s2",
+        "friends",
+        "last-of-us-s2",
+        "severance-s2",
+        "twilight-zone"
+      ]
+    },
+    "anime": {
+      "providers": [],
+      "uncovered_cases": [
+        "aot-s3",
+        "cowboy-bebop",
+        "death-note",
+        "frieren",
+        "solo-leveling-s2"
+      ]
+    },
+    "anime_movie": {
+      "providers": [],
+      "uncovered_cases": [
+        "akira",
+        "boy-heron",
+        "spirited-away",
+        "suzume",
+        "your-name"
+      ]
+    }
+  }
+}

@@ -174,3 +174,128 @@ mod tests {
         assert_eq!(matroska_english_audio_index(b"not a container eng"), None);
     }
 }
+/// Read ISO-639 audio tags from a complete MPEG-TS program-map section.
+///
+/// The input is a bounded segment prefix. Incomplete sections, unsupported
+/// private audio types and non-TS data are inconclusive. No media is decoded.
+/// Entries follow the program-map audio order, matching demuxed audio indices;
+/// an empty string means that audio stream has no language descriptor.
+#[must_use]
+pub fn mpegts_audio_languages(bytes: &[u8]) -> Option<Vec<String>> {
+    if bytes.first() != Some(&0x47) {
+        return None;
+    }
+    for packet in bytes.as_chunks::<188>().0 {
+        if packet[0] != 0x47 {
+            return None;
+        }
+        if packet[1] & 0x40 == 0 || packet[3] & 0x10 == 0 {
+            continue;
+        }
+        let mut position = 4;
+        if packet[3] & 0x20 != 0 {
+            position += 1 + usize::from(*packet.get(position)?);
+        }
+        position += 1 + usize::from(*packet.get(position)?);
+        let Some(section) = packet.get(position..) else {
+            continue;
+        };
+        if section.first() != Some(&2) || section.len() < 12 {
+            continue;
+        }
+        let length = (usize::from(section[1] & 15) << 8) | usize::from(section[2]);
+        let end = 3_usize.checked_add(length)?.checked_sub(4)?;
+        if end > section.len() || section[5] & 1 == 0 {
+            continue;
+        }
+        let info_length = (usize::from(section[10] & 15) << 8) | usize::from(section[11]);
+        let mut cursor = 12_usize.checked_add(info_length)?;
+        let mut audio = Vec::new();
+        while cursor < end {
+            let header = section.get(cursor..cursor.checked_add(5)?)?;
+            let descriptor_length = (usize::from(header[3] & 15) << 8) | usize::from(header[4]);
+            let next = cursor.checked_add(5)?.checked_add(descriptor_length)?;
+            if next > end {
+                return None;
+            }
+            let descriptors = section.get(cursor + 5..next)?;
+            let mut language = String::new();
+            let mut private_audio = false;
+            let mut offset = 0;
+            while offset < descriptors.len() {
+                let tag = *descriptors.get(offset)?;
+                let size = usize::from(*descriptors.get(offset + 1)?);
+                let body = descriptors.get(offset + 2..offset.checked_add(2 + size)?)?;
+                if tag == 10 && body.len() >= 4 && body[..3].iter().all(u8::is_ascii_alphabetic) {
+                    language = std::str::from_utf8(&body[..3]).ok()?.to_ascii_lowercase();
+                }
+                if matches!(tag, 0x6a | 0x7a | 0x7b | 0x7c)
+                    || (tag == 5
+                        && [
+                            b"AC-3".as_slice(),
+                            b"EAC3",
+                            b"DTS1",
+                            b"DTS2",
+                            b"DTS3",
+                            b"Opus",
+                        ]
+                        .contains(&body))
+                {
+                    private_audio = true;
+                }
+                offset += 2 + size;
+            }
+            match header[0] {
+                3 | 4 | 15 | 17 | 0x81 | 0x87 => audio.push(language),
+                6 if private_audio => audio.push(language),
+                6 if !language.is_empty() => return None,
+                _ => {}
+            }
+            cursor = next;
+        }
+        if !audio.is_empty() {
+            return Some(audio);
+        }
+    }
+    None
+}
+
+#[cfg(test)]
+mod ts_tests {
+    use super::mpegts_audio_languages;
+
+    fn packet() -> Vec<u8> {
+        let mut section = vec![2, 0xb0, 0, 0, 1, 0xc1, 0, 0, 0xe1, 0, 0xf0, 0];
+        // Video precedes Hindi and English audio; video must not shift indices.
+        section.extend([27, 0xe1, 0, 0xf0, 0]);
+        for (pid, language) in [(1, b"hin"), (2, b"eng")] {
+            section.extend([15, 0xe1, pid, 0xf0, 6, 10, 4]);
+            section.extend(language);
+            section.push(0);
+        }
+        section.extend([0; 4]);
+        section[2] = u8::try_from(section.len() - 3).unwrap_or(0);
+        let mut data = vec![0x47, 0x41, 0, 0x10, 0];
+        data.extend(section);
+        data.resize(188, 0xff);
+        data
+    }
+
+    #[test]
+    fn reads_real_descriptors_in_audio_order_and_rejects_incomplete_data() {
+        let data = packet();
+        assert_eq!(
+            mpegts_audio_languages(&data),
+            Some(vec!["hin".into(), "eng".into()])
+        );
+        assert_eq!(mpegts_audio_languages(&data[..100]), None);
+        assert_eq!(mpegts_audio_languages(b"not a TS packet eng"), None);
+        let mut corrupt = data.clone();
+        corrupt[3] = 0x30;
+        corrupt[4] = 255;
+        assert_eq!(mpegts_audio_languages(&corrupt), None);
+        let mut incomplete = data;
+        incomplete[7] = 255;
+        assert_eq!(mpegts_audio_languages(&incomplete), None);
+    }
+}

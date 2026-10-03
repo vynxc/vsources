@@ -68,14 +68,14 @@ class AuditTests(unittest.TestCase):
                 'baseline_played':True,'header_recovered':False,'warm_playback':{'status':warm}}
         movie=next(case for case in cases if case['category']=='movie')
         anime=next(case for case in cases if case['category']=='anime')
-        rows=[row('allwish',movie),row('animekai',anime,'jpn'),row('imdbplay',movie,warm='decode_failed')]
+        rows=[row('allwish',movie,'jpn'),row('animekai',anime,'jpn'),row('imdbplay',movie,warm='decode_failed'),row('framextv',movie,'hin')]
         with tempfile.TemporaryDirectory() as directory:
             args=argparse.Namespace(output=Path(directory),cases=audit.ROOT/'docs/audits/provider-matrix-cases.json',
                 binary_hash='a'*64,source_timeout=35,decode_timeout=40,seconds=8,cards=2,workers=1,warm_repeats=3,
                 english_dub=True,warm_playback=True,generated_env=Path(directory)/'env')
-            catalog={'providers':[{'id':name,'label':name} for name in ('allwish','animekai','imdbplay')]}
+            catalog={'providers':[{'id':name,'label':name} for name in ('allwish','animekai','imdbplay','framextv')]}
             report=audit.build_report(args,rows,catalog,cases)
-            self.assertEqual([item['status'] for item in report['rows']],['wrong_catalog','wrong_audio','cache_playback_failed'])
+            self.assertEqual([item['status'] for item in report['rows']],['wrong_catalog','wrong_audio','cache_playback_failed','wrong_audio'])
             self.assertEqual(report['recommendations']['movie']['providers'],[])
             self.assertEqual(report['recommendations']['anime']['providers'],[])
             self.assertTrue((Path(directory)/'results.csv').exists())

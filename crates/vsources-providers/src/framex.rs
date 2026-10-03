@@ -13,6 +13,8 @@
 //! Per source the API carries its own required headers (moon
 //! .peakstorm.top wants `Referer: player.videasy.to/`, Vuflix wants
 //! `ww2.yesmovies.ag/`) — they ride
+//! The current API wraps media in `/api/proxy?url=&origin=&referer=`; these
+//! wrappers are unwrapped while retaining their required playback headers.
 //! [`StreamMeta::request_headers`](vsources_core::types::StreamMeta::request_headers)
 //! through [`build_stream_results`]. Title-level subtitles (deduped by
 //! language, first per language) attach to every stream; per-source
@@ -40,10 +42,12 @@
 //!   equivalent in the shared `build_stream_results` port. No
 //!   `/proxy`: the Referer headers ride request headers.
 
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use async_trait::async_trait;
+use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use url::Url;
@@ -181,14 +185,37 @@ impl Source for FrameX {
         // tags on every title.
         enrich(&mut streams);
         let country_codes = vec![CountryCode::Multi, CountryCode::En];
-        Ok(build_stream_results(&BuildParams {
+        let candidates = build_stream_results(&BuildParams {
             streams: &streams,
             title: &title,
             source_id: ID,
             source_label: LABEL,
             country_codes: &country_codes,
             ttl: TTL,
-        }))
+        });
+        // Bound metadata work and avoid dozens of duplicate qualities per host.
+        let mut hosts = BTreeMap::<String, usize>::new();
+        let candidates: Vec<_> = candidates
+            .into_iter()
+            .filter(|stream| {
+                let count = hosts
+                    .entry(stream.url.host_str().unwrap_or_default().to_string())
+                    .or_default();
+                *count += 1;
+                *count <= 2
+            })
+            .take(12)
+            .collect();
+        let mut checked: Vec<_> = futures::stream::iter(candidates.into_iter().enumerate())
+            .map(|(index, stream)| async move { (index, select_audio(ctx, stream).await) })
+            .buffer_unordered(6)
+            .collect()
+            .await;
+        checked.sort_by_key(|(index, _)| *index);
+        Ok(checked
+            .into_iter()
+            .filter_map(|(_, stream)| stream)
+            .collect())
     }
 }
 
@@ -242,10 +269,14 @@ impl FrameX {
                     let Some(url) = source.url.as_deref() else {
                         continue;
                     };
-                    if !url.starts_with("http") || seen.iter().any(|seen| seen == url) {
+                    let Some((url, proxy_headers)) = playback_target(url) else {
+                        continue;
+                    };
+                    let identity = format!("{url} {proxy_headers:?}");
+                    if seen.iter().any(|seen| seen == &identity) {
                         continue;
                     }
-                    seen.push(url.to_string());
+                    seen.push(identity);
 
                     let quality = normalize_quality(source.quality.as_deref());
                     let server = source
@@ -266,7 +297,13 @@ impl FrameX {
                         .with_quality(quality.clone())
                         .with_name(format!("FrameX - {quality} {server} ({provider})"))
                         .with_title(format!("FrameX {provider} {quality}{server_tag}"));
+                    for (name, value) in proxy_headers {
+                        stream = stream.with_header(name, value);
+                    }
                     if let Some(headers) = source.headers.as_ref() {
+                        if let Some(origin) = headers.origin() {
+                            stream = stream.with_header("Origin", origin);
+                        }
                         if let Some(referer) = headers.referer() {
                             stream = stream.with_header("Referer", referer);
                         }
@@ -357,6 +394,139 @@ struct ProviderResponse {
     subtitles: Option<Vec<ApiSubtitle>>,
 }
 
+/// Prefer verified English audio; muxed TS playlists can otherwise default to Hindi.
+async fn select_audio(ctx: &ResolveCtx<'_>, mut stream: Stream) -> Option<Stream> {
+    if stream.format != vsources_core::types::Format::Hls {
+        return Some(stream);
+    }
+    let mut request = FetchRequest::get(stream.url.clone()).with_timeout(Duration::from_secs(2));
+    request.headers.clone_from(&stream.meta.request_headers);
+    let Ok(Some(master)) = ctx.fetcher.probe(request, 65_536).await else {
+        return Some(stream);
+    };
+    if !(200..300).contains(&master.status) {
+        return Some(stream);
+    }
+    let Ok(text) = std::str::from_utf8(&master.body) else {
+        return Some(stream);
+    };
+    if !text.trim_start().starts_with("#EXTM3U") {
+        return Some(stream);
+    }
+    let audio: Vec<_> = text
+        .lines()
+        .filter(|l| l.starts_with("#EXT-X-MEDIA:") && l.contains("TYPE=AUDIO"))
+        .map(|line| {
+            line.split_once("LANGUAGE=\"")
+                .and_then(|(_, v)| v.split_once('"'))
+                .map_or(String::new(), |(v, _)| v.to_ascii_lowercase())
+        })
+        .collect();
+    let audio = if audio.is_empty() {
+        // Encrypted segments need a player, not a metadata-prefix parser.
+        if text
+            .lines()
+            .any(|l| l.starts_with("#EXT-X-KEY:") && !l.contains("METHOD=NONE"))
+        {
+            return Some(stream);
+        }
+        let Some(path) = text.lines().find(|l| !l.is_empty() && !l.starts_with('#')) else {
+            return Some(stream);
+        };
+        let Ok(segment) = master.url.join(path) else {
+            return Some(stream);
+        };
+        if !matches!(segment.scheme(), "http" | "https") {
+            return None;
+        }
+        let mut request = FetchRequest::get(segment).with_timeout(Duration::from_secs(2));
+        request.headers.clone_from(&stream.meta.request_headers);
+        let Ok(Some(prefix)) = ctx.fetcher.probe(request, 16_384).await else {
+            return Some(stream);
+        };
+        if !(200..300).contains(&prefix.status) {
+            return Some(stream);
+        }
+        let Some(audio) = vsources_core::audio::mpegts_audio_languages(&prefix.body) else {
+            return Some(stream);
+        };
+        audio
+    } else {
+        audio
+    };
+    if let Some(index) = audio
+        .iter()
+        .position(|language| matches!(language.as_str(), "eng" | "en" | "en-us" | "en-gb"))
+    {
+        stream.meta.audio_selection = Some(vsources_core::types::AudioSelection {
+            language: CountryCode::En,
+            audio_index: u32::try_from(index).ok()?,
+        });
+        stream.meta.languages = vec![CountryCode::Multi, CountryCode::En];
+        return Some(stream);
+    }
+    if audio
+        .iter()
+        .any(|language| matches!(language.as_str(), "jpn" | "ja"))
+        && stream.meta.subtitles.iter().any(|s| {
+            s.language.as_deref().is_some_and(|lang| {
+                matches!(lang.to_ascii_lowercase().as_str(), "en" | "eng" | "english")
+            })
+        })
+    {
+        stream.meta.languages = vec![CountryCode::Multi, CountryCode::Ja];
+        stream.meta.subbed = Some(true);
+        stream.meta.dubbed = Some(false);
+        stream.label = stream
+            .label
+            .map(|label| label.replace("English", "Japanese · English subtitles"));
+        return Some(stream);
+    }
+    // Missing/undefined tags are inconclusive. A positively tagged foreign-only
+    // track is not an English route, irrespective of the API's display label.
+    if audio
+        .iter()
+        .any(|language| !matches!(language.as_str(), "" | "und" | "unknown"))
+    {
+        return None;
+    }
+    Some(stream)
+}
+
+/// The API now returns its own media proxy; the SDK needs the direct media
+/// and the same Origin/Referer that proxy would have sent. Never interpret
+/// arbitrary external proxy URLs or carry credentials from query parameters.
+fn playback_target(raw: &str) -> Option<(String, BTreeMap<String, String>)> {
+    let mut url = Url::parse(raw).ok()?;
+    let mut headers = BTreeMap::new();
+    for _ in 0..3 {
+        if !matches!(url.scheme(), "http" | "https") {
+            return None;
+        }
+        if url.host_str() != Some("api.framextv.tech") || url.path() != "/api/proxy" {
+            return Some((url.to_string(), headers));
+        }
+        let query: BTreeMap<String, String> = url
+            .query_pairs()
+            .map(|(key, value)| (key.into_owned(), value.into_owned()))
+            .collect();
+        for (parameter, header) in [("origin", "Origin"), ("referer", "Referer")] {
+            if let Some(value) = query.get(parameter).filter(|v| !v.is_empty()) {
+                if value.contains(['\r', '\n']) {
+                    return None;
+                }
+                let parsed = Url::parse(value).ok()?;
+                if !matches!(parsed.scheme(), "http" | "https") {
+                    return None;
+                }
+                headers.insert(header.to_string(), value.clone());
+            }
+        }
+        url = Url::parse(query.get("url")?).ok()?;
+    }
+    None
+}
+
 /// One source of a provider response.
 #[derive(Deserialize)]
 struct ProviderSource {
@@ -383,6 +553,9 @@ struct ProviderSource {
 /// The headers the scraper reads (case-tolerant).
 #[derive(Deserialize)]
 struct ApiHeaders {
+    /// The upstream origin, either common casing.
+    #[serde(rename = "Origin", alias = "origin", default)]
+    origin: Option<String>,
     /// The hotlink Referer.
     #[serde(rename = "Referer", default)]
     referer: Option<String>,
@@ -398,6 +571,10 @@ struct ApiHeaders {
 }
 
 impl ApiHeaders {
+    /// The origin the source service requires.
+    fn origin(&self) -> Option<&str> {
+        self.origin.as_deref()
+    }
     /// The Referer, either casing.
     fn referer(&self) -> Option<&str> {
         self.referer.as_deref().or(self.referer_lower.as_deref())
@@ -924,5 +1101,166 @@ mod tests {
         assert_eq!(normalize_quality(Some("dcloud")), "Auto");
         assert_eq!(normalize_quality(Some("Auto HLS")), "Auto");
         assert_eq!(normalize_quality(None), "HLS");
+    }
+    #[test]
+    fn unwraps_only_owned_proxies_and_preserves_encoded_signed_url_and_headers() {
+        let mut proxy = Url::parse("https://api.framextv.tech/api/proxy")
+            .unwrap_or_else(|e| panic!("test URL: {e}"));
+        proxy
+            .query_pairs_mut()
+            .append_pair(
+                "url",
+                "https://cdn.example/master.m3u8?token=a%2Fb&expires=123",
+            )
+            .append_pair("origin", "https://player.example")
+            .append_pair("referer", "https://player.example/watch/")
+            .append_pair("Cookie", "never-forward");
+        let Some((url, headers)) = super::playback_target(proxy.as_str()) else {
+            panic!("valid proxy")
+        };
+        assert_eq!(
+            url,
+            "https://cdn.example/master.m3u8?token=a%2Fb&expires=123"
+        );
+        assert_eq!(
+            headers.get("Origin").map(String::as_str),
+            Some("https://player.example")
+        );
+        assert_eq!(
+            headers.get("Referer").map(String::as_str),
+            Some("https://player.example/watch/")
+        );
+        assert!(!headers.contains_key("Cookie"));
+        assert!(
+            super::playback_target("https://api.framextv.tech/api/proxy?url=file%3A%2F%2Fprivate")
+                .is_none()
+        );
+        assert!(super::playback_target("https://api.framextv.tech/api/proxy?url=https%3A%2F%2Fcdn.example%2Fv&referer=https%3A%2F%2Fp.example%2F%0D%0ACookie%3Abad").is_none());
+        let other = "https://other.example/api/proxy?url=https%3A%2F%2Fcdn.example%2Fv";
+        assert_eq!(
+            super::playback_target(other).map(|(url, _)| url),
+            Some(other.into())
+        );
+    }
+
+    #[tokio::test]
+    async fn proxy_sources_become_hls_with_required_playback_headers() -> Result<(), SourceError> {
+        let mock = Arc::new(mock_with(
+            "barbarian",
+            r#"{"success":true,"sources":[{"url":"https://api.framextv.tech/api/proxy?url=https%3A%2F%2Fcdn.example%2Fmaster.m3u8%3Ftoken%3Dx&origin=https%3A%2F%2Fplayer.example&referer=https%3A%2F%2Fplayer.example%2F","quality":"720p","headers":{"Origin":"https://explicit.example"}}]}"#,
+        ));
+        let streams = provider(&mock)
+            .resolve(&ctx_for(&mock), &MediaRef::movie(MediaId::Tmdb(TMDB_ID)))
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert_eq!(streams[0].format, Format::Hls);
+        assert_eq!(streams[0].url.host_str(), Some("cdn.example"));
+        assert_eq!(
+            streams[0]
+                .meta
+                .request_headers
+                .get("Origin")
+                .map(String::as_str),
+            Some("https://explicit.example")
+        );
+        assert_eq!(
+            streams[0]
+                .meta
+                .request_headers
+                .get("Referer")
+                .map(String::as_str),
+            Some("https://player.example/")
+        );
+        Ok(())
+    }
+    struct AudioProbeFetcher {
+        english: bool,
+    }
+    #[async_trait]
+    impl Fetcher for AudioProbeFetcher {
+        async fn request(&self, request: FetchRequest) -> Result<FetchResponse, FetchError> {
+            Err(FetchError::NotFound { url: request.url })
+        }
+        async fn probe(
+            &self,
+            request: FetchRequest,
+            limit: usize,
+        ) -> Result<Option<vsources_core::traits::ProbeResponse>, FetchError> {
+            assert_eq!(
+                request.headers.get("Referer").map(String::as_str),
+                Some("https://player.example/")
+            );
+            let body = if request
+                .url
+                .path()
+                .rsplit_once('.')
+                .is_some_and(|(_, ext)| ext.eq_ignore_ascii_case("m3u8"))
+            {
+                assert_eq!(limit, 65_536);
+                b"#EXTM3U\n#EXTINF:5,\nsegment.ts\n".to_vec()
+            } else {
+                assert_eq!(limit, 16_384);
+                let mut section = vec![2, 0xb0, 0, 0, 1, 0xc1, 0, 0, 0xe1, 0, 0xf0, 0];
+                section.extend([27, 0xe1, 0, 0xf0, 0]);
+                let languages: &[&[u8]] = if self.english {
+                    &[b"hin", b"eng"]
+                } else {
+                    &[b"hin"]
+                };
+                for language in languages {
+                    section.extend([15, 0xe1, 1, 0xf0, 6, 10, 4]);
+                    section.extend_from_slice(language);
+                    section.push(0);
+                }
+                section.extend([0; 4]);
+                section[2] = u8::try_from(section.len() - 3).unwrap_or(0);
+                let mut data = vec![0x47, 0x41, 0, 0x10, 0];
+                data.extend(section);
+                data.resize(188, 0xff);
+                data
+            };
+            Ok(Some(vsources_core::traits::ProbeResponse {
+                url: request.url,
+                status: 200,
+                headers: BTreeMap::new(),
+                body,
+                truncated: false,
+            }))
+        }
+    }
+
+    #[tokio::test]
+    async fn verifies_muxed_audio_before_selecting_english_or_rejecting_foreign_only() {
+        let stream = Stream::new(
+            Url::parse("https://cdn.example/master.m3u8")
+                .unwrap_or_else(|e| panic!("fixture URL: {e}")),
+            Format::Hls,
+        );
+        let mut stream = stream;
+        stream
+            .meta
+            .request_headers
+            .insert("Referer".into(), "https://player.example/".into());
+        for english in [true, false] {
+            let fetcher = AudioProbeFetcher { english };
+            let ctx = ResolveCtx {
+                fetcher: &fetcher,
+                media: None,
+                source_id: None,
+                referer: None,
+            };
+            let selected = super::select_audio(&ctx, stream.clone()).await;
+            if english {
+                assert_eq!(
+                    selected.and_then(|s| s.meta.audio_selection),
+                    Some(vsources_core::types::AudioSelection {
+                        language: CountryCode::En,
+                        audio_index: 1
+                    })
+                );
+            } else {
+                assert!(selected.is_none());
+            }
+        }
     }
 }

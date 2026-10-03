@@ -4,6 +4,43 @@ Workspace: `/mnt/ALPH/code/vsources`; `/home/vynxc/code/vsources` resolves here.
 An initial commit now exists (`934de2d`). Preserve the working tree and new
 audit/source files; do not reset or remove untracked files as cleanup.
 
+## Latest: zero-playback provider research and repairs (2026-10-03)
+
+Current investigation: `docs/audits/2026-10-03-provider-repairs.md` and `.json`.
+Reviewed all 22 zero-pass providers. Four SDK repairs are verified: VixSrc,
+FrameXTV, PrimeShows and WatchSeries. Removed AniBD only after the user changed
+instructions to allow removing it if the sub route failed (stopped-site notice
+plus five API 404s); removed Portuguese-focused AnimeZeY under the language rule.
+Sub-only anime with suitable English subtitles remains eligible.
+
+VixSrc mints signed playlists and selects English HLS audio. PrimeShows migrated
+to www.primeshows.org with TV season/episode query parameters; both it and
+WatchSeries resolve their explicit VidLink server through the existing native
+adapter. These are shared upstream adapters, not independent storage. FrameX
+unwraps its owned API proxies and forwards Origin/Referer, including explicit
+Origin headers. Bounded HLS/TS metadata reads (64 KiB playlist / 16 KiB segment,
+two-second probe budgets, at most 12 cards / six concurrent checks) select
+English or reject known foreign-only audio; no full media bodies are downloaded
+for metadata. Native Japanese audio with English subtitle metadata is retained
+for ordinary sub mode. Unknown audio metadata remains explicitly uncertain.
+
+VidFast's native page/CSRF/codec route and exact TV identity are implemented,
+with required English audio selection. A separate curl probe passed eng decode,
+but the SDK receives genuine CF challenges on vc/pro; bz's older token yielded
+a server error. Its SDK rerun is still 20/20 empty. Do not call it fixed or promote
+it. Sixteen retained providers are still unresolved/access/configuration limited.
+The targeted 49-row diagnostic JSON uses shorter budgets than the full matrix;
+Netlio also received a full 20-title recheck with zero passes.
+
+The canonical matrix now has 46 providers / 920 current rows and preserved
+retired-provider plus pre-repair evidence in history. It includes all full reruns
+and a Tabler Repair log with pinned GitHub references. `.env.generated` is rebuilt.
+Known non-English movie/TV audio is now excluded, correcting an old RiveStream
+The Matrix Hindi transport pass; wrong_catalog retains priority. Audio tags are
+metadata evidence, not speech transcription. Private evidence:
+`/tmp/vsources-zero-research-20261002` and `/tmp/vsources-zero-repair-validation`.
+
+
 ## Latest: GitHub fast-provider research and authorized push (2026-10-02)
 
 The user asked for five additional fast providers from GitHub and to push the

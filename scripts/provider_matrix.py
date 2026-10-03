@@ -366,6 +366,15 @@ def export_csv(report,path):
                 'sdk_playback':row['baseline_played'],'cache_playback_valid':row.get('cache_playback_valid'),
                 'selected_audio_language':row.get('selected_audio_language'),'header_recovered':row['header_recovered']})
 
+def write_report_html(report,path):
+    template=(ROOT/'scripts/provider_matrix_report.html').read_text()
+    vendor=ROOT/'scripts/vendor/tabler'
+    template=template.replace('__TABLER_CSS__',(vendor/'tabler.min.css').read_text())
+    template=template.replace('__TABLER_JS__',(vendor/'tabler.min.js').read_text().replace('</script','<\\/script'))
+    # Embed the UI assets and escaped data for standalone, offline viewing.
+    embedded=json.dumps(report,ensure_ascii=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
+    atomic_text(path,template.replace('__AUDIT_DATA__',embedded))
+
 def build_report(args,rows,catalog,cases,history=None):
     expected=len(catalog['providers'])*len(cases)
     for row in rows:
@@ -381,11 +390,11 @@ def build_report(args,rows,catalog,cases,history=None):
         else:
             row.setdefault('identity_status','provider_identity_not_independently_viewed')
         selected=next((item for item in row.get('decodes',[]) if item['status']=='played'),None)
-        if selected and row.get('english_dub_required'):
+        if selected:
             language=selected.get('selected_audio_language')
             if language is None and len(selected.get('audio_tags',[]))==1:language=selected['audio_tags'][0]
             row['selected_audio_language']=language
-            if language and language.lower() not in ('eng','en','en-us','en-gb','und','unknown'):
+            if row['status']!='wrong_catalog' and (row.get('english_dub_required') or row['category'] in ('movie','series')) and language and language.lower() not in ('eng','en','en-us','en-gb','und','unknown'):
                 row.setdefault('transport_status',row['status'])
                 row.setdefault('transport_played',row['baseline_played'])
                 row['status']='wrong_audio';row['baseline_played']=False
@@ -403,19 +412,19 @@ def build_report(args,rows,catalog,cases,history=None):
             'FFmpeg progress reports bound first-frame timing to the first positive progress sample; this is headless decode, not device rendering.',
             'Playback requires video frames, near-full requested duration, decoded audio, and process exit zero.',
             'Known anime-only catalogs returning media for non-anime requests are marked wrong_catalog and excluded from recommendations. Transport decoding evidence is retained.',
-            'Audio language tags and SDK dub labels are metadata evidence; spoken language is not independently transcribed in this matrix.',
+            'Movies/TV require English when a selected audio tag is known. Anime in dub mode applies the same rule. Audio tags and SDK dub labels are metadata evidence; spoken language is not independently transcribed in this matrix.',
             'At most the configured card count is sampled, stopping at first playable card. Unexamined cards are not classified as working.',
             'Combined first-frame paths are sums of separately measured metadata, source resolve, preceding failed decode attempts and successful startup.',
             'Header recovery is a controlled diagnostic on the same URL. Recovered results do not qualify for the generated environment until fixed in the SDK.',
             'Repeat playback starts a fresh FFmpeg process with the selected cached signed URL; its player/CDN timing is distinct from immediate source-cache latency.',
             'Each playback host is decoded serially; host queue time is recorded separately. Unsupported categories are attempted, not silently skipped.'],
         'fast_dub_compatible':fast_dub_compatibility(rows),'rows':rows,'history':history or [],'summary':summarize(rows,catalog['providers'],cases),'recommendations':recommendations(rows,cases)}
+    research=ROOT/'docs/audits/2026-10-03-provider-repairs.json'
+    if research.exists():
+        report['provider_research']=json.loads(research.read_text()).get('providers',[])
     atomic_json(args.output/'report.json',report)
     export_csv(report,args.output/'results.csv')
-    template=(ROOT/'scripts/provider_matrix_report.html').read_text()
-    # Script-safe escaping also keeps this usable as a standalone offline file.
-    embedded=json.dumps(report,ensure_ascii=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
-    atomic_text(args.output/'index.html',template.replace('__AUDIT_DATA__',embedded))
+    write_report_html(report,args.output/'index.html')
     export_env(report,args.generated_env)
     return report
 
@@ -426,7 +435,7 @@ def main():
     parser.add_argument('--private',type=Path,default=Path('/tmp/vsources-provider-matrix-20261002'))
     parser.add_argument('--binary',type=Path,default=ROOT/'target/debug/examples/matrix_worker')
     parser.add_argument('--generated-env',type=Path,default=ROOT/'.env.generated')
-    parser.add_argument('--providers',help='comma-separated subset (full run defaults to all 48)')
+    parser.add_argument('--providers',help='comma-separated subset (full run defaults to the registered catalog)')
     parser.add_argument('--resume',action='store_true')
     parser.add_argument('--rerun',help='rerun provider IDs, retaining previous rows in history')
     parser.add_argument('--report-only',action='store_true')

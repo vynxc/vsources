@@ -1,4 +1,8 @@
-//! `PrimeShows`: scraped multi-server embeds at `primeshows.gd`.
+//! `PrimeShows`: current `www.primeshows.org` app with a native `VidLink` route.
+//! The app uses `/watch/tv/{id}?season={s}&episode={e}` and client-side server
+//! selection. Current-app pages resolve their explicit `VidLink` server with the
+//! SDK's native API, preserving identity and playback headers. Historical
+//! `SRV_MAP/playerFrame` pages retain the legacy extraction path below.
 //!
 //! Ports `src/source/PrimeShows.js`:
 //!
@@ -61,7 +65,7 @@ const ID: &str = "primeshows";
 /// The display label, upstream `this.label`.
 const LABEL: &str = "PrimeShows";
 /// The site origin, upstream `this.baseUrl`.
-const BASE_URL: &str = "https://primeshows.gd";
+const BASE_URL: &str = "https://www.primeshows.org";
 
 /// The watch-page timeout, upstream `timeout: 8000`.
 const WATCH_TIMEOUT: Duration = Duration::from_secs(8);
@@ -95,6 +99,8 @@ pub struct PrimeShows {
     extractors: Arc<ExtractorRegistry>,
     /// TMDB identity and metadata resolution.
     tmdb: Arc<TmdbClient>,
+    /// Native resolver for the current app's explicit `VidLink` server.
+    vidlink: crate::vidlink::VidLink,
 }
 
 impl PrimeShows {
@@ -112,6 +118,7 @@ impl PrimeShows {
                 domain_key: None,
             },
             extractors,
+            vidlink: crate::vidlink::VidLink::new(Arc::clone(&tmdb)),
             tmdb,
         }
     }
@@ -172,7 +179,7 @@ impl Source for PrimeShows {
             .ok_or_else(|| SourceError::scrape(ID, "missing base URL"))?;
         let watch_path = if is_tv {
             format!(
-                "/watch/tv/{tmdb_id}/season/{}/episode/{}",
+                "/watch/tv/{tmdb_id}?season={}&episode={}",
                 media.season.unwrap_or(1),
                 media.episode.unwrap_or(1)
             )
@@ -184,6 +191,31 @@ impl Source for PrimeShows {
             .map_err(|error| SourceError::scrape(ID, format!("invalid watch URL: {error}")))?;
 
         let html = self.fetch_watch_page(ctx, &watch).await?;
+
+        // The new app no longer emits SRV_MAP or playerFrame. Its watch-page
+        // module selects VidLink (among other servers) client-side; use that
+        // server's native API instead of claiming the HTML itself is media.
+        if is_current_app(&html) {
+            let native_ctx = ResolveCtx {
+                fetcher: ctx.fetcher,
+                media: Some(ResolvedMedia {
+                    tmdb_id: Some(tmdb_id),
+                    imdb_id: None,
+                    name: name.clone(),
+                    year,
+                    season: media.season,
+                    episode: media.episode,
+                }),
+                source_id: Some(ID),
+                referer: Some(&watch),
+            };
+            let native = self.vidlink.resolve(&native_ctx, media).await?;
+            let label = format!("{title} (VidLink)");
+            return Ok(native
+                .into_iter()
+                .map(|stream| tagged(stream, &label))
+                .collect());
+        }
 
         // 1. `SRV_MAP` — one fetch covers every server the site offers.
         let mut servers = srv_map_servers(&html);
@@ -244,6 +276,12 @@ impl Source for PrimeShows {
         }
         Ok(streams)
     }
+}
+
+fn is_current_app(html: &str) -> bool {
+    html.contains("Primeshows")
+        && (html.contains("static/chunks/app/watch/movie/")
+            || html.contains("static/chunks/app/watch/tv/"))
 }
 
 /// The `SRV_MAP` entries with absolute http(s) URLs — the JS regex
@@ -454,7 +492,9 @@ fn embed_title(name: &str, year: Option<u16>, media: &MediaRef) -> String {
 /// extractor-produced stream.
 fn tagged(mut stream: Stream, label: &str) -> Stream {
     stream.label = Some(label.to_string());
-    stream.meta.languages = vec![CountryCode::Multi];
+    if stream.meta.languages.is_empty() {
+        stream.meta.languages = vec![CountryCode::Multi];
+    }
     stream.meta.source_id = Some(ID.to_string());
     stream.meta.source_label = Some(LABEL.to_string());
     stream
@@ -725,7 +765,7 @@ mod tests {
         assert_eq!(info.country_codes, vec![CountryCode::Multi]);
         assert_eq!(
             info.base_url.as_ref().map(Url::as_str),
-            Some("https://primeshows.gd/")
+            Some("https://www.primeshows.org/")
         );
         assert_eq!(info.priority, 0);
         assert_eq!(info.domain_key, None);
@@ -769,7 +809,7 @@ mod tests {
             // The watch page is the embed's referer.
             assert_eq!(
                 call.referer.as_deref(),
-                Some("https://primeshows.gd/watch/movie/27205")
+                Some("https://www.primeshows.org/watch/movie/27205")
             );
             assert_eq!(call.tmdb_id, Some(27205));
             assert_eq!(call.source_id.as_deref(), Some("primeshows"));
@@ -843,9 +883,9 @@ mod tests {
     async fn legacy_server_pages_fall_back_to_player_frames() -> Result<(), SourceError> {
         let mock = Arc::new(
             ScriptedFetcher::default()
-                .page("/watch/tv/1396/season/1/episode/2", "<html><body>no map here</body></html>")
+                .page("/watch/tv/1396?season=1&episode=2", "<html><body>no map here</body></html>")
                 .page(
-                    "/watch/tv/1396/season/1/episode/2?server=vidsrcfyi",
+                    "/watch/tv/1396?season=1&episode=2&server=vidsrcfyi",
                     r#"<html><body><iframe id="playerFrame" src="https://vidsrc.fyi/embed/tv/1396/1/2&amp;autoplay=1"></iframe></body></html>"#,
                 )
                 .page("/3/tv/1396", r#"{"name":"Breaking Bad","first_air_date":"2008-01-20"}"#),
@@ -873,7 +913,7 @@ mod tests {
         );
         assert_eq!(
             generic.calls()[0].referer.as_deref(),
-            Some("https://primeshows.gd/watch/tv/1396/season/1/episode/2")
+            Some("https://www.primeshows.org/watch/tv/1396?season=1&episode=2")
         );
         Ok(())
     }
@@ -980,5 +1020,38 @@ mod tests {
             super::interstitial_cookie("<script>document.cookie = 1;</script>"),
             "hv=1"
         );
+    }
+    #[tokio::test]
+    async fn native_vidlink_route_preserves_tv_identity_and_provider_tag() -> Result<(), SourceError>
+    {
+        let mock = Arc::new(ScriptedFetcher::default()
+            .page("/3/tv/1396", r#"{"name":"Breaking Bad","first_air_date":"2008-01-20"}"#)
+            .page("/watch/tv/1396?season=2&episode=1", "<title>Primeshows</title><script>static/chunks/app/watch/tv/[id]/page.js</script>")
+            .page("/api/enc-vidlink?text=1396", r#"{"result":"test-cipher"}"#)
+            .page("/api/b/tv/test-cipher/2/1", r#"{"stream":{"qualities":{"720":{"url":"https://cdn.example/episode-s2e1.mp4"}}}}"#));
+        let streams = provider(&mock, &[])
+            .resolve(
+                &ctx_for(&mock, None),
+                &MediaRef::series(MediaId::Tmdb(1396), 2, 1),
+            )
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert_eq!(streams[0].url.path(), "/episode-s2e1.mp4");
+        assert_eq!(streams[0].meta.source_id.as_deref(), Some("primeshows"));
+        assert!(
+            streams[0]
+                .label
+                .as_deref()
+                .is_some_and(|label| label.contains("S02E01") && label.contains("VidLink"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn current_app_detection_rejects_unrelated_or_not_found_html() {
+        assert!(!super::is_current_app("<title>Primeshows</title>Not found"));
+        assert!(!super::is_current_app(
+            "static/chunks/app/watch/tv/[id]/page.js"
+        ));
     }
 }

@@ -1,4 +1,7 @@
-//! `VidFast`: TMDB-keyed embeds at `vidfast.vc`.
+//! `VidFast`: the current anonymous player API, with a legacy embed fallback.
+//! The native protocol supports exact TV identity and required English audio
+//! selection. Its current primary domain may require configured solver/proxy
+//! access with the SDK HTTP client; no clearance or credentials are bundled.
 //!
 //! Ports `src/source/VidFast.js`:
 //!
@@ -26,6 +29,8 @@
 //! - upstream sources returned embed URLs that `StreamResolver` extracted
 //!   afterwards; this provider resolves inline through the registry, and
 //!   one embed's failure is skipped (the resolver's `.catch(() => [])`).
+
+mod current;
 
 use std::sync::Arc;
 
@@ -100,6 +105,18 @@ impl Source for VidFast {
         } else {
             embed_url(&format!("{BASE_URL}/movie/{tmdb_id}"))
         }?;
+
+        // Current player APIs carry exact movie/TV identity and an English
+        // audio index; prefer them to the generic speedracelight fallback.
+        if let Some(native) = crate::nuvio::with_deadline(
+            current::resolve(ctx, media, tmdb_id),
+            std::time::Duration::from_secs(25),
+        )
+        .await
+            && !native.is_empty()
+        {
+            return Ok(native);
+        }
 
         // Movies only — `const vidkingMeta = tmdbId.season ? null : {…}`.
         let extract_media = (!is_tv).then(|| ResolvedMedia {
@@ -571,7 +588,11 @@ mod tests {
         assert_eq!(streams[0].label.as_deref(), Some("Fight Club (1999)"));
         assert_eq!(vidking.calls()[0].tmdb_id, Some(550));
         // The parent pre-resolved everything — no request left the mock.
-        assert!(mock.requests().is_empty());
+        assert!(
+            mock.requests()
+                .iter()
+                .all(|request| request.url.host_str() != Some("api.themoviedb.org"))
+        );
         Ok(())
     }
 }

@@ -214,7 +214,7 @@ impl EngineBuilder {
         self
     }
 
-    /// Resolve through the built-in provider catalog — all 48
+    /// Resolve through the built-in provider catalog — all 46
     /// English providers (wave 1 + wave 2).
     ///
     /// `VSOURCES_PROVIDERS` optionally supplies a comma-separated allowlist

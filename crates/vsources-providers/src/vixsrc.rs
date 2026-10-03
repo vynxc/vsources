@@ -1,37 +1,25 @@
-//! `VixSrc`: the vixsrc.to playlist contract, one player-side card.
+//! `VixSrc`'s current signed player API, with required English audio selection.
 //!
-//! Ports `src/source/VixSrc.js` (`vixsrc.to` — movies and series). The
-//! upstream ships exactly one stream per resolve: the site's player JS
-//! builds `https://vixsrc.to/api/playlist/{tmdbId}?token=` (movies) or
-//! `/api/playlist/{tmdbId}/{season}/{episode}?token=` (series) with an
-//! empty free-tier token, and the card plays from the **player's**
-//! residential IP — the host Cloudflare-blocks datacenter egress, so
-//! server-side validation was advisory-only upstream and is dropped
-//! entirely here.
-//!
-//! Cuts for the library port:
-//!
-//! - `meta.title` has no `StreamMeta` field — the JS `${name} (${year})`
-//!   / `${name} S01E02` title string becomes [`Stream::label`].
-//! - The `nuvioReferer`/`nuvioOrigin`/`nuvioDirectWithHeaders` meta
-//!   flags existed so the server's extractor shipped the playlist URL
-//!   through its `/proxy` with headers attached. There is no server
-//!   here, so the same headers ride
-//!   [`StreamMeta::request_headers`](vsources_core::types::StreamMeta::request_headers)
-//!   (`Referer`/`Origin: vixsrc.to`) — the direct-with-headers policy
-//!   the flags encoded.
-//! - The stream is never validated (the upstream never validated it
-//!   either; a premium-title 404 is an availability gap, not an error).
+//! Resolve `/api/movie/{tmdb}` or `/api/tv/{tmdb}/{season}/{episode}`, fetch the
+//! returned same-origin embed, and parse its `window.masterPlaylist` object.
+//! The HLS master must advertise English audio. Signed URLs retain browser
+//! playback headers and a bounded ten-minute source-cache lifetime.
+//! Reference: J0hnBloodborne/Nautilus, `src/providers/sources/vixsrc.py`;
+//! confirmed against the live player on 2026-10-02.
 
-use std::sync::Arc;
+use fancy_regex::Regex;
+use serde_json::Value;
+use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
 use async_trait::async_trait;
 use url::Url;
 use vsources_core::error::{FetchError, SourceError};
 use vsources_core::tmdb::TmdbClient;
-use vsources_core::traits::{ResolveCtx, Source};
-use vsources_core::types::{CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream};
+use vsources_core::traits::{FetchRequest, ResolveCtx, Source};
+use vsources_core::types::{
+    AudioSelection, CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream,
+};
 
 /// The provider id, upstream `this.id`.
 const ID: &str = "vixsrc";
@@ -39,8 +27,13 @@ const ID: &str = "vixsrc";
 const LABEL: &str = "VixSrc";
 /// The stream origin, upstream `ORIGIN`/`this.baseUrl`.
 const ORIGIN: &str = "https://vixsrc.to";
-/// Upstream sets no `this.ttl` — the source default of 12h.
-const TTL: Duration = Duration::from_hours(12);
+/// Keep minted URLs fresh; the anonymous embed expires independently.
+const TTL: Duration = Duration::from_secs(600);
+const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36";
+static PLAYER_FIELD: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?:["']?(url|token|expires)["']?)\s*:\s*["']([^"']+)["']"#)
+        .unwrap_or_else(|e| panic!("valid VixSrc player pattern: {e}"))
+});
 
 /// The `VixSrc` provider.
 pub struct VixSrc {
@@ -59,7 +52,7 @@ impl VixSrc {
                 id: ID.to_string(),
                 label: LABEL.to_string(),
                 content_types: vec![MediaType::Movie, MediaType::Series],
-                country_codes: vec![CountryCode::Multi],
+                country_codes: vec![CountryCode::En],
                 base_url: Url::parse(ORIGIN).ok(),
                 // Upstream `this.priority = 1`.
                 priority: 1,
@@ -85,38 +78,118 @@ impl Source for VixSrc {
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
 
         let title = display_title(&name, year, media);
-        let url = playlist_url(tmdb_id, media.season, media.episode)?;
-
-        // The single player-IP card: direct playlist URL with the
-        // browser headers the site's own player sends.
+        let path = match media.season {
+            Some(season) => format!("/api/tv/{tmdb_id}/{season}/{}", media.episode.unwrap_or(1)),
+            None => format!("/api/movie/{tmdb_id}"),
+        };
+        let origin = Url::parse(ORIGIN).map_err(|e| SourceError::scrape(ID, e.to_string()))?;
+        let api = origin
+            .join(&path)
+            .map_err(|e| SourceError::scrape(ID, e.to_string()))?;
+        let response = fetch(ctx, api).await?;
+        let payload: Value = serde_json::from_str(&response)
+            .map_err(|_| SourceError::scrape(ID, "invalid player API response"))?;
+        let Some(src) = payload.get("src").and_then(Value::as_str) else {
+            return Ok(Vec::new());
+        };
+        let embed = origin
+            .join(src)
+            .map_err(|_| SourceError::scrape(ID, "invalid embed URL"))?;
+        if embed.origin() != origin.origin() {
+            return Err(SourceError::scrape(ID, "unexpected embed origin"));
+        }
+        let html = fetch(ctx, embed).await?;
+        let Some(url) = signed_playlist(&html) else {
+            return Ok(Vec::new());
+        };
+        let playlist = fetch(ctx, url.clone()).await?;
+        let Some(audio_index) = english_audio_index(&playlist) else {
+            return Ok(Vec::new());
+        };
         let mut stream = Stream::new(url, Format::Hls)
             .with_label(title)
             .with_ttl(TTL);
         stream.meta = stream
             .meta
             .with_header("Referer", format!("{ORIGIN}/"))
-            .with_header("Origin", ORIGIN);
+            .with_header("Origin", ORIGIN)
+            .with_header("User-Agent", UA);
+        stream.meta.audio_selection = Some(AudioSelection {
+            language: CountryCode::En,
+            audio_index,
+        });
         Ok(vec![with_source(stream, ID, LABEL)])
     }
 }
 
-/// The playlist URL — `?token=` stays empty for free titles (the site
-/// player builds exactly this URL); a parse failure is a structural
-/// surprise.
-fn playlist_url(
-    tmdb_id: u64,
-    season: Option<u32>,
-    episode: Option<u32>,
-) -> Result<Url, SourceError> {
-    let raw = match (season, episode) {
-        (Some(season), episode) => {
-            let episode = episode.unwrap_or(1);
-            format!("{ORIGIN}/api/playlist/{tmdb_id}/{season}/{episode}?token=")
+async fn fetch(ctx: &ResolveCtx<'_>, url: Url) -> Result<String, SourceError> {
+    let response = soften(
+        ctx.fetcher
+            .request(
+                FetchRequest::get(url)
+                    .with_header("Referer", format!("{ORIGIN}/"))
+                    .with_header("Origin", ORIGIN)
+                    .with_header("User-Agent", UA)
+                    .with_timeout(Duration::from_secs(10)),
+            )
+            .await
+            .map_err(SourceError::Fetch),
+    )?;
+    if matches!(response.status, 404 | 410) {
+        return Err(SourceError::NotFound);
+    }
+    if !response.is_success() {
+        return Err(SourceError::scrape(
+            ID,
+            format!("player HTTP {}", response.status),
+        ));
+    }
+    Ok(response.body)
+}
+
+fn signed_playlist(html: &str) -> Option<Url> {
+    let player = html
+        .split_once("window.masterPlaylist")?
+        .1
+        .split_once("};")?
+        .0;
+    let mut fields = std::collections::BTreeMap::new();
+    for captures in PLAYER_FIELD.captures_iter(player).flatten() {
+        fields.insert(captures.get(1)?.as_str(), captures.get(2)?.as_str());
+    }
+    let mut url = Url::parse(fields.get("url")?).ok()?;
+    if url.scheme() != "https" || url.host_str() != Some("vixsrc.to") {
+        return None;
+    }
+    if !url
+        .path()
+        .rsplit_once('.')
+        .is_some_and(|(_, ext)| ext.eq_ignore_ascii_case("m3u8"))
+    {
+        url.set_path(&format!("{}.m3u8", url.path()));
+    }
+    url.query_pairs_mut()
+        .append_pair("token", fields.get("token")?)
+        .append_pair("expires", fields.get("expires")?)
+        .append_pair("h", "1")
+        .append_pair("lang", "en");
+    Some(url)
+}
+
+fn english_audio_index(playlist: &str) -> Option<u32> {
+    if !playlist.trim_start().starts_with("#EXTM3U") {
+        return None;
+    }
+    for (index, line) in playlist
+        .lines()
+        .filter(|line| line.starts_with("#EXT-X-MEDIA:") && line.contains("TYPE=AUDIO"))
+        .enumerate()
+    {
+        if line.contains("LANGUAGE=\"eng\"") || line.contains("LANGUAGE=\"en\"") {
+            return u32::try_from(index).ok();
         }
-        _ => format!("{ORIGIN}/api/playlist/{tmdb_id}?token="),
-    };
-    Url::parse(&raw)
-        .map_err(|error| SourceError::scrape(ID, format!("invalid playlist URL `{raw}`: {error}")))
+    }
+    None
 }
 
 /// `name + (season ? ` S01E02` : ` (${year})`)` — the upstream
@@ -174,7 +247,7 @@ fn soften<T>(error: Result<T, SourceError>) -> Result<T, SourceError> {
 
 /// Attach the provider identity and language flags to a stream.
 fn with_source(mut stream: Stream, id: &str, label: &str) -> Stream {
-    stream.meta.languages = vec![CountryCode::Multi];
+    stream.meta.languages = vec![CountryCode::En];
     stream.meta.source_id = Some(id.to_string());
     stream.meta.source_label = Some(label.to_string());
     stream
@@ -188,7 +261,7 @@ mod tests {
     use async_trait::async_trait;
     use vsources_core::error::FetchError;
     use vsources_core::traits::{FetchRequest, FetchResponse, Fetcher, ResolvedMedia};
-    use vsources_core::types::{Format, MediaId};
+    use vsources_core::types::MediaId;
 
     use super::*;
 
@@ -304,7 +377,7 @@ mod tests {
             info.content_types,
             vec![MediaType::Movie, MediaType::Series]
         );
-        assert_eq!(info.country_codes, vec![CountryCode::Multi]);
+        assert_eq!(info.country_codes, vec![CountryCode::En]);
         assert_eq!(
             info.base_url.as_ref().map(Url::as_str),
             Some("https://vixsrc.to/")
@@ -313,101 +386,110 @@ mod tests {
         assert_eq!(info.domain_key, None);
     }
 
-    #[tokio::test]
-    async fn resolves_the_movie_playlist_card() -> Result<(), SourceError> {
-        let mock = Arc::new(ScriptedFetcher::default().page(
-            "/3/movie/27205",
-            200,
-            r#"{"title":"Inception","release_date":"2010-07-16"}"#,
-        ));
-        let provider = provider(&mock);
-        let ctx = ctx_for(&mock, None);
-
-        let streams = provider
-            .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(27205)))
-            .await?;
-
-        assert_eq!(streams.len(), 1);
-        let stream = &streams[0];
-        assert_eq!(
-            stream.url.as_str(),
-            "https://vixsrc.to/api/playlist/27205?token="
-        );
-        assert_eq!(stream.format, Format::Hls);
-        assert_eq!(stream.label.as_deref(), Some("Inception (2010)"));
-        assert_eq!(stream.meta.languages, vec![CountryCode::Multi]);
-        assert_eq!(stream.meta.source_id.as_deref(), Some("vixsrc"));
-        assert_eq!(stream.meta.source_label.as_deref(), Some("VixSrc"));
-        assert_eq!(
-            stream
-                .meta
-                .request_headers
-                .get("Referer")
-                .map(String::as_str),
-            Some("https://vixsrc.to/")
-        );
-        assert_eq!(
-            stream
-                .meta
-                .request_headers
-                .get("Origin")
-                .map(String::as_str),
-            Some("https://vixsrc.to")
-        );
-        assert_eq!(stream.ttl, TTL);
-        Ok(())
+    fn live_shape(mock: ScriptedFetcher, api: &str) -> ScriptedFetcher {
+        mock.page(api,200,r#"{"src":"/embed/7?token=api-token"}"#)
+            .page("/embed/7",200,r"window.masterPlaylist = { params: { 'token': 'media-token', 'expires': '2000000000' }, url: 'https://vixsrc.to/playlist/7?ub=1' };")
+            .page("/playlist/7.m3u8",200,"#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"ita\",URI=\"it.m3u8\"\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"eng\",URI=\"en.m3u8\"")
     }
 
     #[tokio::test]
-    async fn resolves_the_series_playlist_card_with_season_and_episode() -> Result<(), SourceError>
-    {
-        let mock = Arc::new(ScriptedFetcher::default().page(
-            "/3/tv/1396",
-            200,
-            r#"{"name":"Breaking Bad","first_air_date":"2008-01-20"}"#,
+    async fn resolves_fresh_signed_movie_and_selects_english() -> Result<(), SourceError> {
+        let mock = Arc::new(live_shape(
+            ScriptedFetcher::default().page(
+                "/3/movie/27205",
+                200,
+                r#"{"title":"Inception","release_date":"2010-07-16"}"#,
+            ),
+            "/api/movie/27205",
         ));
-        let provider = provider(&mock);
-        let ctx = ctx_for(&mock, None);
-
-        let streams = provider
-            .resolve(&ctx, &MediaRef::series(MediaId::Tmdb(1396), 1, 2))
+        let streams = provider(&mock)
+            .resolve(
+                &ctx_for(&mock, None),
+                &MediaRef::movie(MediaId::Tmdb(27205)),
+            )
             .await?;
-
         assert_eq!(streams.len(), 1);
-        let stream = &streams[0];
+        assert_eq!(streams[0].url.path(), "/playlist/7.m3u8");
         assert_eq!(
-            stream.url.as_str(),
-            "https://vixsrc.to/api/playlist/1396/1/2?token="
+            streams[0]
+                .url
+                .query_pairs()
+                .find(|(k, _)| k == "token")
+                .map(|(_, v)| v.into_owned()),
+            Some("media-token".into())
         );
-        assert_eq!(stream.label.as_deref(), Some("Breaking Bad S01E02"));
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn pre_resolved_media_skips_tmdb() -> Result<(), SourceError> {
-        let mock = Arc::new(ScriptedFetcher::default());
-        let provider = provider(&mock);
-        let media = ResolvedMedia {
-            tmdb_id: Some(550),
-            imdb_id: None,
-            name: "Fight Club".to_string(),
-            year: Some(1999),
-            season: None,
-            episode: None,
-        };
-        let ctx = ctx_for(&mock, Some(media));
-
-        let streams = provider
-            .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(550)))
-            .await?;
-
-        assert_eq!(streams.len(), 1);
-        assert_eq!(streams[0].label.as_deref(), Some("Fight Club (1999)"));
+        assert_eq!(
+            streams[0].meta.audio_selection,
+            Some(AudioSelection {
+                language: CountryCode::En,
+                audio_index: 1
+            })
+        );
+        assert_eq!(streams[0].label.as_deref(), Some("Inception (2010)"));
         assert!(
-            mock.requests().is_empty(),
-            "no fetches for pre-resolved media"
+            mock.requests()
+                .iter()
+                .filter(|r| r.url.host_str() == Some("vixsrc.to"))
+                .all(|r| r.headers.contains_key("User-Agent"))
         );
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn series_preserves_exact_season_episode() -> Result<(), SourceError> {
+        let mock = Arc::new(live_shape(
+            ScriptedFetcher::default().page(
+                "/3/tv/1396",
+                200,
+                r#"{"name":"Breaking Bad","first_air_date":"2008-01-20"}"#,
+            ),
+            "/api/tv/1396/2/1",
+        ));
+        let streams = provider(&mock)
+            .resolve(
+                &ctx_for(&mock, None),
+                &MediaRef::series(MediaId::Tmdb(1396), 2, 1),
+            )
+            .await?;
+        assert_eq!(streams.len(), 1);
+        assert!(
+            mock.requests()
+                .iter()
+                .any(|r| r.url.path() == "/api/tv/1396/2/1")
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn missing_catalog_entry_does_not_fabricate_a_stream() {
+        let mock = Arc::new(
+            ScriptedFetcher::default()
+                .page("/3/movie/27205", 200, r#"{"title":"Inception"}"#)
+                .page("/api/movie/27205", 404, "not found"),
+        );
+        let result = provider(&mock)
+            .resolve(
+                &ctx_for(&mock, None),
+                &MediaRef::movie(MediaId::Tmdb(27205)),
+            )
+            .await;
+        assert!(matches!(result, Err(SourceError::NotFound)));
+    }
+
+    #[test]
+    fn ignores_unrelated_tokens_and_rejects_non_english_or_html() {
+        assert!(signed_playlist("var token='not a playlist';").is_none());
+        assert!(
+            signed_playlist(
+                "window.masterPlaylist = {url:'https://other.example/p',token:'x',expires:'1'};"
+            )
+            .is_none()
+        );
+        assert_eq!(
+            english_audio_index("#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"ita\""),
+            None
+        );
+        assert_eq!(english_audio_index("<html>LANGUAGE=\"eng\"</html>"), None);
     }
 
     #[tokio::test]
