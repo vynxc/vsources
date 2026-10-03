@@ -1,0 +1,197 @@
+{
+  "purpose": "One bounded Inception smoke test after configuring a public application signing constant",
+  "case": {
+    "case_id": "inception",
+    "category": "movie",
+    "title": "Inception",
+    "tmdb": 27205,
+    "year": 2010,
+    "era": "classic",
+    "kind": "movie",
+    "season": null,
+    "episode": null,
+    "episode_year": null
+  },
+  "row": {
+    "provider": "moviebox",
+    "case_id": "inception",
+    "category": "movie",
+    "english_dub_required": false,
+    "checked_at": "2026-10-03T16:19:25.083610+00:00",
+    "binary_sha256": "1803457635fdcf95c6412590712c9528eabd258f8a342e2b84202989556e814e",
+    "metadata_ms": 66.23574,
+    "cold": {
+      "cards": 1,
+      "http_requests": 3,
+      "ms": 897.242962,
+      "status": "resolved",
+      "error_kind": null
+    },
+    "warm": [
+      {
+        "cards": 1,
+        "http_requests": 0,
+        "ms": 0.030722999999999997,
+        "status": "resolved",
+        "error_kind": null,
+        "cache_hit": true
+      }
+    ],
+    "warm_median_ms": 0.030722999999999997,
+    "streams": [
+      {
+        "stream_hash": "ac95b70c5987a16d66d1",
+        "host": "sbcdn3.hakunaymatata.com",
+        "format": "unknown",
+        "resolution": 1080,
+        "quality": null,
+        "external": false,
+        "header_names": [
+          "Cookie",
+          "Referer",
+          "User-Agent"
+        ],
+        "languages": [
+          "Multi"
+        ],
+        "dubbed": null,
+        "subbed": null,
+        "audio_selection": null,
+        "stream_ttl": {
+          "nanos": 0,
+          "secs": 600
+        }
+      }
+    ],
+    "decodes": [
+      {
+        "status": "decode_failed",
+        "exit": 124,
+        "frames": 103,
+        "media_seconds": 4.437,
+        "audio_decoded": false,
+        "selected_audio_language": "eng",
+        "audio_tags": [
+          "eng"
+        ],
+        "video_codecs": [
+          "hevc (Main) (hev1 / 0x31766568)",
+          "wrapped_avframe"
+        ],
+        "first_frame_ms": 2141.959,
+        "decode_ms": 25005.631,
+        "host_queue_ms": 0.0,
+        "error_kind": "timeout",
+        "header_names": [
+          "Cookie",
+          "Referer",
+          "User-Agent"
+        ],
+        "header_hash": "6b599579552f35608671",
+        "private_log_name": "quick-moviebox-key/moviebox-inception-0-baseline.log",
+        "stream_hash": "ac95b70c5987a16d66d1",
+        "host": "sbcdn3.hakunaymatata.com",
+        "profile": "sdk_headers"
+      }
+    ],
+    "status": "decode_failed",
+    "baseline_played": false,
+    "header_recovered": false,
+    "warm_playback": null,
+    "attempt_ms": 25980.577
+  },
+  "source_reference": "https://github.com/mesamirh/MovieBox-Tui/blob/751fd0ec49e114d0ae849bf1dc52fec869d58e7d/src/providers/moviebox/crypto.rs",
+  "history": [
+    {
+      "provider": "moviebox",
+      "case_id": "inception",
+      "category": "movie",
+      "english_dub_required": false,
+      "checked_at": "2026-10-03T16:11:01.544976+00:00",
+      "binary_sha256": "bd3291a4155a1f47647895fa5ad974b5760fcb8a4ff9662513971b871da22380",
+      "metadata_ms": 79.68544800000001,
+      "cold": {
+        "cards": 1,
+        "http_requests": 3,
+        "ms": 854.932624,
+        "status": "resolved",
+        "error_kind": null
+      },
+      "warm": [
+        {
+          "cards": 1,
+          "http_requests": 0,
+          "ms": 0.036759,
+          "status": "resolved",
+          "error_kind": null,
+          "cache_hit": true
+        }
+      ],
+      "warm_median_ms": 0.036759,
+      "streams": [
+        {
+          "stream_hash": "e920d0f436d3d683591c",
+          "host": "sbcdn3.hakunaymatata.com",
+          "format": "unknown",
+          "resolution": 1080,
+          "quality": null,
+          "external": false,
+          "header_names": [
+            "Cookie",
+            "Referer",
+            "User-Agent"
+          ],
+          "languages": [
+            "Multi"
+          ],
+          "dubbed": null,
+          "subbed": null,
+          "audio_selection": null,
+          "stream_ttl": {
+            "nanos": 0,
+            "secs": 600
+          }
+        }
+      ],
+      "decodes": [
+        {
+          "status": "decode_failed",
+          "exit": 124,
+          "frames": 100,
+          "media_seconds": 4.437,
+          "audio_decoded": false,
+          "selected_audio_language": "eng",
+          "audio_tags": [
+            "eng"
+          ],
+          "video_codecs": [
+            "hevc (Main) (hev1 / 0x31766568)",
+            "wrapped_avframe"
+          ],
+          "first_frame_ms": 2324.354,
+          "decode_ms": 25007.181,
+          "host_queue_ms": 0.001,
+          "error_kind": "timeout",
+          "header_names": [
+            "Cookie",
+            "Referer",
+            "User-Agent"
+          ],
+          "header_hash": "b44888058750b2b962e3",
+          "private_log_name": "quick-moviebox-key/moviebox-inception-0-baseline.log",
+          "stream_hash": "e920d0f436d3d683591c",
+          "host": "sbcdn3.hakunaymatata.com",
+          "profile": "sdk_headers"
+        }
+      ],
+      "status": "decode_failed",
+      "baseline_played": false,
+      "header_recovered": false,
+      "warm_playback": null,
+      "attempt_ms": 25953.259
+    }
+  ],
+  "key_source": "Public application-wide signing constant, configured only in ignored .env.local",
+  "app_version_code": 50020121,
+  "limits": "One movie, one stream, 20-second source budget, 25-second decode budget; full eight-second decode did not pass."
+}

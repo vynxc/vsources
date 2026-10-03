@@ -20,7 +20,7 @@ const HOSTS: &[&str] = &[
     "https://api4sg.aoneroom.com",
 ];
 const PREFIX: &str = "/wefeed-mobile-bff";
-const UA: &str = "com.community.oneroom/50020044 (Linux; U; Android 13; en_US; 23078RKD5C; Build/TQ2A.230405.003; Cronet/135.0.7012.3)";
+const UA: &str = "com.community.oneroom/50020121 (Linux; U; Android 13; en_US; 23078RKD5C; Build/TQ2A.230405.003; Cronet/135.0.7012.3)";
 const REFERER: &str = "https://sportslive.wine";
 
 #[derive(Clone)]
@@ -70,7 +70,7 @@ impl Client {
         );
         Self {
             key,
-            info: json!({"package_name":"com.community.oneroom","version_name":"4.0.01.0813.03","version_code":50_020_044,"os":"android","os_version":"13","install_ch":"ps","device_id":device,"install_store":"ps","gaid":gaid,"brand":"Xiaomi","model":"23078RKD5C","system_language":"en","net":"WIFI","region":"US","timezone":"America/New_York","sp_code":"40401","X-Play-Mode":"2"}).to_string(),
+            info: json!({"package_name":"com.community.oneroom","version_name":"4.0.01.0813.03","version_code":50_020_121,"os":"android","os_version":"13","install_ch":"ps","device_id":device,"install_store":"ps","gaid":gaid,"brand":"Xiaomi","model":"23078RKD5C","system_language":"en","net":"WIFI","region":"US","timezone":"America/New_York","sp_code":"40401","X-Play-Mode":"2"}).to_string(),
             session: Cache::builder().max_capacity(1).time_to_live(Duration::from_hours(1)).build(),
         }
     }

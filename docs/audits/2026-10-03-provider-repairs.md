@@ -1,5 +1,25 @@
 # Provider repair investigation — 2026-10-03
 
+## Quick follow-up: MovieBox key
+
+The public app-wide signing constant was found in
+[MovieBox-Tui crypto.rs](https://github.com/mesamirh/MovieBox-Tui/blob/751fd0ec49e114d0ae849bf1dc52fec869d58e7d/src/providers/moviebox/crypto.rs)
+and configured in ignored `.env.local`; it is not an account credential.
+The mobile app version was aligned to the current reference's 50020121.
+Two one-movie checks resolved mobile media in 0.85–0.90 seconds and started
+eng-tagged playback around 2.3 seconds, but stalled before completing eight
+seconds within a 25-second budget. **MovieBox is not yet a playback pass.**
+[Sanitized before/after evidence](2026-10-03-moviebox-key-check.json).
+
+The quick GitHub follow-up found no other ready-to-copy repair. The main
+upstream remains at the previously reviewed commit. EasyProxy's FlareSolverr
+integration requires runtime provisioning; a Cineby lead currently points to
+CineJoy in the referenced project's tree, which is already represented here.
+No account cookies or private credentials were copied, and deeper work was
+skipped under the user's one-minute/easy-options constraint. Older matrix and
+investigation notes below describe their original configuration, before this key.
+
+
 Reviewed every one of the 22 providers with zero qualifying playback in the
 October 2 matrix. The current SDK contains 46 providers: AniBD and AnimeZeY
 were removed. Fast anime with English subtitles remains in scope; sub-only

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-03T05:20:59.745195+00:00",
+  "updated_at": "2026-10-03T16:26:29.779677+00:00",
   "case_manifest": "/mnt/ALPH/code/vsources/docs/audits/provider-matrix-cases.json",
   "manifest_sha256": "93409fca7f0f107fba6bd6306b28fee330bc93aeb1366a5b949c1fc173ab77ee",
   "complete": true,
@@ -118914,8 +118914,8 @@
     {
       "id": "moviebox",
       "label": "MovieBox",
-      "disposition": "configuration_required",
-      "note": "Desktop cards fail playback (mostly HTTP 426). The existing mobile route requires the caller’s MOVIEBOX_MOBILE_SIGNING_KEY; only TMDB configuration is present. No key was bundled or borrowed.",
+      "disposition": "unresolved",
+      "note": "Public application signing constant found in mesamirh/MovieBox-Tui crypto.rs and configured locally. Aligned mobile app version to 50020121. Two bounded Inception checks resolved real mobile English media in about 0.85–0.90s and started frames around 2.3s, but stalled before a complete eight-second decode. Not promoted; original 20-title matrix rows predate this configuration.",
       "current_checks": 20,
       "current_playback_passes": 0,
       "movie_tv_passes": 0,
@@ -118958,6 +118958,11 @@
               "date": "2026-07-24T16:31:17Z"
             }
           ]
+        },
+        {
+          "path": "src/providers/moviebox/crypto.rs",
+          "url": "https://github.com/mesamirh/MovieBox-Tui/blob/751fd0ec49e114d0ae849bf1dc52fec869d58e7d/src/providers/moviebox/crypto.rs",
+          "recent_commits": []
         }
       ]
     },
