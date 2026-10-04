@@ -1,0 +1,112 @@
+{
+  "checked_at": "2026-10-04T00:51:42.278166+00:00",
+  "addon_origin": "https://pengu.uk/",
+  "addon_id": "com.penguplay",
+  "addon_version": "1.4.0",
+  "privacy": "The supplied auth token and signed playback URLs are excluded. Private responses stay outside the repository.",
+  "limits": "Origins from stream request headers may be referrers/CDNs/download hops, not provider websites. Manifest lists names and filters without upstream API URLs. Stream metadata was sampled for Inception and Cowboy Bebop; no media was downloaded or speed/playback verified.",
+  "providers": [
+    {
+      "name": "Cinejoy",
+      "urls": [
+        "https://cinejoy.pk/"
+      ],
+      "evidence": "Pengu stream request referrer/origin"
+    },
+    {
+      "name": "CineFreak",
+      "urls": [
+        "https://cinefreak.net/"
+      ],
+      "evidence": "Pengu stream request referrer/origin; sampled R2 cards advertise English audio"
+    },
+    {
+      "name": "VAPlayer",
+      "urls": [
+        "https://streamdata.vaplayer.ru/",
+        "https://nextgencloudfabric.com/"
+      ],
+      "evidence": "Public VAPlayer adapter API host; Pengu playback referrer/origin is nextgencloudfabric"
+    },
+    {
+      "name": "MovieBox",
+      "urls": [
+        "https://h5-api.aoneroom.com/"
+      ],
+      "evidence": "Pengu DASH request referrer/API origin; not a public movie website"
+    },
+    {
+      "name": "Miruro",
+      "urls": [
+        "https://www.animegg.org/"
+      ],
+      "evidence": "One sampled upstream/referrer only; Miruro site/API is not exposed"
+    },
+    {
+      "name": "MoviesDrives",
+      "urls": [
+        "https://hubcloud.ist/"
+      ],
+      "evidence": "Intermediate download-host referrer; original provider website not exposed"
+    },
+    {
+      "name": "VegaMovies",
+      "urls": [
+        "https://nexdrive.fit/"
+      ],
+      "evidence": "Intermediate download-host referrer; original provider website not exposed"
+    },
+    {
+      "name": "Anikoto",
+      "urls": [
+        "https://fetch.nexabloom.top/"
+      ],
+      "evidence": "Host in a readable Pengu playback payload; playback/fetch host, not confirmed site"
+    },
+    {
+      "name": "VidLink",
+      "urls": [
+        "https://vidlink.pro/"
+      ],
+      "evidence": "Existing SDK reference; no matching Pengu cards in these two samples"
+    },
+    {
+      "name": "VidFast",
+      "urls": [
+        "https://vidfast.vc/"
+      ],
+      "evidence": "Existing SDK reference; no matching Pengu cards in these two samples"
+    },
+    {
+      "name": "2Peckle",
+      "urls": [],
+      "evidence": "Cards returned through opaque signed Pengu direct proxies; upstream not exposed"
+    },
+    {
+      "name": "4KHDHub",
+      "urls": [],
+      "evidence": "Cards returned through opaque signed Pengu direct proxies; upstream not exposed"
+    },
+    {
+      "name": "HDHub4u",
+      "urls": [],
+      "evidence": "Cards returned through opaque signed Pengu direct proxies; upstream not exposed"
+    },
+    {
+      "name": "KissKH",
+      "urls": [],
+      "evidence": "Anime sample returned opaque Pengu proxy; upstream not exposed"
+    },
+    {
+      "name": "Arctic",
+      "urls": [],
+      "evidence": "Manifest confirms source_arctic, but neither sample returned Arctic cards. Per-request source flag test did not alter the result list; no access/filter behavior was assumed."
+    },
+    {
+      "name": "Live TV",
+      "urls": [],
+      "evidence": "Manifest confirms pp-live resources; it does not expose channel source websites"
+    }
+  ],
+  "reference": "https://github.com/Inside4ndroid/TMDB-Embed-API/blob/aacac098f25db5f6fe0614670987c54ae32fc2eb/providers/vaplayer.js"
+}
