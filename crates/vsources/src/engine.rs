@@ -656,6 +656,10 @@ impl Engine {
             let result = match bounded.await {
                 Ok(Ok(mut streams)) => {
                     streams.truncate(self.stream_limit);
+                    for stream in &mut streams {
+                        stream.meta.source_id=Some(id.clone());
+                        stream.meta.source_label=Some(source.info().label.clone());
+                    }
                     if english_only {
                         streams.retain(english_dub);
                     }
