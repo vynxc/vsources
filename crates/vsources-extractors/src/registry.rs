@@ -238,7 +238,6 @@ async fn run_chain(
     for extractor in matching {
         tracing::debug!(
             extractor = extractor.id(),
-            url = canonical.as_str(),
             "extracting"
         );
         match extractor.extract(ctx, canonical).await {
@@ -247,7 +246,7 @@ async fn run_chain(
             }
             Ok(_) | Err(ExtractorError::NotFound) => {}
             Err(error) => {
-                tracing::warn!(extractor = extractor.id(), "extraction failed: {error}");
+                tracing::warn!(extractor = extractor.id(), "extraction failed");
                 last_error = Some(error);
             }
         }

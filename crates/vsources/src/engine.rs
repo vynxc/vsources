@@ -120,6 +120,7 @@ pub struct EngineBuilder {
     tmdb_key: Option<String>,
     /// The registered providers.
     sources: Vec<Arc<dyn Source>>,
+    stream_limit: Option<usize>,
     /// Provider id allowlist; empty means all.
     allowlist: Vec<String>,
     /// Whether the caller explicitly selected providers, including all providers.
@@ -201,6 +202,13 @@ impl EngineBuilder {
     #[must_use]
     pub fn per_source_timeout(mut self, timeout: Duration) -> Self {
         self.per_source_timeout = Some(timeout);
+        self
+    }
+
+    /// Bound retained streams and each provider result for scoped embedders.
+    #[must_use]
+    pub fn stream_limit(mut self, limit: usize) -> Self {
+        self.stream_limit = Some(limit.max(1));
         self
     }
 
@@ -308,6 +316,7 @@ impl EngineBuilder {
             registry: SourceRegistry::new(selected),
             per_source_timeout: self.per_source_timeout.unwrap_or(DEFAULT_SOURCE_TIMEOUT),
             concurrency: self.concurrency.unwrap_or(DEFAULT_CONCURRENCY).max(1),
+            stream_limit: self.stream_limit.unwrap_or(usize::MAX),
         })
     }
 }
@@ -362,6 +371,7 @@ pub struct Engine {
     per_source_timeout: Duration,
     /// Provider fan-out width.
     concurrency: usize,
+    stream_limit: usize,
     /// Shared per-stream verdict cache.
     probes: StreamProbe,
 }
@@ -515,8 +525,8 @@ impl Engine {
         let resolved = match &self.tmdb {
             Some(tmdb) => match tmdb.resolve_media(media).await {
                 Ok(resolved) => Some(resolved),
-                Err(error) => {
-                    tracing::warn!(%error, "tmdb metadata unavailable; resolving without it");
+                Err(_error) => {
+                    tracing::warn!("tmdb metadata unavailable; resolving without it");
                     None
                 }
             },
@@ -577,6 +587,7 @@ impl Engine {
                             .unwrap_or_else(|| release_name_of(&stream.url));
                         enrich_stream(&mut stream, &release_name);
                         match claimed.get(&stream.url) {
+                            None if entries.len() >= self.stream_limit => continue,
                             None => {
                                 claimed.insert(stream.url.clone(), entries.len());
                                 entries.push((index, sequence, stream));
@@ -596,7 +607,7 @@ impl Engine {
                     }
                 }
                 Err(error) => {
-                    tracing::warn!(provider = %id, %error, "provider failed");
+                    tracing::warn!(provider = %id, "provider failed");
                     failures.push((id, error));
                 }
             }
@@ -644,6 +655,7 @@ impl Engine {
             let bounded = tokio::time::timeout(timeout, resolve);
             let result = match bounded.await {
                 Ok(Ok(mut streams)) => {
+                    streams.truncate(self.stream_limit);
                     if english_only {
                         streams.retain(english_dub);
                     }

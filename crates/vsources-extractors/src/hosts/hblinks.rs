@@ -85,8 +85,8 @@ impl Extractor for HBLinks {
         let referer = ctx.referer.unwrap_or(url);
         let html = match fetch_page_with(ctx, url, referer).await {
             Ok(html) => html,
-            Err(error) => {
-                tracing::warn!("HBLinks page fetch failed for {}: {error}", url.as_str());
+            Err(_error) => {
+                tracing::warn!("HBLinks page fetch failed");
                 return Err(ExtractorError::NotFound);
             }
         };
@@ -138,8 +138,8 @@ impl Extractor for HBLinks {
         for (link, result) in unique_links.iter().zip(resolved) {
             match result {
                 Ok(found) => streams.extend(found),
-                Err(error) => {
-                    tracing::warn!("HBLinks extraction failed for {}: {error}", link.as_str());
+                Err(_error) => {
+                    tracing::warn!("HBLinks extraction failed");
                 }
             }
         }
