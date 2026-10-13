@@ -27,6 +27,7 @@ use vsources_core::mappings::MappingService;
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{Fetcher, ResolveCtx, ResolvedMedia, Source};
 use vsources_core::types::{CountryCode, MediaRef, SourceInfo, Stream};
+#[cfg(feature = "default-fetcher")]
 use vsources_net::ChromeFetcher;
 use vsources_providers::SourceRegistry;
 
@@ -83,6 +84,9 @@ pub enum EngineError {
     /// The opt-in fast English-dub race exceeded its total budget.
     #[error("fast English-dub resolution exceeded its 12-second budget")]
     FastDubTimeout,
+    /// A custom fetcher is mandatory when the default transport is disabled.
+    #[error("a caller-supplied fetcher is required")]
+    MissingFetcher,
     /// The default fetcher could not be constructed.
     #[error("the default fetcher could not be built: {0}")]
     Fetcher(String),
@@ -242,10 +246,13 @@ impl EngineBuilder {
                 }
                 fetcher
             }
+            #[cfg(feature = "default-fetcher")]
             None => Arc::new(build_fetcher(
                 self.flaresolverr.as_ref(),
                 self.proxy.as_deref(),
             )?),
+            #[cfg(not(feature = "default-fetcher"))]
+            None => return Err(EngineError::MissingFetcher),
         };
 
         let tmdb = self
@@ -317,6 +324,7 @@ fn parse_provider_allowlist(value: &str) -> Vec<String> {
 }
 
 /// The default fetcher, with the Cloudflare chain when configured.
+#[cfg(feature = "default-fetcher")]
 fn build_fetcher(
     flaresolverr: Option<&Url>,
     proxy: Option<&str>,
@@ -1167,5 +1175,14 @@ mod tests {
         }
         assert_eq!(engine.resolve(&media()).await?, result);
         Ok(())
+    }
+}
+
+#[cfg(all(test, not(feature = "default-fetcher")))]
+mod scoped_transport_tests {
+    use super::*;
+    #[test]
+    fn omitted_fetcher_fails_without_implicit_network_transport() {
+        assert!(matches!(EngineBuilder::new().build(), Err(EngineError::MissingFetcher)));
     }
 }

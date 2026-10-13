@@ -2668,7 +2668,6 @@ dependencies = [
  "tracing",
  "url",
  "vsources-core",
- "vsources-net",
 ]
 
 [[package]]
@@ -2709,7 +2708,6 @@ dependencies = [
  "url",
  "vsources-core",
  "vsources-extractors",
- "vsources-net",
 ]
 
 [[package]]
