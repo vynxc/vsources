@@ -881,15 +881,45 @@ async fn validate_playlist_child(ctx: &ResolveCtx<'_>, uri: &str) -> bool {
     if !response.is_success() || !response.body.starts_with("#EXTM3U") {
         return false;
     }
-    response
+    let Some(segment) = response
         .body
         .lines()
-        .any(|line| !line.trim().is_empty() && !line.trim().starts_with('#'))
+        .map(str::trim)
+        .find(|line| !line.is_empty() && !line.starts_with('#'))
+        .and_then(|line| response.url.join(line).ok())
+    else {
+        return false;
+    };
+    !known_error_segment(ctx, segment).await
+}
+
+// Only definitive known diagnostic media is rejected; inconclusive probes preserve
+// the existing player-IP behavior and never blacklist a host or short VOD.
+async fn known_error_segment(ctx: &ResolveCtx<'_>, url: Url) -> bool {
+    let request = with_headers(FetchRequest::get(url), &common_headers())
+        .with_header("Range", "bytes=0-2047")
+        .with_timeout(MASTER_TIMEOUT);
+    match ctx
+        .fetcher
+        .probe(
+            request,
+            vsources_core::media_validation::ERROR_CLIP_PREFIX_BYTES,
+        )
+        .await
+    {
+        Ok(Some(response)) if (200..300).contains(&response.status) => {
+            vsources_core::media_validation::known_error_clip_prefix(&response.body)
+        }
+        _ => false,
+    }
 }
 
 /// The first bytes of a media segment — a TS sync byte or an fMP4 box
 /// magic (the lossy-decoded body keeps both as ASCII).
 async fn probe_segment_magic(ctx: &ResolveCtx<'_>, url: Url) -> bool {
+    if known_error_segment(ctx, url.clone()).await {
+        return false;
+    }
     let request = with_headers(FetchRequest::get(url), &common_headers())
         .with_header("Range", "bytes=0-4095")
         .with_timeout(MASTER_TIMEOUT);

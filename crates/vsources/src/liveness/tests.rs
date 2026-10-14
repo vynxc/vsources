@@ -441,3 +441,25 @@ async fn cancellation_releases_coalesced_work_and_permits() {
     let verdict = tokio::time::timeout(Duration::from_secs(1), gate.check(&fetcher, &card)).await;
     assert_eq!(verdict.ok(), Some(Verdict::Alive));
 }
+
+#[test]
+fn a_known_error_video_is_dead_even_with_valid_transport_stream_headers() {
+    let mut bytes = vec![0; 2048];
+    bytes[0] = 0x47;
+    bytes[188] = 0x47;
+    let payload = response("/same-host/opaque.ts", 200, "video/mp2t", &bytes);
+    assert!(matches!(
+        classify_payload(&payload, true),
+        Payload::Verdict(Verdict::Dead)
+    ));
+    assert!(matches!(
+        classify_payload(&payload, false),
+        Payload::Verdict(Verdict::Alive)
+    ));
+    // A failed probe is not evidence that another player's IP cannot play it.
+    let denied = response("/same-host/opaque.ts", 403, "video/mp2t", &bytes);
+    assert!(matches!(
+        classify_payload(&denied, true),
+        Payload::Verdict(Verdict::Unknown)
+    ));
+}

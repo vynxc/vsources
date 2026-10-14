@@ -269,6 +269,12 @@ enum Payload {
 }
 
 fn classify(response: &ProbeResponse) -> Payload {
+    classify_payload(
+        response,
+        vsources_core::media_validation::known_error_clip_prefix(&response.body),
+    )
+}
+fn classify_payload(response: &ProbeResponse, known_error_clip: bool) -> Payload {
     let verdict = |v| Payload::Verdict(v);
     let text = String::from_utf8_lossy(&response.body);
     let detection_response = FetchResponse {
@@ -304,6 +310,9 @@ fn classify(response: &ProbeResponse) -> Payload {
     // Body signatures take priority over lying CDN Content-Type headers.
     if head.starts_with("#EXTM3U") {
         return Payload::Playlist;
+    }
+    if known_error_clip {
+        return verdict(Verdict::Dead);
     }
     if media(body) {
         return verdict(Verdict::Alive);
