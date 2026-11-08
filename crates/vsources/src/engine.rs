@@ -396,7 +396,7 @@ impl Engine {
     pub async fn resolve_english_dub(&self, media: &MediaRef) -> Result<Vec<Stream>, EngineError> {
         let (progress, discarded) = mpsc::unbounded_channel();
         drop(discarded);
-        self.resolve_progressive_with_audio(media, progress, true)
+        self.resolve_progressive_with_audio(media, progress, true, &[])
             .await
     }
 
@@ -512,8 +512,13 @@ impl Engine {
         media: &MediaRef,
         progress: mpsc::UnboundedSender<Vec<Stream>>,
     ) -> Result<Vec<Stream>, EngineError> {
-        self.resolve_progressive_with_audio(media, progress, false)
+        self.resolve_progressive_with_audio(media, progress, false, &[])
             .await
+    }
+
+    /// Resolve normally while omitting suppliers already attempted by the host.
+    pub async fn resolve_progressive_excluding(&self, media: &MediaRef, excluded: &[String], progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
+        self.resolve_progressive_with_audio(media, progress, false, excluded).await
     }
 
     async fn resolve_progressive_with_audio(
@@ -521,6 +526,7 @@ impl Engine {
         media: &MediaRef,
         progress: mpsc::UnboundedSender<Vec<Stream>>,
         english_only: bool,
+        excluded: &[String],
     ) -> Result<Vec<Stream>, EngineError> {
         let resolved = match &self.tmdb {
             Some(tmdb) => match tmdb.resolve_media(media).await {
@@ -549,7 +555,7 @@ impl Engine {
             .registry
             .all()
             .into_iter()
-            .filter(|source| provider_scope_allows(&source.info().id, animation))
+            .filter(|source| !excluded.contains(&source.info().id) && provider_scope_allows(&source.info().id, animation))
             .enumerate()
             .map(|(index, source)| {
                 self.resolve_source(
@@ -620,6 +626,29 @@ impl Engine {
         }
         Ok(ordered_snapshot(&entries))
     }
+    /// Resolve one enabled supplier and publish each usable stream as its probe finishes.
+    /// The host owns the total attempt deadline, including metadata and validation.
+    pub async fn resolve_provider_progressive(&self, media: &MediaRef, provider_id: &str, audio_language: Option<&str>, progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
+        let Some(source) = self.registry.all().into_iter().find(|source| source.info().id == provider_id) else { return Ok(Vec::new()); };
+        let metadata = match &self.tmdb { Some(tmdb) => tmdb.resolve_media(media).await.ok(), None => None };
+        let animation = self.animation_status(media, metadata.as_ref()).await;
+        if !provider_scope_allows(provider_id, animation) { return Ok(Vec::new()); }
+        let ctx = ResolveCtx { fetcher: self.fetcher.as_ref(), media: metadata, source_id: Some(provider_id), referer: None };
+        let mut resolved = tokio::time::timeout(self.per_source_timeout, async {
+            source.resolve(&ctx, media).await
+        }).await.map_err(|_| EngineError::AllProvidersFailed { count: 1 })?.map_err(|_| EngineError::AllProvidersFailed { count: 1 })?;
+        if audio_language == Some("en") && !resolved.iter().any(|s| s.meta.audio_selection.as_ref().is_some_and(|a| a.language == CountryCode::En) || s.meta.languages.contains(&CountryCode::En)) {
+            if let Ok(Ok(english)) = tokio::time::timeout(self.per_source_timeout, source.resolve_english_dub(&ctx, media)).await { resolved.extend(english); }
+        }
+        let streams = resolved.into_iter().take(self.stream_limit).filter_map(|mut stream| {
+            stream.meta.source_id = Some(source.info().id.clone());
+            stream.meta.source_label = Some(source.info().label.clone());
+            let label = stream.label.clone().unwrap_or_else(|| release_name_of(&stream.url));enrich_stream(&mut stream, &label);
+            Some(stream)
+        }).collect();
+        Ok(self.probes.filter_progressive(self.fetcher.as_ref(), streams, audio_language.and_then(CountryCode::parse), |batch| { let _ = progress.send(batch); }).await)
+    }
+
     /// One provider's bounded resolve, as a type-erased future.
     ///
     /// The boxing is load-bearing: a closure returning an `async` block
@@ -1113,6 +1142,16 @@ mod tests {
             Err(EngineError::AllProvidersFailed { .. })
         ));
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn selected_supplier_bypasses_unrelated_provider_queue() {
+        let mut sources: Vec<Arc<dyn Source>> = (0..29).map(|n| Arc::new(StubSource { info: info(&format!("slow-{n}"), n), streams: vec![], error: Some(SourceError::scrape("other", "must not run")), delay: Some(Duration::from_secs(30)) }) as Arc<dyn Source>).collect();
+        sources.push(StubSource::streaming("preferred", 30, &["https://cdn.example/ready.mp4"]));
+        let engine = test_builder().sources(sources).concurrency(1).build().unwrap();
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let result = tokio::time::timeout(Duration::from_secs(1), engine.resolve_provider_progressive(&media(), "preferred", None, tx)).await.unwrap().unwrap();
+        assert_eq!(result.len(), 1);assert_eq!(rx.recv().await.unwrap()[0].meta.source_id.as_deref(), Some("preferred"));
     }
 
     #[tokio::test]

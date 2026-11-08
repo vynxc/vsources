@@ -156,6 +156,50 @@ impl StreamProbe {
             .verdict
     }
 
+    pub(crate) async fn filter_progressive(&self, fetcher: &dyn Fetcher, streams: Vec<Stream>, audio_language: Option<vsources_core::types::CountryCode>, mut publish: impl FnMut(Vec<Stream>)) -> Vec<Stream> {
+        let mut streams = streams;
+        streams.sort_by_key(|s| std::cmp::Reverse(s.meta.resolution.unwrap_or(0)));
+        let mut completed = HashSet::new();
+        let mut kept = Vec::new();
+        let jobs = streams.iter().enumerate().map(|(i, source)| async move {
+            let mut source = source.clone();
+            if audio_language.is_some() && source.meta.languages.is_empty() && source.format == Format::Hls {
+                let mut request = FetchRequest::get(source.url.clone());
+                for (key, value) in &source.meta.request_headers { request = request.with_header(key, value); }
+                if let Ok(Some(response)) = fetcher.probe(request, 64 * 1024).await {
+                    if (200..300).contains(&response.status) && !response.truncated {
+                        let body = String::from_utf8_lossy(&response.body);
+                        if body.trim_start().starts_with("#EXTM3U") {
+                            for line in body.lines().filter_map(|line| line.trim().strip_prefix("#EXT-X-MEDIA:")) {
+                                if !line.split(',').any(|value| value == "TYPE=AUDIO") { continue; }
+                                if let Some(language) = line.split(',').find_map(|v| v.strip_prefix("LANGUAGE=")) {
+                                    let tag = language.trim_matches('"').to_ascii_lowercase();
+                                    let tag = tag.split('-').next().unwrap_or("");
+                                    let tag = match tag { "eng"=>"en","spa"=>"es","fra"|"fre"=>"fr","deu"|"ger"=>"de","jpn"=>"ja","ita"=>"it","por"=>"pt",other=>other };
+                                    if let Some(language) = vsources_core::types::CountryCode::parse(tag) { if !source.meta.languages.contains(&language) { source.meta.languages.push(language); } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            let verdict = self.check(fetcher, &source).await;
+            (i, verdict, source)
+        });
+        let mut pending = stream::iter(jobs).buffer_unordered(self.config.concurrency.max(1));
+        let _ = tokio::time::timeout(self.config.timeout, async {
+            while let Some((i, verdict, source)) = pending.next().await {
+                completed.insert(i);
+                if verdict != Verdict::Dead { publish(vec![source.clone()]);kept.push(source); }
+            }
+        }).await;
+        drop(pending);
+        for (i, source) in streams.into_iter().enumerate() {
+            if !completed.contains(&i) { publish(vec![source.clone()]);kept.push(source); }
+        }
+        kept
+    }
+
     /// Bound the whole batch, so a provider with hundreds of URLs cannot
     /// add hundreds of timeout windows. Unfinished probes remain unknown.
     pub(crate) async fn filter(&self, fetcher: &dyn Fetcher, streams: Vec<Stream>) -> Vec<Stream> {
