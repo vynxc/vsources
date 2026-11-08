@@ -463,3 +463,26 @@ fn a_known_error_video_is_dead_even_with_valid_transport_stream_headers() {
         Payload::Verdict(Verdict::Unknown)
     ));
 }
+
+#[tokio::test]
+async fn progressive_validation_publishes_ready_media_before_a_stalled_alternative() {
+    struct Uneven;
+    #[async_trait]
+    impl Fetcher for Uneven {
+        async fn request(&self,_:FetchRequest)->Result<FetchResponse,FetchError>{panic!("bounded probes only")}
+        async fn probe(&self,request:FetchRequest,_:usize)->Result<Option<ProbeResponse>,FetchError>{
+            if request.url.path()=="/slow.mp4"{tokio::time::sleep(Duration::from_secs(30)).await;}
+            Ok(Some(response(request.url.path(),206,"video/mp4",b"\0\0\0\x18ftypisom")))
+        }
+    }
+    let gate=probe();let(tx,mut rx)=tokio::sync::mpsc::unbounded_channel();
+    let run=gate.filter_progressive(&Uneven,vec![stream("/fast.mp4",Format::Mp4),stream("/slow.mp4",Format::Mp4)],None,|batch|{let _=tx.send(batch);});tokio::pin!(run);
+    let first=tokio::time::timeout(Duration::from_secs(1),async{tokio::select!{batch=rx.recv()=>batch.unwrap(),_=&mut run=>panic!("must publish before whole batch completes")}}).await.unwrap();assert_eq!(first[0].url.path(),"/fast.mp4");
+}
+
+#[tokio::test]
+async fn preferred_validation_inspects_explicit_audio_renditions_without_confusing_subtitles() {
+    let fetcher=ScriptedFetcher::default();fetcher.reply("/multi.m3u8",response("/multi.m3u8",200,"application/vnd.apple.mpegurl",b"#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"fr\",URI=\"fr.m3u8\"\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"eng\",URI=\"en.m3u8\"\n#EXT-X-MEDIA:TYPE=SUBTITLES,LANGUAGE=\"ja\",URI=\"ja.m3u8\"\n"));
+    let output=probe().filter_progressive(&fetcher,vec![stream("/multi.m3u8",Format::Hls)],Some(vsources_core::types::CountryCode::En),|_|{}).await;
+    assert_eq!(output[0].meta.languages,vec![vsources_core::types::CountryCode::Fr,vsources_core::types::CountryCode::En]);
+}
