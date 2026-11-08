@@ -164,6 +164,7 @@ impl StreamProbe {
         let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> = streams.iter().enumerate().map(|(i, source)| Box::pin(async move {
             let mut source = source.clone();
             if audio_language.is_some() && source.meta.languages.iter().all(|language| *language==vsources_core::types::CountryCode::Multi) {
+                let _permit = self.permits.acquire().await.ok();
                 inspect_audio(fetcher,&mut source,self.config.timeout).await;
             }
             let compatible=audio_language.is_none_or(|target|source.meta.audio_selection.as_ref().map_or_else(||source.meta.languages.iter().all(|language|*language==vsources_core::types::CountryCode::Multi)||source.meta.languages.contains(&target),|selected|selected.language==target));

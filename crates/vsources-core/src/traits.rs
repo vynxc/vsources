@@ -296,6 +296,19 @@ pub trait Source: Send + Sync {
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError>;
 
+    /// Publish independent extraction batches before the supplier finishes.
+    /// The caller still validates every stream and owns cancellation/deadlines.
+    async fn resolve_incremental(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+    ) -> Result<Vec<Stream>, SourceError> {
+        let streams = self.resolve(ctx, media).await?;
+        publish(streams.clone());
+        Ok(streams)
+    }
+
     /// Whether a separate resolution can select a different embedded English track.
     fn supports_english_audio_selection(&self) -> bool { false }
 
