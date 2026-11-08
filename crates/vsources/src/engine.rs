@@ -628,10 +628,10 @@ impl Engine {
     }
     /// Resolve one enabled supplier and publish each usable stream as its probe finishes.
     /// The host owns the total attempt deadline, including metadata and validation.
-    pub async fn resolve_provider_progressive(&self, media: &MediaRef, provider_id: &str, audio_language: Option<&str>, progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
+    pub async fn resolve_provider_progressive(&self, media: &MediaRef, provider_id: &str, audio_language: Option<&str>, metadata: Option<ResolvedMedia>, progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
         let Some(source) = self.registry.all().into_iter().find(|source| source.info().id == provider_id) else { return Ok(Vec::new()); };
-        let metadata = match &self.tmdb { Some(tmdb) => tmdb.resolve_media(media).await.ok(), None => None };
-        let animation = self.animation_status(media, metadata.as_ref()).await;
+        let metadata = match metadata { Some(metadata) => Some(metadata), None => match &self.tmdb { Some(tmdb) => tmdb.resolve_media(media).await.ok(), None => None } };
+        let animation = if vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider_id) { self.animation_status(media, metadata.as_ref()).await } else { None };
         if !provider_scope_allows(provider_id, animation) { return Ok(Vec::new()); }
         let ctx = ResolveCtx { fetcher: self.fetcher.as_ref(), media: metadata, source_id: Some(provider_id), referer: None };
         let mut resolved = tokio::time::timeout(self.per_source_timeout, async {
@@ -1150,7 +1150,7 @@ mod tests {
         sources.push(StubSource::streaming("preferred", 30, &["https://cdn.example/ready.mp4"]));
         let engine = test_builder().sources(sources).concurrency(1).build().unwrap();
         let (tx, mut rx) = mpsc::unbounded_channel();
-        let result = tokio::time::timeout(Duration::from_secs(1), engine.resolve_provider_progressive(&media(), "preferred", None, tx)).await.unwrap().unwrap();
+        let result = tokio::time::timeout(Duration::from_secs(1), engine.resolve_provider_progressive(&media(), "preferred", None, None, tx)).await.unwrap().unwrap();
         assert_eq!(result.len(), 1);assert_eq!(rx.recv().await.unwrap()[0].meta.source_id.as_deref(), Some("preferred"));
     }
 
