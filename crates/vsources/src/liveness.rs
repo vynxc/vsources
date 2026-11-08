@@ -161,7 +161,7 @@ impl StreamProbe {
         streams.sort_by_key(|s| std::cmp::Reverse(s.meta.resolution.unwrap_or(0)));
         let mut completed = HashSet::new();
         let mut kept = Vec::new();
-        let jobs = streams.iter().enumerate().map(|(i, source)| async move {
+        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> = streams.iter().enumerate().map(|(i, source)| Box::pin(async move {
             let mut source = source.clone();
             if audio_language.is_some() && source.meta.languages.is_empty() && source.format == Format::Hls {
                 let mut request = FetchRequest::get(source.url.clone());
@@ -185,7 +185,7 @@ impl StreamProbe {
             }
             let verdict = self.check(fetcher, &source).await;
             (i, verdict, source)
-        });
+        }) as BoxFuture<'_, (usize, Verdict, Stream)>).collect();
         let mut pending = stream::iter(jobs).buffer_unordered(self.config.concurrency.max(1));
         let _ = tokio::time::timeout(self.config.timeout, async {
             while let Some((i, verdict, source)) = pending.next().await {
