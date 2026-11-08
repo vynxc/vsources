@@ -296,6 +296,9 @@ pub trait Source: Send + Sync {
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError>;
 
+    /// Whether a separate resolution can select a different embedded English track.
+    fn supports_english_audio_selection(&self) -> bool { false }
+
     /// Resolve English spoken audio only.
     ///
     /// The default accepts explicit English-dub metadata; subtitle language

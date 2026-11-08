@@ -219,6 +219,7 @@ impl ReAnime {
 
 #[async_trait]
 impl Source for ReAnime {
+    fn supports_english_audio_selection(&self) -> bool { true }
     fn info(&self) -> &SourceInfo {
         &self.info
     }

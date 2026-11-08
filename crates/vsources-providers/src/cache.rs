@@ -174,6 +174,7 @@ impl CachedSource {
 
 #[async_trait]
 impl Source for CachedSource {
+    fn supports_english_audio_selection(&self) -> bool { self.inner.supports_english_audio_selection() }
     fn info(&self) -> &SourceInfo {
         self.inner.info()
     }

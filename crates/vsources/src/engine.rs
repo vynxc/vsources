@@ -629,27 +629,24 @@ impl Engine {
     /// Resolve one enabled supplier and publish each usable stream as its probe finishes.
     /// The host owns the total attempt deadline, including metadata and validation.
     pub async fn resolve_provider_progressive(&self, media: &MediaRef, provider_id: &str, audio_language: Option<&str>, metadata: Option<ResolvedMedia>, progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
+        let started=std::time::Instant::now();
         let Some(source) = self.registry.all().into_iter().find(|source| source.info().id == provider_id) else { return Ok(Vec::new()); };
         let metadata = match metadata { Some(metadata) => Some(metadata), None => match &self.tmdb { Some(tmdb) => tmdb.resolve_media(media).await.ok(), None => None } };
         let animation = if vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider_id) { self.animation_status(media, metadata.as_ref()).await } else { None };
         if !provider_scope_allows(provider_id, animation) { return Ok(Vec::new()); }
+        tracing::info!(provider=provider_id, metadata_ms=started.elapsed().as_millis() as u64, "Preferred supplier request started");
         let ctx = ResolveCtx { fetcher: self.fetcher.as_ref(), media: metadata, source_id: Some(provider_id), referer: None };
         let mut resolved = tokio::time::timeout(self.per_source_timeout, async {
-            source.resolve(&ctx, media).await
+            if audio_language==Some("en") && source.supports_english_audio_selection() { source.resolve_english_dub(&ctx,media).await } else { source.resolve(&ctx,media).await }
         }).await.map_err(|_| EngineError::AllProvidersFailed { count: 1 })?.map_err(|_| EngineError::AllProvidersFailed { count: 1 })?;
+        tracing::info!(provider=provider_id, elapsed_ms=started.elapsed().as_millis() as u64, streams=resolved.len(), "Preferred supplier response received");
         let stamp = |mut stream: Stream| {
             stream.meta.source_id=Some(source.info().id.clone());stream.meta.source_label=Some(source.info().label.clone());
             let label=stream.label.clone().unwrap_or_else(||release_name_of(&stream.url));enrich_stream(&mut stream,&label);stream
         };
         let streams=resolved.drain(..).take(self.stream_limit).map(stamp).collect();
         let language=audio_language.and_then(CountryCode::parse);
-        let mut result=self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,|batch|{let _=progress.send(batch);}).await;
-        if language==Some(CountryCode::En) && !result.iter().any(|stream|stream.meta.audio_selection.as_ref().map_or_else(||stream.meta.languages.contains(&CountryCode::En),|audio|audio.language==CountryCode::En)) {
-            if let Ok(Ok(english))=tokio::time::timeout(self.per_source_timeout,source.resolve_english_dub(&ctx,media)).await {
-                let streams=english.into_iter().take(self.stream_limit).map(stamp).collect();
-                result.extend(self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,|batch|{let _=progress.send(batch);}).await);
-            }
-        }
+        let result=self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,|batch|{let _=progress.send(batch);}).await;
         Ok(result)
     }
 
@@ -1146,6 +1143,18 @@ mod tests {
             Err(EngineError::AllProvidersFailed { .. })
         ));
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn supplied_metadata_avoids_another_title_or_animation_request() {
+        struct NoMetadataNetwork;
+        #[async_trait]
+        impl Fetcher for NoMetadataNetwork {
+            async fn request(&self,_:vsources_core::traits::FetchRequest)->Result<vsources_core::traits::FetchResponse,vsources_core::error::FetchError>{panic!("metadata was already supplied")}
+        }
+        let engine=EngineBuilder::new().fetcher(Arc::new(NoMetadataNetwork)).tmdb_key("fixture-key").sources(vec![StubSource::streaming("preferred",1,&["https://cdn.example/ready.mp4"])]).build().unwrap();
+        let (tx,_)=mpsc::unbounded_channel();let metadata=ResolvedMedia{tmdb_id:Some(27205),imdb_id:None,name:"Verified title".into(),year:Some(2010),season:None,episode:None};
+        let result=engine.resolve_provider_progressive(&media(),"preferred",None,Some(metadata),tx).await.unwrap();assert_eq!(result.len(),1);
     }
 
     #[tokio::test]
