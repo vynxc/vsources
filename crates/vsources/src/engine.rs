@@ -637,16 +637,20 @@ impl Engine {
         let mut resolved = tokio::time::timeout(self.per_source_timeout, async {
             source.resolve(&ctx, media).await
         }).await.map_err(|_| EngineError::AllProvidersFailed { count: 1 })?.map_err(|_| EngineError::AllProvidersFailed { count: 1 })?;
-        if audio_language == Some("en") && !resolved.iter().any(|s| s.meta.audio_selection.as_ref().is_some_and(|a| a.language == CountryCode::En) || s.meta.languages.contains(&CountryCode::En)) {
-            if let Ok(Ok(english)) = tokio::time::timeout(self.per_source_timeout, source.resolve_english_dub(&ctx, media)).await { resolved.extend(english); }
+        let stamp = |mut stream: Stream| {
+            stream.meta.source_id=Some(source.info().id.clone());stream.meta.source_label=Some(source.info().label.clone());
+            let label=stream.label.clone().unwrap_or_else(||release_name_of(&stream.url));enrich_stream(&mut stream,&label);stream
+        };
+        let streams=resolved.drain(..).take(self.stream_limit).map(stamp).collect();
+        let language=audio_language.and_then(CountryCode::parse);
+        let mut result=self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,|batch|{let _=progress.send(batch);}).await;
+        if language==Some(CountryCode::En) && !result.iter().any(|stream|stream.meta.audio_selection.as_ref().map_or_else(||stream.meta.languages.contains(&CountryCode::En),|audio|audio.language==CountryCode::En)) {
+            if let Ok(Ok(english))=tokio::time::timeout(self.per_source_timeout,source.resolve_english_dub(&ctx,media)).await {
+                let streams=english.into_iter().take(self.stream_limit).map(stamp).collect();
+                result.extend(self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,|batch|{let _=progress.send(batch);}).await);
+            }
         }
-        let streams = resolved.into_iter().take(self.stream_limit).filter_map(|mut stream| {
-            stream.meta.source_id = Some(source.info().id.clone());
-            stream.meta.source_label = Some(source.info().label.clone());
-            let label = stream.label.clone().unwrap_or_else(|| release_name_of(&stream.url));enrich_stream(&mut stream, &label);
-            Some(stream)
-        }).collect();
-        Ok(self.probes.filter_progressive(self.fetcher.as_ref(), streams, audio_language.and_then(CountryCode::parse), |batch| { let _ = progress.send(batch); }).await)
+        Ok(result)
     }
 
     /// One provider's bounded resolve, as a type-erased future.

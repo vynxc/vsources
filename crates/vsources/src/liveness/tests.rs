@@ -486,3 +486,12 @@ async fn preferred_validation_inspects_explicit_audio_renditions_without_confusi
     let output=probe().filter_progressive(&fetcher,vec![stream("/multi.m3u8",Format::Hls)],Some(vsources_core::types::CountryCode::En),|_|{}).await;
     assert_eq!(output[0].meta.languages,vec![vsources_core::types::CountryCode::Fr,vsources_core::types::CountryCode::En]);
 }
+
+#[tokio::test]
+async fn unspecified_multi_audio_is_inspected_in_disguised_transport_stream_segments() {
+    let mut section=vec![2,0xb0,0,0,1,0xc1,0,0,0xe1,0,0xf0,0];section.extend([27,0xe1,0,0xf0,0]);
+    for(pid,language)in[(1,b"hin"),(2,b"eng")]{section.extend([15,0xe1,pid,0xf0,6,10,4]);section.extend(language);section.push(0);}section.extend([0;4]);section[2]=(section.len()-3)as u8;let mut packet=vec![0x47,0x41,0,0x10,0];packet.extend(section);packet.resize(188,0xff);let mut bytes=packet.clone();bytes.extend(packet);
+    let fetcher=ScriptedFetcher::default();fetcher.reply("/opaque.m3u8",response("/opaque.m3u8",200,"application/vnd.apple.mpegurl",b"#EXTM3U\n#EXTINF:2,\nimage.jpg\n#EXT-X-ENDLIST\n"));fetcher.reply("/image.jpg",response("/image.jpg",206,"image/jpeg",&bytes));
+    let mut source=stream("/opaque.m3u8",Format::Hls);source.meta.languages=vec![vsources_core::types::CountryCode::Multi];
+    let output=probe().filter_progressive(&fetcher,vec![source],Some(vsources_core::types::CountryCode::En),|_|{}).await;assert!(output[0].meta.languages.contains(&vsources_core::types::CountryCode::En));assert!(output[0].meta.languages.contains(&vsources_core::types::CountryCode::Hi));
+}
