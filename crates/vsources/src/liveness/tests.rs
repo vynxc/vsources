@@ -322,7 +322,9 @@ async fn concurrency_and_whole_batch_deadline_are_bounded() {
         .map(|i| stream(&format!("/{i}"), Format::Mp4))
         .collect();
     let start = Instant::now();
-    let result = gate.filter(fetcher.as_ref(), cards).await;
+    let result = gate
+        .filter_progressive(fetcher.as_ref(), cards, None, |_| {})
+        .await;
     assert_eq!(
         result.len(),
         100,
@@ -602,7 +604,12 @@ async fn ordinary_discovery_reuses_probe_audio_evidence_without_extra_requests()
     let gate = probe();
     for _ in 0..2 {
         let result = gate
-            .filter(&fetcher, vec![stream("/master.m3u8", Format::Hls)])
+            .filter_progressive(
+                &fetcher,
+                vec![stream("/master.m3u8", Format::Hls)],
+                None,
+                |_| {},
+            )
             .await;
         assert_eq!(
             result[0].meta.languages,
@@ -671,4 +678,38 @@ async fn preferred_language_does_not_probe_a_known_incompatible_stream() {
         vec![vsources_core::types::CountryCode::Hi]
     );
     assert!(fetcher.requests().is_empty());
+}
+
+#[tokio::test(start_paused = true)]
+async fn progressive_validation_publishes_arrival_order_but_returns_input_order() {
+    struct DelayedProbe;
+    #[async_trait]
+    impl Fetcher for DelayedProbe {
+        async fn request(&self, _: FetchRequest) -> Result<FetchResponse, FetchError> {
+            panic!("bounded probes only")
+        }
+        async fn probe(
+            &self,
+            request: FetchRequest,
+            _: usize,
+        ) -> Result<Option<ProbeResponse>, FetchError> {
+            if request.url.path() == "/slow.mp4" {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
+            Ok(None)
+        }
+    }
+    let mut slow = stream("/slow.mp4", Format::Mp4);
+    slow.meta.resolution = Some(720);
+    let mut fast = stream("/fast.mp4", Format::Mp4);
+    fast.meta.resolution = Some(1080);
+    let input = vec![slow, fast];
+    let mut published = Vec::new();
+    let result = probe()
+        .filter_progressive(&DelayedProbe, input.clone(), None, |batch| {
+            published.extend(batch);
+        })
+        .await;
+    assert_eq!(published[0].url.path(), "/fast.mp4");
+    assert_eq!(result, input);
 }

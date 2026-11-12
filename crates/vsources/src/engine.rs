@@ -9,10 +9,10 @@
 //!
 //! [`Engine::resolve`] returns the finished list in one shot;
 //! [`Engine::resolve_progressive`] emits the merged list through a
-//! channel as each provider completes, for callers that want results
+//! channel as validated batches arrive, for callers that want results
 //! on arrival.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -32,6 +32,9 @@ use vsources_net::ChromeFetcher;
 use vsources_providers::SourceRegistry;
 
 use crate::liveness::{ProbeConfig, StreamProbe};
+
+mod incremental;
+use incremental::{AttemptPolicy, ProviderViews};
 
 /// One provider's resolve outcome: registry index, provider id, result.
 type SourceOutcome = (usize, String, Result<Vec<Stream>, SourceError>);
@@ -75,7 +78,7 @@ fn english_dub(stream: &Stream) -> bool {
 
 /// The current merged view of `entries`, in final display order:
 /// resolution descending, then registry index (provider priority),
-/// then arrival order within a provider.
+/// then provider result order.
 fn ordered_snapshot(entries: &[(usize, u32, Stream)]) -> Vec<Stream> {
     let mut sorted: Vec<&(usize, u32, Stream)> = entries.iter().collect();
     sorted.sort_by(|a, b| {
@@ -455,8 +458,12 @@ impl Engine {
                     source,
                     media,
                     resolved.clone(),
-                    true,
-                    self.per_source_timeout.min(Duration::from_secs(8)),
+                    None,
+                    AttemptPolicy {
+                        timeout: self.per_source_timeout.min(Duration::from_secs(8)),
+                        strict_english: true,
+                        language: None,
+                    },
                 )
             })
             .collect();
@@ -507,14 +514,14 @@ impl Engine {
     }
 
     /// Resolve `media` incrementally, sending the merged stream list
-    /// through `progress` as providers complete.
+    /// through `progress` as validated provider batches arrive.
     ///
     /// Each snapshot is the full current view — deduplicated (the
     /// earliest provider in registry order wins a URL), enriched, and
     /// sorted by resolution descending, then provider priority, then
-    /// arrival order — so a receiver can simply replace its table with
+    /// provider order — so a receiver can simply replace its table with
     /// the latest message. The final snapshot is always the returned
-    /// value. Providers that answer nothing emit no snapshot, and
+    /// value. Successful final results replace provisional provider batches, and
     /// per-source failures are logged and skipped.
     ///
     /// # Errors
@@ -571,6 +578,7 @@ impl Engine {
         // arrival order — `buffered` would let a slow high-priority
         // provider hold back every later provider's results, which the
         // incremental merge cannot tolerate.
+        let (updates, mut pending_updates) = mpsc::unbounded_channel();
         let jobs: Vec<SourceJob<'_>> = self
             .registry
             .all()
@@ -586,68 +594,59 @@ impl Engine {
                     source,
                     media,
                     resolved.clone(),
-                    english_only,
-                    self.per_source_timeout,
+                    Some(updates.clone()),
+                    AttemptPolicy {
+                        timeout: self.per_source_timeout,
+                        strict_english: english_only,
+                        language: None,
+                    },
                 )
             })
             .collect();
 
-        // Incremental merge state: (registry index, arrival sequence,
-        // stream) with a URL map, so a late answer from an earlier
-        // registry position can take over a URL an earlier arrival
-        // claimed — the same winner the index-ordered single-shot merge
-        // would pick.
+        drop(updates);
         let mut failures = Vec::new();
         let mut any_answered = false;
-        let mut entries: Vec<(usize, u32, Stream)> = Vec::new();
-        let mut claimed: HashMap<StreamKey, usize> = HashMap::new();
-        let mut sequence = 0_u32;
-
+        let mut views = ProviderViews::default();
+        let mut snapshot = Vec::new();
         let mut outcomes = stream::iter(jobs).buffer_unordered(self.concurrency);
-        while let Some((index, id, result)) = outcomes.next().await {
-            match result {
-                Ok(streams) => {
-                    any_answered = true;
-                    let mut grew = false;
-                    for mut stream in streams {
-                        let release_name = release_name_of(&stream.url);
-                        enrich_stream(&mut stream, &release_name);
-                        let key = stream_key(&stream);
-                        match claimed.get(&key) {
-                            None if entries.len() >= self.stream_limit => {}
-                            None => {
-                                claimed.insert(key, entries.len());
-                                entries.push((index, sequence, stream));
-                                sequence += 1;
-                                grew = true;
+        let mut finished = false;
+        loop {
+            tokio::select! {
+                outcome = outcomes.next(), if !finished => {
+                    if let Some((index, id, result)) = outcome {
+                        match result {
+                            Ok(streams) => { any_answered = true; views.finish(index, streams); }
+                            Err(error) => {
+                                tracing::warn!(provider = %id, "provider failed");
+                                failures.push((id, error));
+                                views.finish(index, Vec::new());
                             }
-                            Some(&position) if index < entries[position].0 => {
-                                entries[position] = (index, sequence, stream);
-                                sequence += 1;
-                                grew = true;
-                            }
-                            Some(_) => {}
                         }
-                    }
-                    if grew && !progress.is_closed() {
-                        let _ = progress.send(ordered_snapshot(&entries));
-                    }
+                    } else { finished = true; }
                 }
-                Err(error) => {
-                    tracing::warn!(provider = %id, "provider failed");
-                    failures.push((id, error));
+                Some((index, batch)) = pending_updates.recv() => {
+                    views.append(index, batch, self.stream_limit);
                 }
             }
+            let next = views.snapshot(self.stream_limit);
+            if next != snapshot {
+                snapshot = next;
+                let _ = progress.send(snapshot.clone());
+            }
+            if finished && pending_updates.is_empty() {
+                break;
+            }
         }
-
         if !any_answered && !failures.is_empty() {
             return Err(EngineError::AllProvidersFailed {
                 count: failures.len(),
             });
         }
-        Ok(ordered_snapshot(&entries))
+        Ok(snapshot)
     }
     /// Resolve one enabled supplier and publish each usable stream as its probe finishes.
+    /// Early batches are provisional; the returned final list is authoritative.
     /// The host owns the total attempt deadline, including metadata and validation.
     pub async fn resolve_provider_progressive(
         &self,
@@ -692,64 +691,27 @@ impl Engine {
             source_id: Some(provider_id),
             referer: None,
         };
-        let (raw_tx, mut raw_rx) = mpsc::unbounded_channel();
-        let publish_raw = |streams| {
-            let _ = raw_tx.send(streams);
-        };
-        let resolve = tokio::time::timeout(self.per_source_timeout, async {
-            if audio_language == Some("en") && source.supports_english_audio_selection() {
-                let streams = source.resolve_english_dub(&ctx, media).await?;
-                publish_raw(streams.clone());
-                Ok(streams)
-            } else {
-                source.resolve_incremental(&ctx, media, &publish_raw).await
-            }
-        });
-        tokio::pin!(resolve);
-        let stamp = |mut stream: Stream| {
-            stream.meta.source_id = Some(source.info().id.clone());
-            stream.meta.source_label = Some(source.info().label.clone());
-            let label = release_name_of(&stream.url);
-            enrich_stream(&mut stream, &label);
-            stream
-        };
-        let language = audio_language.and_then(CountryCode::parse);
-        let mut seen = std::collections::HashSet::new();
-        let mut result = Vec::new();
-        let mut validating =
-            futures::stream::FuturesUnordered::<futures::future::BoxFuture<'_, Vec<Stream>>>::new();
-        let mut finished = false;
-        let mut failed = false;
-        loop {
-            tokio::select! {
-                resolved = &mut resolve, if !finished => {
-                    finished = true;
-                    match resolved {
-                        Ok(Ok(streams)) => { publish_raw(streams); }
-                        _ => { failed = true; }
-                    }
-                }
-                Some(batch) = raw_rx.recv() => {
-                    let streams = batch.into_iter().filter(|stream| {
-                        seen.len() < self.stream_limit && seen.insert(stream_key(stream))
-                    }).map(stamp).collect::<Vec<_>>();
-                    if !streams.is_empty() {
-                        tracing::info!(provider=provider_id, elapsed_ms=u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX), streams=streams.len(), "Preferred supplier response received");
-                        let progress = progress.clone();
-                        validating.push(Box::pin(self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,move |batch|{let _=progress.send(batch);})));
-                    }
-                }
-                Some(validated) = validating.next(), if !validating.is_empty() => { result.extend(validated); }
-            }
-            if finished && raw_rx.is_empty() && validating.is_empty() {
-                break;
-            }
-        }
-        if failed && result.is_empty() {
-            Err(EngineError::AllProvidersFailed { count: 1 })
-        } else {
-            Ok(result)
-        }
+        self.drain_incremental(
+            source.as_ref(),
+            &ctx,
+            media,
+            AttemptPolicy {
+                timeout: self.per_source_timeout,
+                strict_english: false,
+                language: audio_language.and_then(CountryCode::parse),
+            },
+            &|batch| {
+                tracing::info!(
+                    provider = provider_id,
+                    elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+                    streams = batch.len(),
+                    "Preferred supplier response received"
+                );
+                let _ = progress.send(batch);
+            },
+        )
+        .await
+        .map_err(|_| EngineError::AllProvidersFailed { count: 1 })
     }
 
     /// One provider's bounded resolve, as a type-erased future.
@@ -766,8 +728,8 @@ impl Engine {
         source: Arc<dyn Source>,
         media: &'a MediaRef,
         meta: Option<ResolvedMedia>,
-        english_only: bool,
-        timeout: Duration,
+        progress: Option<mpsc::UnboundedSender<(usize, Vec<Stream>)>>,
+        policy: AttemptPolicy,
     ) -> SourceJob<'a> {
         Box::pin(async move {
             let id = source.info().id.clone();
@@ -777,29 +739,13 @@ impl Engine {
                 source_id: Some(id.as_str()),
                 referer: None,
             };
-            let resolve = async {
-                if english_only {
-                    source.resolve_english_dub(&ctx, media).await
-                } else {
-                    source.resolve(&ctx, media).await
-                }
-            };
-            let bounded = tokio::time::timeout(timeout, resolve);
-            let result = match bounded.await {
-                Ok(Ok(mut streams)) => {
-                    streams.truncate(self.stream_limit);
-                    for stream in &mut streams {
-                        stream.meta.source_id = Some(id.clone());
-                        stream.meta.source_label = Some(source.info().label.clone());
+            let result = self
+                .drain_incremental(source.as_ref(), &ctx, media, policy, &|batch| {
+                    if let Some(progress) = &progress {
+                        let _ = progress.send((index, batch));
                     }
-                    if english_only {
-                        streams.retain(english_dub);
-                    }
-                    Ok(self.probes.filter(self.fetcher.as_ref(), streams).await)
-                }
-                Ok(Err(error)) => Err(error),
-                Err(_elapsed) => Err(SourceError::scrape(&id, "resolve timed out")),
-            };
+                })
+                .await;
             (index, id, result)
         })
     }
@@ -843,6 +789,7 @@ fn release_name_of(url: &Url) -> String {
 
 #[cfg(test)]
 mod tests {
+    mod incremental_retention;
     use std::time::Duration;
 
     use async_trait::async_trait;

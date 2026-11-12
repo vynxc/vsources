@@ -297,6 +297,7 @@ pub trait Source: Send + Sync {
     ) -> Result<Vec<Stream>, SourceError>;
 
     /// Publish independent extraction batches before the supplier finishes.
+    /// Batches are provisional; a successful returned vector is authoritative.
     /// The caller still validates every stream and owns cancellation/deadlines.
     async fn resolve_incremental(
         &self,
