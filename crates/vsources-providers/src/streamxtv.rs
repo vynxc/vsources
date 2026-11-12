@@ -25,9 +25,9 @@
 //!    nothing: `VidSrc`, `VidKing`, `VidZee`, and Videasy embed cards (the
 //!    source's pre-existing safety net).
 //!
-//! The sweep runs concurrently with the anime lookup — upstream starts
-//! the sweep promise un-awaited so the total time is `max(sweep,
-//! anime)` instead of the sum, protecting the 35 s source timeout.
+//! Anime lookup and bounded embed extraction run independently of the
+//! direct sweep, publishing completed anime batches before the caller's
+//! deadline. Final results retain direct, anime, then fallback order.
 //!
 //! Upstream returned the embed cards raw and its resolver chain
 //! extracted them (the Nuvio extractor explicitly hands embed-page
@@ -282,22 +282,27 @@ impl Source for StreamXTV {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
+        self.resolve_incremental(ctx, media, &|_| {}).await
+    }
+
+    async fn resolve_incremental(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+    ) -> Result<Vec<Stream>, SourceError> {
         let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
         let title = display_title(&name, year, media);
 
-        // The sweep and the anime lookup run concurrently — upstream
-        // starts the sweep promise un-awaited, so the total time is
-        // the max of the two, not the sum.
-        let sweep = self.sweep(ctx, media, tmdb_id);
+        let direct_permits = tokio::sync::Semaphore::new(2);
+        let sweep = self.sweep(ctx, media, tmdb_id, &direct_permits);
         let anime = async {
-            match crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
-                Some(ids) => Some(ids.anilist_id),
-                None => find_anilist_id(ctx, &name).await,
-            }
+            let result = self.anime_streams(ctx, media, &name, &title, publish).await;
+            direct_permits.add_permits(BATCH_SIZE - 2);
+            result
         };
-        let (mut direct, anilist_id) = tokio::join!(sweep, anime);
-        let is_anime = anilist_id.is_some();
+        let (mut direct, (is_anime, anime_streams)) = tokio::join!(sweep, anime);
 
         let mut streams = Vec::new();
         if !direct.is_empty() {
@@ -320,35 +325,7 @@ impl Source for StreamXTV {
             }));
         }
 
-        // The anime path — Megaplay/VidNest sub/dub embeds. Skipped
-        // when only the Jikan/Kitsu fallbacks matched: every template
-        // requires `{anilistId}`.
-        if let Some(anilist_id) = anilist_id {
-            let episode = if media.season.is_some() {
-                media.episode.unwrap_or(1)
-            } else {
-                1
-            };
-            for sub_dub in ["sub", "dub"] {
-                for provider in ANIME_PROVIDERS {
-                    let embed = provider
-                        .url
-                        .replace("{anilistId}", &anilist_id.to_string())
-                        .replace("{ep}", &episode.to_string())
-                        .replace("{subDub}", sub_dub);
-                    let languages = if sub_dub == "dub" {
-                        vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En]
-                    } else {
-                        vec![CountryCode::Multi, CountryCode::Ja]
-                    };
-                    let label = format!("{title} ({} {})", provider.label, sub_dub.to_uppercase());
-                    streams.extend(
-                        self.resolve_embed(ctx, &embed, &label, languages, Some(sub_dub == "dub"))
-                            .await,
-                    );
-                }
-            }
-        }
+        streams.extend(anime_streams);
 
         // The movie/TV embed fallback — only when the direct API
         // returned nothing, preserving the source's pre-existing
@@ -381,6 +358,55 @@ impl Source for StreamXTV {
 }
 
 impl StreamXTV {
+    async fn anime_streams(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        name: &str,
+        title: &str,
+        publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+    ) -> (bool, Vec<Stream>) {
+        let anilist_id = match crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
+            Some(ids) => Some(ids.anilist_id),
+            None => find_anilist_id(ctx, name).await,
+        };
+        let Some(anilist_id) = anilist_id else {
+            return (false, Vec::new());
+        };
+        let episode = if media.season.is_some() {
+            media.episode.unwrap_or(1)
+        } else {
+            1
+        };
+        let mode = |sub_dub: &'static str| async move {
+            let mut streams = Vec::new();
+            for provider in ANIME_PROVIDERS {
+                let embed = provider
+                    .url
+                    .replace("{anilistId}", &anilist_id.to_string())
+                    .replace("{ep}", &episode.to_string())
+                    .replace("{subDub}", sub_dub);
+                let languages = if sub_dub == "dub" {
+                    vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En]
+                } else {
+                    vec![CountryCode::Multi, CountryCode::Ja]
+                };
+                let label = format!("{title} ({} {})", provider.label, sub_dub.to_uppercase());
+                let batch = self
+                    .resolve_embed(ctx, &embed, &label, languages, Some(sub_dub == "dub"))
+                    .await;
+                if !batch.is_empty() {
+                    publish(batch.clone());
+                }
+                streams.extend(batch);
+            }
+            streams
+        };
+        let (mut sub, dub) = tokio::join!(mode("sub"), mode("dub"));
+        sub.extend(dub);
+        (true, sub)
+    }
+
     /// The 20-provider batched sweep — the port of the scraper's
     /// `getStreams`: every provider with the `provider=<p>` param,
     /// deduped by URL, sorted 4K-first.
@@ -389,6 +415,7 @@ impl StreamXTV {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
         tmdb_id: u64,
+        direct_permits: &tokio::sync::Semaphore,
     ) -> Vec<NuvioStream> {
         let is_tv = media.season.is_some();
         let mut streams: Vec<NuvioStream> = Vec::new();
@@ -411,8 +438,9 @@ impl StreamXTV {
             }
             let batch =
                 &ALL_PROVIDERS[batch_start..(batch_start + BATCH_SIZE).min(ALL_PROVIDERS.len())];
-            let runs = futures::future::join_all(batch.iter().map(|provider| {
-                fetch_provider(ctx, provider, is_tv, tmdb_id, media.season, media.episode)
+            let runs = futures::future::join_all(batch.iter().map(|provider| async move {
+                let _permit = direct_permits.acquire().await.ok()?;
+                fetch_provider(ctx, provider, is_tv, tmdb_id, media.season, media.episode).await
             }))
             .await;
             for (provider, run) in batch.iter().zip(runs) {
@@ -1055,6 +1083,9 @@ mod tests {
     use vsources_core::types::Format;
 
     use super::*;
+
+    #[path = "incremental.rs"]
+    mod incremental;
 
     /// A fetcher serving canned bodies keyed by URL path (or
     /// `path?query`) in call order — the last body repeats — recording
