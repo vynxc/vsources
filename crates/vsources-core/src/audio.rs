@@ -2,8 +2,9 @@
 
 /// Find an explicitly tagged English audio stream in a Matroska/WebM prefix.
 ///
-/// Reads EBML structure, not arbitrary `eng` strings in file data. Incomplete
-/// track metadata, unsupported containers and untagged audio are inconclusive.
+/// Reads EBML structure, not arbitrary `eng` strings in file data. Only a fully
+/// parsed enabled audio entry can establish English; later incomplete metadata
+/// does not invalidate that entry. Unsupported or untagged audio is inconclusive.
 /// The result is a zero-based audio-stream index, independent of video/subtitles.
 #[must_use]
 pub fn matroska_english_audio_index(bytes: &[u8]) -> Option<u32> {
@@ -18,8 +19,11 @@ pub fn matroska_english_audio_index(bytes: &[u8]) -> Option<u32> {
     let mut position = segment.start;
     while position < bytes.len().min(segment.end) {
         let entry = element(bytes, position)?;
+        if !segment.unknown_size && entry.end > segment.end {
+            return None;
+        }
         if entry.id == 0x1654_ae6b {
-            return english_track(bytes.get(entry.start..entry.end)?);
+            return english_track(bytes.get(entry.start..entry.end.min(bytes.len()))?);
         }
         if entry.id == 0x1f43_b675 || entry.end <= position {
             return None;
@@ -33,6 +37,7 @@ struct Element {
     id: u64,
     start: usize,
     end: usize,
+    unknown_size: bool,
 }
 
 fn element(bytes: &[u8], position: usize) -> Option<Element> {
@@ -48,7 +53,12 @@ fn element(bytes: &[u8], position: usize) -> Option<Element> {
     } else {
         start.checked_add(usize::try_from(size).ok()?)?
     };
-    Some(Element { id, start, end })
+    Some(Element {
+        id,
+        start,
+        end,
+        unknown_size: unknown,
+    })
 }
 
 fn vint(bytes: &[u8], strip_marker: bool, maximum: usize) -> Option<(u64, usize)> {
@@ -74,7 +84,6 @@ fn vint(bytes: &[u8], strip_marker: bool, maximum: usize) -> Option<(u64, usize)
 fn english_track(tracks: &[u8]) -> Option<u32> {
     let mut position = 0;
     let mut audio_index = 0_u32;
-    let mut selected = None;
     while position < tracks.len() {
         let entry = element(tracks, position)?;
         let body = tracks.get(entry.start..entry.end)?;
@@ -96,7 +105,7 @@ fn english_track(tracks: &[u8]) -> Option<u32> {
                 }
                 field_position = field.end;
             }
-            if track_type == Some(2) {
+            if track_type? == 2 {
                 if enabled
                     && ietf.or(language).is_some_and(|language| {
                         let language = language.trim_matches('\0');
@@ -106,16 +115,15 @@ fn english_track(tracks: &[u8]) -> Option<u32> {
                                 .get(..3)
                                 .is_some_and(|s| s.eq_ignore_ascii_case("en-"))
                     })
-                    && selected.is_none()
                 {
-                    selected = Some(audio_index);
+                    return Some(audio_index);
                 }
                 audio_index = audio_index.checked_add(1)?;
             }
         }
         position = entry.end;
     }
-    selected
+    None
 }
 
 #[cfg(test)]
@@ -148,6 +156,78 @@ mod tests {
         bytes.extend([0x18, 0x53, 0x80, 0x67, 0xff]);
         bytes.extend(node(&[0x16, 0x54, 0xae, 0x6b], tracks));
         bytes
+    }
+
+    fn prefix_with_later_incomplete_subtitle(tracks: &[u8]) -> Vec<u8> {
+        let mut bytes = node(&[0x1a, 0x45, 0xdf, 0xa3], &[]);
+        bytes.extend([0x18, 0x53, 0x80, 0x67, 0xff]);
+        bytes.extend([0x16, 0x54, 0xae, 0x6b, 0x20, 0x9c, 0x40]);
+        bytes.extend(tracks);
+        bytes.extend([0xae, 0x20, 0x4e, 0x20]);
+        bytes.extend(node(&[0x83], &[17]));
+        bytes.extend(node(&[0x22, 0xb5, 0x9c], b"eng"));
+        bytes
+    }
+
+    #[test]
+    fn complete_english_audio_survives_later_incomplete_subtitle_metadata() {
+        let prefix = prefix_with_later_incomplete_subtitle(
+            &[
+                track(1, None, None),
+                track(2, Some("jpn"), None),
+                track(2, Some("eng"), None),
+            ]
+            .concat(),
+        );
+        assert!(prefix.len() < 8192);
+        assert_eq!(matroska_english_audio_index(&prefix), Some(1));
+    }
+
+    #[test]
+    fn later_incomplete_metadata_never_turns_subtitles_into_english_audio() {
+        let prefix = prefix_with_later_incomplete_subtitle(
+            &[track(2, Some("jpn"), None), track(17, Some("eng"), None)].concat(),
+        );
+        assert_eq!(matroska_english_audio_index(&prefix), None);
+        let untyped = node(&[0xae], &node(&[0x22, 0xb5, 0x9c], b"eng"));
+        let prefix =
+            prefix_with_later_incomplete_subtitle(&[untyped, track(2, Some("eng"), None)].concat());
+        assert_eq!(matroska_english_audio_index(&prefix), None);
+    }
+
+    #[test]
+    fn incomplete_selected_entry_and_declared_parent_bounds_are_rejected() {
+        let audio = track(2, Some("eng"), None);
+        let whole = file(&audio);
+        for end in 0..whole.len() {
+            assert_eq!(matroska_english_audio_index(&whole[..end]), None);
+        }
+        let tracks = node(&[0x16, 0x54, 0xae, 0x6b], &audio);
+        let mut malformed = node(&[0x1a, 0x45, 0xdf, 0xa3], &[]);
+        malformed.extend([0x18, 0x53, 0x80, 0x67, 0x81]);
+        malformed.extend(tracks);
+        assert_eq!(matroska_english_audio_index(&malformed), None);
+    }
+
+    #[test]
+    fn partial_later_tree_preserves_disabled_audio_ordinals_and_ietf_precedence() {
+        let disabled = node(
+            &[0xae],
+            &[
+                node(&[0x83], &[2]),
+                node(&[0xb9], &[0]),
+                node(&[0x22, 0xb5, 0x9c], b"eng"),
+            ]
+            .concat(),
+        );
+        let prefix = prefix_with_later_incomplete_subtitle(
+            &[disabled.clone(), track(2, Some("jpn"), Some("en-US"))].concat(),
+        );
+        assert_eq!(matroska_english_audio_index(&prefix), Some(1));
+        let prefix = prefix_with_later_incomplete_subtitle(
+            &[disabled, track(2, Some("eng"), Some("ja"))].concat(),
+        );
+        assert_eq!(matroska_english_audio_index(&prefix), None);
     }
 
     #[test]
