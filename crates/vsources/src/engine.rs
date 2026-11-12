@@ -2,7 +2,7 @@
 //!
 //! Ports `PhoeniX` `StreamResolver.getStreams`: a bounded fan-out over the
 //! registered providers (one ~35s budget each), TMDB metadata attached
-//! when available, URL-deduplicated merge in provider-priority order,
+//! when available, merge by URL, headers and audio selection in provider-priority order,
 //! release-name enrichment, and a quality-height sort. Providers answer
 //! "not found" as empty results, so only a failure of *every* selected
 //! provider surfaces as an error.
@@ -12,7 +12,7 @@
 //! channel as each provider completes, for callers that want results
 //! on arrival.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -39,6 +39,20 @@ type SourceOutcome = (usize, String, Result<Vec<Stream>, SourceError>);
 ///
 /// The boxing is load-bearing — see [`Engine::resolve`].
 type SourceJob<'a> = Pin<Box<dyn Future<Output = SourceOutcome> + Send + 'a>>;
+
+type StreamKey = (Url, BTreeMap<String, String>, Option<(CountryCode, u32)>);
+
+fn stream_key(stream: &Stream) -> StreamKey {
+    (
+        stream.url.clone(),
+        stream.meta.request_headers.clone(),
+        stream
+            .meta
+            .audio_selection
+            .as_ref()
+            .map(|selection| (selection.language, selection.audio_index)),
+    )
+}
 
 /// Per-provider budget before the engine abandons it.
 const DEFAULT_SOURCE_TIMEOUT: Duration = Duration::from_secs(35);
@@ -586,7 +600,7 @@ impl Engine {
         let mut failures = Vec::new();
         let mut any_answered = false;
         let mut entries: Vec<(usize, u32, Stream)> = Vec::new();
-        let mut claimed: HashMap<Url, usize> = HashMap::new();
+        let mut claimed: HashMap<StreamKey, usize> = HashMap::new();
         let mut sequence = 0_u32;
 
         let mut outcomes = stream::iter(jobs).buffer_unordered(self.concurrency);
@@ -598,10 +612,11 @@ impl Engine {
                     for mut stream in streams {
                         let release_name = release_name_of(&stream.url);
                         enrich_stream(&mut stream, &release_name);
-                        match claimed.get(&stream.url) {
+                        let key = stream_key(&stream);
+                        match claimed.get(&key) {
                             None if entries.len() >= self.stream_limit => {}
                             None => {
-                                claimed.insert(stream.url.clone(), entries.len());
+                                claimed.insert(key, entries.len());
                                 entries.push((index, sequence, stream));
                                 sequence += 1;
                                 grew = true;
@@ -716,7 +731,7 @@ impl Engine {
                 }
                 Some(batch) = raw_rx.recv() => {
                     let streams = batch.into_iter().filter(|stream| {
-                        seen.len() < self.stream_limit && seen.insert(stream.url.as_str().to_owned())
+                        seen.len() < self.stream_limit && seen.insert(stream_key(stream))
                     }).map(stamp).collect::<Vec<_>>();
                     if !streams.is_empty() {
                         tracing::info!(provider=provider_id, elapsed_ms=u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX), streams=streams.len(), "Preferred supplier response received");
@@ -1268,6 +1283,85 @@ mod tests {
             .await
             .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         assert_eq!(result.len(), 1);
+    }
+
+    fn stream_variants() -> Arc<StubSource> {
+        let mut source =
+            (*StubSource::streaming("preferred", 0, &["https://cdn.example/shared.mp4"; 4]))
+                .clone();
+        source.streams[0].meta.audio_selection = Some(vsources_core::types::AudioSelection {
+            language: CountryCode::Fr,
+            audio_index: 0,
+        });
+        source.streams[1].meta.audio_selection = Some(vsources_core::types::AudioSelection {
+            language: CountryCode::En,
+            audio_index: 1,
+        });
+        source.streams[2] = source.streams[1].clone();
+        source.streams[3] = source.streams[1].clone();
+        source.streams[3]
+            .meta
+            .request_headers
+            .insert("Referer".into(), "https://other.example/".into());
+        Arc::new(source)
+    }
+
+    fn assert_stream_variants(streams: &[Stream]) {
+        assert_eq!(streams.len(), 3);
+        assert_eq!(
+            streams
+                .iter()
+                .filter(|stream| stream
+                    .meta
+                    .audio_selection
+                    .as_ref()
+                    .is_some_and(|selection| selection.language == CountryCode::En))
+                .count(),
+            2
+        );
+        assert_eq!(
+            streams
+                .iter()
+                .filter(|stream| stream
+                    .meta
+                    .request_headers
+                    .get("Referer")
+                    .is_some_and(|referer| referer == "https://other.example/"))
+                .count(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn ordinary_discovery_preserves_stream_variants() {
+        let engine = test_builder()
+            .sources(vec![stream_variants()])
+            .build()
+            .unwrap_or_else(|error| panic!("fixture engine: {error}"));
+        let streams = engine
+            .resolve(&media())
+            .await
+            .unwrap_or_else(|error| panic!("fixture resolve: {error}"));
+        assert_stream_variants(&streams);
+    }
+
+    #[tokio::test]
+    async fn preferred_discovery_preserves_stream_variants() {
+        let engine = test_builder()
+            .sources(vec![stream_variants()])
+            .build()
+            .unwrap_or_else(|error| panic!("fixture engine: {error}"));
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let streams = engine
+            .resolve_provider_progressive(&media(), "preferred", Some("en"), None, tx)
+            .await
+            .unwrap_or_else(|error| panic!("fixture resolve: {error}"));
+        assert_stream_variants(&streams);
+        let mut published = Vec::new();
+        while let Ok(batch) = rx.try_recv() {
+            published.extend(batch);
+        }
+        assert_stream_variants(&published);
     }
 
     #[tokio::test]
