@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "sdk_revision": "320645b0a95ef1ba942e27b8ae4ee1c96ee5a523",
+  "routes": [
+    {
+      "id": "aniwaves",
+      "module": "aniwaves",
+      "anime_only": true,
+      "family": "EchoVideo AJAX",
+      "native_english_selection": true,
+      "source_sha256": "c7efcf1223ec3a68c2f8b1cf3e238f52bcdafeffce442d0204903b05b3ab4f0d"
+    },
+    {
+      "id": "allwish",
+      "module": "allwish",
+      "anime_only": true,
+      "family": "MegaPlay portal",
+      "native_english_selection": false,
+      "source_sha256": "6129901972d3b56236ec9816534415c6a0f391a895562ccf3f4b0d584dd641df"
+    },
+    {
+      "id": "anichan",
+      "module": "anichan",
+      "anime_only": true,
+      "family": "AniList-keyed native API",
+      "native_english_selection": false,
+      "source_sha256": "02d873042e9e4b15c2f79170b25e20089ede449687ad4026cc218c6de29038c8"
+    },
+    {
+      "id": "anidoor",
+      "module": "anidoor",
+      "anime_only": true,
+      "family": "MegaPlay templates",
+      "native_english_selection": false,
+      "source_sha256": "590fad278eed55f575be8ba12f173a3da05d787b81560c6a94fc8fd897331ff6"
+    },
+    {
+      "id": "anikage",
+      "module": "anikage",
+      "anime_only": true,
+      "family": "Composite API/relay with shared backends",
+      "native_english_selection": false,
+      "source_sha256": "500cf478337bc40bb5ed57e5ced928b2e550bf4266ad2ff110436e423075c24d"
+    },
+    {
+      "id": "anikoto",
+      "module": "anikoto",
+      "anime_only": true,
+      "family": "MegaPlay portal",
+      "native_english_selection": false,
+      "source_sha256": "6e65cbabb217e340662b06bae864793307c0e56de75b40af1551a4f5ef42e0cc"
+    },
+    {
+      "id": "anikototv",
+      "module": "anikototv",
+      "anime_only": true,
+      "family": "MAL-keyed MegaPlay",
+      "native_english_selection": false,
+      "source_sha256": "8aecb61375a5f9090a89f31bf0896be16d2c6dc03c57c2afae0d4e54687aa49f"
+    },
+    {
+      "id": "animeflix",
+      "module": "animeflix",
+      "anime_only": true,
+      "family": "WordPress + extractor mirrors",
+      "native_english_selection": false,
+      "source_sha256": "4e249b5f3e9575ce6d39fd0b948a65da14edda20e109819bd504cdb05b9d09a1"
+    },
+    {
+      "id": "animegg",
+      "module": "animegg",
+      "anime_only": true,
+      "family": "AnimeGG direct/embed files",
+      "native_english_selection": false,
+      "source_sha256": "0f3032152220151ff6fe23eb90011a6cb68f58c3e59dbebe0b54aa745129ce1f"
+    },
+    {
+      "id": "animekai",
+      "module": "animekai",
+      "anime_only": true,
+      "family": "Otaku/MAL stream family",
+      "native_english_selection": false,
+      "source_sha256": "b955e7c48ffc5af197426634eaa2c2334b7310b0d1951e28fd4105c9df4f713a"
+    },
+    {
+      "id": "animesuge",
+      "module": "animesuge",
+      "anime_only": true,
+      "family": "MegaPlay portal",
+      "native_english_selection": false,
+      "source_sha256": "db37eb782473a3b738c351afb57b4c38dc439de125ffa73925f7d0d7966145c9"
+    },
+    {
+      "id": "animotvslash",
+      "module": "animotvslash",
+      "anime_only": true,
+      "family": "WordPress native/mirror mixture",
+      "native_english_selection": false,
+      "source_sha256": "8498dac1c84289efd936b8912ec46477d8bc3891127d93c2f4e92222bfbb5f79"
+    },
+    {
+      "id": "hianime",
+      "module": "hianime",
+      "anime_only": true,
+      "family": "Otaku/AJAX stream family",
+      "native_english_selection": false,
+      "source_sha256": "b9cc06224808a537a473fedd268211afd6848140b70e2308d03c90fbc3348509"
+    },
+    {
+      "id": "itachi",
+      "module": "itachi",
+      "anime_only": true,
+      "family": "VidHawk primary/MegaPlay secondary",
+      "native_english_selection": false,
+      "source_sha256": "03ee43bdb9ab3b3a68f7998b5d778d2a65e23147e2fd979b3f4e6acaabbedda8"
+    },
+    {
+      "id": "2dhive",
+      "module": "twodhive",
+      "anime_only": true,
+      "family": "MAL-keyed MegaPlay",
+      "native_english_selection": false,
+      "source_sha256": "9fd540585a7379f7bf86706e86e01848e14f2d84926434d2ba92dcd86200cc79"
+    },
+    {
+      "id": "nikastream",
+      "module": "nkastream",
+      "anime_only": true,
+      "family": "Anivexa multi-provider aggregator",
+      "native_english_selection": false,
+      "source_sha256": "cb0674c4159f6afe0dda99033c84c80e34102c657c9ab7d86b6d4e76a1a4f8f6"
+    },
+    {
+      "id": "reanime",
+      "module": "reanime",
+      "anime_only": true,
+      "family": "FlixCloud/progressive multi-audio",
+      "native_english_selection": true,
+      "source_sha256": "3f1ff196a82f8d8ffed3086de7cfe507d2b68b5ebff213cf0de7e8718ae76550"
+    },
+    {
+      "id": "streamxtv",
+      "module": "streamxtv",
+      "anime_only": false,
+      "family": "Mixed FrameX + anime MegaPlay/VidNest",
+      "native_english_selection": false,
+      "source_sha256": "3c8bca1374a347194a89e9e7cd8860b0057e12647f442eb1e1eefa3ceec01cc9"
+    }
+  ],
+  "language_categories": {
+    "english_dub": "English spoken audio; subtitle availability alone never establishes a dub",
+    "japanese_english_subtitles": "Japanese audio and a separately evidenced English subtitle track",
+    "unknown": "No language or dub inference from site labels, provider availability or subtitles"
+  },
+  "identity_fixtures": [
+    {
+      "case_id": "frieren-s1-e2",
+      "tmdb_id": 209867,
+      "imdb_id": null,
+      "name": "Frieren: Beyond Journey's End",
+      "year": 2023,
+      "season": 1,
+      "episode": 2,
+      "absolute_episode": 2,
+      "anilist_id": 154587,
+      "mal_id": 52991,
+      "canonical_title_romaji": "Sousou no Frieren",
+      "format": "TV",
+      "expected_original_audio": "ja",
+      "episode_title": "It Didn\u2019t Have to Be Magic\u2026",
+      "identity_evidence": [
+        "crates/vsources-providers/src/anikototv.rs captured ARM fixture",
+        "crates/vsources-providers/src/anichan.rs captured AniList/MAL fixture",
+        "crates/vsources-core/src/mappings/anilist.rs captured canonical query fixture",
+        "AniList primary metadata verified TV/Fall2023/28episodes/Episode2"
+      ]
+    }
+  ],
+  "mapping_contract": "Input MediaId uses numeric TMDB or IMDb string. AniList/MAL are provider mapping identities; episode numbering must match the requested season/cour.",
+  "licensing_policy": "Source notices and provenance retained; licensing is not an evaluation screening gate."
+}
