@@ -9,7 +9,6 @@ rust-version.workspace = true
 
 [dependencies]
 vsources-core = { workspace = true }
-vsources-net = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 moka = { workspace = true }

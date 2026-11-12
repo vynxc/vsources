@@ -31,10 +31,10 @@
 //!   extractors produce (upstream's `${title} (${label})` card titles
 //!   are resolver-level display state; the embed table's labels exist
 //!   only for those).
-//! - Upstream resolved the embed fan concurrently (`Promise.all`); this
-//!   port resolves it sequentially — cross-provider fan-out is the
-//!   engine's concurrency domain. A failing embed is dropped, like the
-//!   upstream per-extractor `catch`.
+//! - The ordinary complete-batch path keeps its existing order. Preferred
+//!   incremental resolution bounds the internal embed fan to six requests
+//!   and publishes each extraction immediately. A failing embed is dropped,
+//!   like the upstream per-extractor `catch`.
 //! - Upstream inferred formats (`.m3u8`/`/hls/` → HLS, `.mp4`/`.mkv` →
 //!   MP4) in the resolver; providers emit final streams here, so the
 //!   same URL-based inference runs in this module.
@@ -46,6 +46,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
+use futures::stream::{self, StreamExt};
 use serde::Deserialize;
 use url::Url;
 use vsources_core::error::{FetchError, SourceError};
@@ -326,6 +327,70 @@ impl Source for CineWave {
             return Err(SourceError::NotFound);
         }
         Ok(streams)
+    }
+
+    async fn resolve_incremental(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+    ) -> Result<Vec<Stream>, SourceError> {
+        let tmdb_id = tmdb_id(&self.tmdb, media).await?;
+        let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
+        let imdb_id = imdb_id(ctx, &self.tmdb, media, tmdb_id).await?;
+        let direct = async {
+            let streams = self
+                .hdhub_streams(ctx, media, &name, year, imdb_id.as_deref())
+                .await;
+            if !streams.is_empty() {
+                publish(streams.clone());
+            }
+            streams
+        };
+        let embeds = async {
+            let jobs: Vec<futures::future::BoxFuture<'_, Vec<Stream>>> = EMBED_SOURCES
+                .iter()
+                .filter_map(|source| embed_url(source, tmdb_id, media.season, media.episode))
+                .map(|url| {
+                    let name = &name;
+                    Box::pin(async move {
+                        let embed_ctx = ResolveCtx {
+                            fetcher: ctx.fetcher,
+                            media: media.season.is_none().then(|| ResolvedMedia {
+                                tmdb_id: Some(tmdb_id),
+                                imdb_id: None,
+                                name: name.clone(),
+                                year,
+                                season: None,
+                                episode: None,
+                            }),
+                            source_id: Some(self.info.id.as_str()),
+                            referer: self.info.base_url.as_ref(),
+                        };
+                        self.extractors
+                            .extract(&embed_ctx, &url)
+                            .await
+                            .unwrap_or_default()
+                    }) as futures::future::BoxFuture<'_, Vec<Stream>>
+                })
+                .collect();
+            let mut pending = stream::iter(jobs).buffer_unordered(6);
+            let mut all = Vec::new();
+            while let Some(streams) = pending.next().await {
+                if !streams.is_empty() {
+                    publish(streams.clone());
+                }
+                all.extend(streams);
+            }
+            all
+        };
+        let (mut streams, embeds) = tokio::join!(direct, embeds);
+        streams.extend(embeds);
+        if streams.is_empty() {
+            Err(SourceError::NotFound)
+        } else {
+            Ok(streams)
+        }
     }
 }
 
@@ -1026,6 +1091,67 @@ mod tests {
             Arc::new(TmdbClient::new("test-key", fetcher.clone())),
             Arc::new(ExtractorRegistry::new(Vec::new())),
         )
+    }
+
+    #[tokio::test]
+    async fn incremental_embed_does_not_wait_for_stalled_hub_or_other_embeds() {
+        struct StalledFetcher;
+        #[async_trait]
+        impl Fetcher for StalledFetcher {
+            async fn request(&self, _: FetchRequest) -> Result<FetchResponse, FetchError> {
+                std::future::pending().await
+            }
+        }
+        struct FirstEmbed;
+        #[async_trait]
+        impl Extractor for FirstEmbed {
+            fn id(&self) -> &'static str {
+                "first-embed"
+            }
+            fn label(&self) -> &'static str {
+                "First embed"
+            }
+            fn supports(&self, _: &ResolveCtx<'_>, _: &Url) -> bool {
+                true
+            }
+            async fn extract(
+                &self,
+                _: &ResolveCtx<'_>,
+                url: &Url,
+            ) -> Result<Vec<Stream>, ExtractorError> {
+                if url.host_str() == Some("vidsrc-embed.ru") {
+                    Ok(vec![Stream::new(
+                        Url::parse("https://cdn.example/early.mp4")
+                            .unwrap_or_else(|error| panic!("fixture failed: {error}")),
+                        Format::Mp4,
+                    )])
+                } else {
+                    std::future::pending().await
+                }
+            }
+        }
+        let fetcher = Arc::new(StalledFetcher);
+        let provider = CineWave::new(
+            Arc::new(TmdbClient::new("fixture-key", fetcher.clone())),
+            Arc::new(ExtractorRegistry::new(vec![Arc::new(FirstEmbed)])),
+        );
+        let ctx = ResolveCtx {
+            fetcher: fetcher.as_ref(),
+            media: Some(dune_media()),
+            source_id: None,
+            referer: None,
+        };
+        let media = dune_movie();
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+        let publish = |streams| {
+            let _ = tx.send(streams);
+        };
+        let resolving = provider.resolve_incremental(&ctx, &media, &publish);
+        tokio::pin!(resolving);
+        let batch = tokio::time::timeout(Duration::from_secs(1), async {
+            tokio::select! { batch = rx.recv() => batch.unwrap_or_else(|| panic!("expected provider batch")), _ = &mut resolving => panic!("stalled extractions must remain pending") }
+        }).await.unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        assert_eq!(batch[0].url.as_str(), "https://cdn.example/early.mp4");
     }
 
     #[tokio::test]

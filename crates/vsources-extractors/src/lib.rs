@@ -11,14 +11,13 @@
 //! Android, server) can apply them directly.
 //!
 //! ```no_run
-//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! use vsources_core::traits::{Fetcher, ResolveCtx};
+//! # async fn example(fetcher: &dyn vsources_core::traits::Fetcher) -> Result<(), Box<dyn std::error::Error>> {
+//! use vsources_core::traits::ResolveCtx;
 //! use vsources_extractors::hosts;
 //! use vsources_extractors::ExtractorRegistry;
 //!
-//! let fetcher = vsources_net::ChromeFetcher::builder().build()?;
 //! let registry = ExtractorRegistry::new(hosts::all());
-//! let ctx = ResolveCtx { fetcher: &fetcher, media: None, source_id: None, referer: None };
+//! let ctx = ResolveCtx { fetcher, media: None, source_id: None, referer: None };
 //! let streams = registry
 //!     .extract(&ctx, &url::Url::parse("https://filemoon.to/e/abc")?)
 //!     .await?;

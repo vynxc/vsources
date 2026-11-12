@@ -857,7 +857,7 @@ fn extract_redirect_url(html: &str) -> Option<String> {
     }
     if let Some(value) = capture_nonempty(&REDIRECT_BRUTE_URL, html) {
         tracing::warn!(
-            "brute-force URL extraction used — redirect strategy array may need updating. Extracted: {value}"
+            "brute-force URL extraction used — redirect strategy array may need updating. "
         );
         return Some(value);
     }

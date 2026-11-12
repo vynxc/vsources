@@ -7,10 +7,14 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["default-fetcher"]
+default-fetcher = ["dep:vsources-net"]
+
 [dependencies]
 vsources-core = { workspace = true }
 vsources-cloudflare = { workspace = true }
-vsources-net = { workspace = true }
+vsources-net = { workspace = true, optional = true }
 vsources-extractors = { workspace = true }
 vsources-providers = { workspace = true }
 async-trait = { workspace = true }

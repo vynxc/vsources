@@ -441,3 +441,143 @@ async fn cancellation_releases_coalesced_work_and_permits() {
     let verdict = tokio::time::timeout(Duration::from_secs(1), gate.check(&fetcher, &card)).await;
     assert_eq!(verdict.ok(), Some(Verdict::Alive));
 }
+
+#[test]
+fn a_known_error_video_is_dead_even_with_valid_transport_stream_headers() {
+    let mut bytes = vec![0; 2048];
+    bytes[0] = 0x47;
+    bytes[188] = 0x47;
+    let payload = response("/same-host/opaque.ts", 200, "video/mp2t", &bytes);
+    assert!(matches!(
+        classify_payload(&payload, true),
+        Payload::Verdict(Verdict::Dead)
+    ));
+    assert!(matches!(
+        classify_payload(&payload, false),
+        Payload::Verdict(Verdict::Alive)
+    ));
+    // A failed probe is not evidence that another player's IP cannot play it.
+    let denied = response("/same-host/opaque.ts", 403, "video/mp2t", &bytes);
+    assert!(matches!(
+        classify_payload(&denied, true),
+        Payload::Verdict(Verdict::Unknown)
+    ));
+}
+
+#[tokio::test]
+async fn progressive_validation_publishes_ready_media_before_a_stalled_alternative() {
+    struct Uneven;
+    #[async_trait]
+    impl Fetcher for Uneven {
+        async fn request(&self, _: FetchRequest) -> Result<FetchResponse, FetchError> {
+            panic!("bounded probes only")
+        }
+        async fn probe(
+            &self,
+            request: FetchRequest,
+            _: usize,
+        ) -> Result<Option<ProbeResponse>, FetchError> {
+            if request.url.path() == "/slow.mp4" {
+                tokio::time::sleep(Duration::from_secs(30)).await;
+            }
+            Ok(Some(response(
+                request.url.path(),
+                206,
+                "video/mp4",
+                b"\0\0\0\x18ftypisom",
+            )))
+        }
+    }
+    let gate = probe();
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+    let run = gate.filter_progressive(
+        &Uneven,
+        vec![
+            stream("/fast.mp4", Format::Mp4),
+            stream("/slow.mp4", Format::Mp4),
+        ],
+        None,
+        |batch| {
+            let _ = tx.send(batch);
+        },
+    );
+    tokio::pin!(run);
+    let first=tokio::time::timeout(Duration::from_secs(1),async{tokio::select!{batch=rx.recv()=>batch.unwrap_or_else(|| panic!("expected provider batch")),_=&mut run=>panic!("must publish before whole batch completes")}}).await.unwrap_or_else(|error| panic!("fixture failed: {error}"));
+    assert_eq!(first[0].url.path(), "/fast.mp4");
+}
+
+#[tokio::test]
+async fn preferred_validation_inspects_explicit_audio_renditions_without_confusing_subtitles() {
+    let fetcher = ScriptedFetcher::default();
+    fetcher.reply("/multi.m3u8",response("/multi.m3u8",200,"application/vnd.apple.mpegurl",b"#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"fr\",URI=\"fr.m3u8\"\n#EXT-X-MEDIA:TYPE=AUDIO,LANGUAGE=\"eng\",URI=\"en.m3u8\"\n#EXT-X-MEDIA:TYPE=SUBTITLES,LANGUAGE=\"ja\",URI=\"ja.m3u8\"\n"));
+    let output = probe()
+        .filter_progressive(
+            &fetcher,
+            vec![stream("/multi.m3u8", Format::Hls)],
+            Some(vsources_core::types::CountryCode::En),
+            |_| {},
+        )
+        .await;
+    assert_eq!(
+        output[0].meta.languages,
+        vec![
+            vsources_core::types::CountryCode::Fr,
+            vsources_core::types::CountryCode::En
+        ]
+    );
+}
+
+#[tokio::test]
+async fn unspecified_multi_audio_is_inspected_in_disguised_transport_stream_segments() {
+    let mut section = vec![2, 0xb0, 0, 0, 1, 0xc1, 0, 0, 0xe1, 0, 0xf0, 0];
+    section.extend([27, 0xe1, 0, 0xf0, 0]);
+    for (pid, language) in [(1, b"hin"), (2, b"eng")] {
+        section.extend([15, 0xe1, pid, 0xf0, 6, 10, 4]);
+        section.extend(language);
+        section.push(0);
+    }
+    section.extend([0; 4]);
+    section[2] =
+        u8::try_from(section.len() - 3).unwrap_or_else(|error| panic!("fixture length: {error}"));
+    let mut packet = vec![0x47, 0x41, 0, 0x10, 0];
+    packet.extend(section);
+    packet.resize(188, 0xff);
+    let mut bytes = packet.clone();
+    bytes.extend(packet);
+    let fetcher = ScriptedFetcher::default();
+    fetcher.reply(
+        "/opaque.m3u8",
+        response(
+            "/opaque.m3u8",
+            200,
+            "application/vnd.apple.mpegurl",
+            b"#EXTM3U\n#EXTINF:2,\nimage.jpg\n#EXT-X-ENDLIST\n",
+        ),
+    );
+    fetcher.reply(
+        "/image.jpg",
+        response("/image.jpg", 206, "image/jpeg", &bytes),
+    );
+    let mut source = stream("/opaque.m3u8", Format::Hls);
+    source.meta.languages = vec![vsources_core::types::CountryCode::Multi];
+    let output = probe()
+        .filter_progressive(
+            &fetcher,
+            vec![source],
+            Some(vsources_core::types::CountryCode::En),
+            |_| {},
+        )
+        .await;
+    assert!(
+        output[0]
+            .meta
+            .languages
+            .contains(&vsources_core::types::CountryCode::En)
+    );
+    assert!(
+        output[0]
+            .meta
+            .languages
+            .contains(&vsources_core::types::CountryCode::Hi)
+    );
+}

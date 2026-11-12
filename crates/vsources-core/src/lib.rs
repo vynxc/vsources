@@ -15,6 +15,7 @@ pub mod error;
 pub mod ids;
 pub mod language;
 pub mod mappings;
+pub mod media_validation;
 pub mod resolution;
 pub mod tmdb;
 pub mod traits;

@@ -252,6 +252,9 @@ impl AniWaves {
 
 #[async_trait]
 impl Source for AniWaves {
+    fn supports_english_audio_selection(&self) -> bool {
+        true
+    }
     fn info(&self) -> &SourceInfo {
         &self.info
     }

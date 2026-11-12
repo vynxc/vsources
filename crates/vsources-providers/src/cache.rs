@@ -174,6 +174,9 @@ impl CachedSource {
 
 #[async_trait]
 impl Source for CachedSource {
+    fn supports_english_audio_selection(&self) -> bool {
+        self.inner.supports_english_audio_selection()
+    }
     fn info(&self) -> &SourceInfo {
         self.inner.info()
     }
@@ -192,6 +195,41 @@ impl Source for CachedSource {
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
         self.resolve_cached(ctx, media, true).await
+    }
+
+    async fn resolve_incremental(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+    ) -> Result<Vec<Stream>, SourceError> {
+        let key = CacheKey {
+            provider: self.info().id.clone().into(),
+            media: media.clone(),
+            english_dub: false,
+        };
+        if let Some(streams) = self.results.get(&key).await {
+            publish(streams.as_ref().clone());
+            return Ok(streams.as_ref().clone());
+        }
+        if self.empty.get(&key).await.is_some() {
+            return Ok(Vec::new());
+        }
+        match self.inner.resolve_incremental(ctx, media, publish).await {
+            Ok(streams) => {
+                if streams.is_empty() {
+                    self.empty.insert(key, ()).await;
+                } else {
+                    self.results.insert(key, Arc::new(streams.clone())).await;
+                }
+                Ok(streams)
+            }
+            Err(SourceError::NotFound) => {
+                self.empty.insert(key, ()).await;
+                Ok(Vec::new())
+            }
+            Err(error) => Err(error),
+        }
     }
 }
 
@@ -212,6 +250,32 @@ mod tests {
         });
         let calls = Arc::clone(&source);
         (calls, CachedSource::new(source))
+    }
+
+    #[tokio::test]
+    async fn incremental_resolution_reuses_the_completed_cache() -> Result<(), SourceError> {
+        let (calls, cached) = cached(Outcome::OneStream);
+        let batches = std::sync::Mutex::new(Vec::new());
+        let publish = |streams| {
+            batches
+                .lock()
+                .unwrap_or_else(|error| panic!("fixture failed: {error}"))
+                .push(streams);
+        };
+        let ctx = stub_ctx();
+        let media = stub_media();
+        let first = cached.resolve_incremental(&ctx, &media, &publish).await?;
+        let second = cached.resolve_incremental(&ctx, &media, &publish).await?;
+        assert_eq!(first, second);
+        assert_eq!(calls.calls.load(Ordering::SeqCst), 1);
+        assert_eq!(
+            batches
+                .lock()
+                .unwrap_or_else(|error| panic!("fixture failed: {error}"))
+                .len(),
+            2
+        );
+        Ok(())
     }
 
     #[tokio::test]

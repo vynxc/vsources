@@ -27,6 +27,7 @@ use vsources_core::mappings::MappingService;
 use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{Fetcher, ResolveCtx, ResolvedMedia, Source};
 use vsources_core::types::{CountryCode, MediaRef, SourceInfo, Stream};
+#[cfg(feature = "default-fetcher")]
 use vsources_net::ChromeFetcher;
 use vsources_providers::SourceRegistry;
 
@@ -83,6 +84,9 @@ pub enum EngineError {
     /// The opt-in fast English-dub race exceeded its total budget.
     #[error("fast English-dub resolution exceeded its 12-second budget")]
     FastDubTimeout,
+    /// A custom fetcher is mandatory when the default transport is disabled.
+    #[error("a caller-supplied fetcher is required")]
+    MissingFetcher,
     /// The default fetcher could not be constructed.
     #[error("the default fetcher could not be built: {0}")]
     Fetcher(String),
@@ -116,6 +120,7 @@ pub struct EngineBuilder {
     tmdb_key: Option<String>,
     /// The registered providers.
     sources: Vec<Arc<dyn Source>>,
+    stream_limit: Option<usize>,
     /// Provider id allowlist; empty means all.
     allowlist: Vec<String>,
     /// Whether the caller explicitly selected providers, including all providers.
@@ -200,6 +205,13 @@ impl EngineBuilder {
         self
     }
 
+    /// Bound retained streams and each provider result for scoped embedders.
+    #[must_use]
+    pub fn stream_limit(mut self, limit: usize) -> Self {
+        self.stream_limit = Some(limit.max(1));
+        self
+    }
+
     /// Override the provider fan-out width.
     #[must_use]
     pub fn concurrency(mut self, concurrency: usize) -> Self {
@@ -242,10 +254,13 @@ impl EngineBuilder {
                 }
                 fetcher
             }
+            #[cfg(feature = "default-fetcher")]
             None => Arc::new(build_fetcher(
                 self.flaresolverr.as_ref(),
                 self.proxy.as_deref(),
             )?),
+            #[cfg(not(feature = "default-fetcher"))]
+            None => return Err(EngineError::MissingFetcher),
         };
 
         let tmdb = self
@@ -301,6 +316,7 @@ impl EngineBuilder {
             registry: SourceRegistry::new(selected),
             per_source_timeout: self.per_source_timeout.unwrap_or(DEFAULT_SOURCE_TIMEOUT),
             concurrency: self.concurrency.unwrap_or(DEFAULT_CONCURRENCY).max(1),
+            stream_limit: self.stream_limit.unwrap_or(usize::MAX),
         })
     }
 }
@@ -317,6 +333,7 @@ fn parse_provider_allowlist(value: &str) -> Vec<String> {
 }
 
 /// The default fetcher, with the Cloudflare chain when configured.
+#[cfg(feature = "default-fetcher")]
 fn build_fetcher(
     flaresolverr: Option<&Url>,
     proxy: Option<&str>,
@@ -354,6 +371,7 @@ pub struct Engine {
     per_source_timeout: Duration,
     /// Provider fan-out width.
     concurrency: usize,
+    stream_limit: usize,
     /// Shared per-stream verdict cache.
     probes: StreamProbe,
 }
@@ -378,7 +396,7 @@ impl Engine {
     pub async fn resolve_english_dub(&self, media: &MediaRef) -> Result<Vec<Stream>, EngineError> {
         let (progress, discarded) = mpsc::unbounded_channel();
         drop(discarded);
-        self.resolve_progressive_with_audio(media, progress, true)
+        self.resolve_progressive_with_audio(media, progress, true, &[])
             .await
     }
 
@@ -494,7 +512,18 @@ impl Engine {
         media: &MediaRef,
         progress: mpsc::UnboundedSender<Vec<Stream>>,
     ) -> Result<Vec<Stream>, EngineError> {
-        self.resolve_progressive_with_audio(media, progress, false)
+        self.resolve_progressive_with_audio(media, progress, false, &[])
+            .await
+    }
+
+    /// Resolve normally while omitting suppliers already attempted by the host.
+    pub async fn resolve_progressive_excluding(
+        &self,
+        media: &MediaRef,
+        excluded: &[String],
+        progress: mpsc::UnboundedSender<Vec<Stream>>,
+    ) -> Result<Vec<Stream>, EngineError> {
+        self.resolve_progressive_with_audio(media, progress, false, excluded)
             .await
     }
 
@@ -503,12 +532,13 @@ impl Engine {
         media: &MediaRef,
         progress: mpsc::UnboundedSender<Vec<Stream>>,
         english_only: bool,
+        excluded: &[String],
     ) -> Result<Vec<Stream>, EngineError> {
         let resolved = match &self.tmdb {
             Some(tmdb) => match tmdb.resolve_media(media).await {
                 Ok(resolved) => Some(resolved),
-                Err(error) => {
-                    tracing::warn!(%error, "tmdb metadata unavailable; resolving without it");
+                Err(_error) => {
+                    tracing::warn!("tmdb metadata unavailable; resolving without it");
                     None
                 }
             },
@@ -531,7 +561,10 @@ impl Engine {
             .registry
             .all()
             .into_iter()
-            .filter(|source| provider_scope_allows(&source.info().id, animation))
+            .filter(|source| {
+                !excluded.contains(&source.info().id)
+                    && provider_scope_allows(&source.info().id, animation)
+            })
             .enumerate()
             .map(|(index, source)| {
                 self.resolve_source(
@@ -569,6 +602,7 @@ impl Engine {
                             .unwrap_or_else(|| release_name_of(&stream.url));
                         enrich_stream(&mut stream, &release_name);
                         match claimed.get(&stream.url) {
+                            None if entries.len() >= self.stream_limit => {}
                             None => {
                                 claimed.insert(stream.url.clone(), entries.len());
                                 entries.push((index, sequence, stream));
@@ -588,7 +622,7 @@ impl Engine {
                     }
                 }
                 Err(error) => {
-                    tracing::warn!(provider = %id, %error, "provider failed");
+                    tracing::warn!(provider = %id, "provider failed");
                     failures.push((id, error));
                 }
             }
@@ -601,6 +635,114 @@ impl Engine {
         }
         Ok(ordered_snapshot(&entries))
     }
+    /// Resolve one enabled supplier and publish each usable stream as its probe finishes.
+    /// The host owns the total attempt deadline, including metadata and validation.
+    pub async fn resolve_provider_progressive(
+        &self,
+        media: &MediaRef,
+        provider_id: &str,
+        audio_language: Option<&str>,
+        metadata: Option<ResolvedMedia>,
+        progress: mpsc::UnboundedSender<Vec<Stream>>,
+    ) -> Result<Vec<Stream>, EngineError> {
+        let started = std::time::Instant::now();
+        let Some(source) = self
+            .registry
+            .all()
+            .into_iter()
+            .find(|source| source.info().id == provider_id)
+        else {
+            return Ok(Vec::new());
+        };
+        let metadata = match metadata {
+            Some(metadata) => Some(metadata),
+            None => match &self.tmdb {
+                Some(tmdb) => tmdb.resolve_media(media).await.ok(),
+                None => None,
+            },
+        };
+        let animation = if vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider_id) {
+            self.animation_status(media, metadata.as_ref()).await
+        } else {
+            None
+        };
+        if !provider_scope_allows(provider_id, animation) {
+            return Ok(Vec::new());
+        }
+        tracing::info!(
+            provider = provider_id,
+            metadata_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+            "Preferred supplier request started"
+        );
+        let ctx = ResolveCtx {
+            fetcher: self.fetcher.as_ref(),
+            media: metadata,
+            source_id: Some(provider_id),
+            referer: None,
+        };
+        let (raw_tx, mut raw_rx) = mpsc::unbounded_channel();
+        let publish_raw = |streams| {
+            let _ = raw_tx.send(streams);
+        };
+        let resolve = tokio::time::timeout(self.per_source_timeout, async {
+            if audio_language == Some("en") && source.supports_english_audio_selection() {
+                let streams = source.resolve_english_dub(&ctx, media).await?;
+                publish_raw(streams.clone());
+                Ok(streams)
+            } else {
+                source.resolve_incremental(&ctx, media, &publish_raw).await
+            }
+        });
+        tokio::pin!(resolve);
+        let stamp = |mut stream: Stream| {
+            stream.meta.source_id = Some(source.info().id.clone());
+            stream.meta.source_label = Some(source.info().label.clone());
+            let label = stream
+                .label
+                .clone()
+                .unwrap_or_else(|| release_name_of(&stream.url));
+            enrich_stream(&mut stream, &label);
+            stream
+        };
+        let language = audio_language.and_then(CountryCode::parse);
+        let mut seen = std::collections::HashSet::new();
+        let mut result = Vec::new();
+        let mut validating =
+            futures::stream::FuturesUnordered::<futures::future::BoxFuture<'_, Vec<Stream>>>::new();
+        let mut finished = false;
+        let mut failed = false;
+        loop {
+            tokio::select! {
+                resolved = &mut resolve, if !finished => {
+                    finished = true;
+                    match resolved {
+                        Ok(Ok(streams)) => { publish_raw(streams); }
+                        _ => { failed = true; }
+                    }
+                }
+                Some(batch) = raw_rx.recv() => {
+                    let streams = batch.into_iter().filter(|stream| {
+                        seen.len() < self.stream_limit && seen.insert(stream.url.as_str().to_owned())
+                    }).map(stamp).collect::<Vec<_>>();
+                    if !streams.is_empty() {
+                        tracing::info!(provider=provider_id, elapsed_ms=u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX), streams=streams.len(), "Preferred supplier response received");
+                        let progress = progress.clone();
+                        validating.push(Box::pin(self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,move |batch|{let _=progress.send(batch);})));
+                    }
+                }
+                Some(validated) = validating.next(), if !validating.is_empty() => { result.extend(validated); }
+            }
+            if finished && raw_rx.is_empty() && validating.is_empty() {
+                break;
+            }
+        }
+        if failed && result.is_empty() {
+            Err(EngineError::AllProvidersFailed { count: 1 })
+        } else {
+            Ok(result)
+        }
+    }
+
     /// One provider's bounded resolve, as a type-erased future.
     ///
     /// The boxing is load-bearing: a closure returning an `async` block
@@ -636,6 +778,11 @@ impl Engine {
             let bounded = tokio::time::timeout(timeout, resolve);
             let result = match bounded.await {
                 Ok(Ok(mut streams)) => {
+                    streams.truncate(self.stream_limit);
+                    for stream in &mut streams {
+                        stream.meta.source_id = Some(id.clone());
+                        stream.meta.source_label = Some(source.info().label.clone());
+                    }
                     if english_only {
                         streams.retain(english_dub);
                     }
@@ -1092,6 +1239,173 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn supplied_metadata_avoids_another_title_or_animation_request() {
+        struct NoMetadataNetwork;
+        #[async_trait]
+        impl Fetcher for NoMetadataNetwork {
+            async fn request(
+                &self,
+                _: vsources_core::traits::FetchRequest,
+            ) -> Result<vsources_core::traits::FetchResponse, vsources_core::error::FetchError>
+            {
+                panic!("metadata was already supplied")
+            }
+        }
+        let engine = EngineBuilder::new()
+            .fetcher(Arc::new(NoMetadataNetwork))
+            .tmdb_key("fixture-key")
+            .sources(vec![StubSource::streaming(
+                "preferred",
+                1,
+                &["https://cdn.example/ready.mp4"],
+            )])
+            .build()
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        let (tx, _) = mpsc::unbounded_channel();
+        let metadata = ResolvedMedia {
+            tmdb_id: Some(27205),
+            imdb_id: None,
+            name: "Verified title".into(),
+            year: Some(2010),
+            season: None,
+            episode: None,
+        };
+        let result = engine
+            .resolve_provider_progressive(&media(), "preferred", None, Some(metadata), tx)
+            .await
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn selected_supplier_bypasses_unrelated_provider_queue() {
+        let mut sources: Vec<Arc<dyn Source>> = (0..29)
+            .map(|n| {
+                Arc::new(StubSource {
+                    info: info(&format!("slow-{n}"), n),
+                    streams: vec![],
+                    error: Some(SourceError::scrape("other", "must not run")),
+                    delay: Some(Duration::from_secs(30)),
+                }) as Arc<dyn Source>
+            })
+            .collect();
+        sources.push(StubSource::streaming(
+            "preferred",
+            30,
+            &["https://cdn.example/ready.mp4"],
+        ));
+        let engine = test_builder()
+            .sources(sources)
+            .concurrency(1)
+            .build()
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let result = tokio::time::timeout(
+            Duration::from_secs(1),
+            engine.resolve_provider_progressive(&media(), "preferred", None, None, tx),
+        )
+        .await
+        .unwrap_or_else(|error| panic!("fixture failed: {error}"))
+        .unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        assert_eq!(result.len(), 1);
+        assert_eq!(
+            rx.recv()
+                .await
+                .unwrap_or_else(|| panic!("expected provider batch"))[0]
+                .meta
+                .source_id
+                .as_deref(),
+            Some("preferred")
+        );
+    }
+
+    #[tokio::test]
+    async fn selected_supplier_validates_extractions_before_its_remaining_lookups_finish() {
+        struct IncrementalSource {
+            info: SourceInfo,
+        }
+        #[async_trait]
+        impl Source for IncrementalSource {
+            fn info(&self) -> &SourceInfo {
+                &self.info
+            }
+            async fn resolve(
+                &self,
+                _: &ResolveCtx<'_>,
+                _: &MediaRef,
+            ) -> Result<Vec<Stream>, SourceError> {
+                panic!("complete-batch resolution must not run")
+            }
+            async fn resolve_incremental(
+                &self,
+                _: &ResolveCtx<'_>,
+                _: &MediaRef,
+                publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+            ) -> Result<Vec<Stream>, SourceError> {
+                publish(vec![Stream::new(
+                    test_url("https://cdn.example/stalled.mp4"),
+                    Format::Mp4,
+                )]);
+                publish(vec![Stream::new(
+                    test_url("https://cdn.example/early.mp4"),
+                    Format::Mp4,
+                )]);
+                std::future::pending().await
+            }
+        }
+        struct SlowProbe;
+        #[async_trait]
+        impl Fetcher for SlowProbe {
+            async fn request(
+                &self,
+                _: vsources_core::traits::FetchRequest,
+            ) -> Result<vsources_core::traits::FetchResponse, vsources_core::error::FetchError>
+            {
+                panic!("only bounded probes expected")
+            }
+            async fn probe(
+                &self,
+                request: vsources_core::traits::FetchRequest,
+                _: usize,
+            ) -> Result<
+                Option<vsources_core::traits::ProbeResponse>,
+                vsources_core::error::FetchError,
+            > {
+                if request.url.path() == "/stalled.mp4" {
+                    std::future::pending().await
+                } else {
+                    Ok(None)
+                }
+            }
+        }
+        let source = Arc::new(vsources_providers::CachedSource::new(Arc::new(
+            IncrementalSource {
+                info: info("preferred", 0),
+            },
+        )));
+        let engine = test_builder()
+            .fetcher(Arc::new(SlowProbe))
+            .sources(vec![source])
+            .build()
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let reference = media();
+        let resolving =
+            engine.resolve_provider_progressive(&reference, "preferred", None, None, tx);
+        tokio::pin!(resolving);
+        let batch = tokio::time::timeout(Duration::from_secs(1), async {
+            tokio::select! {
+                batch = rx.recv() => batch.unwrap_or_else(|| panic!("expected provider batch")),
+                _ = &mut resolving => panic!("remaining lookup should still be pending"),
+            }
+        })
+        .await
+        .unwrap_or_else(|error| panic!("fixture failed: {error}"));
+        assert_eq!(batch[0].url.as_str(), "https://cdn.example/early.mp4");
+        assert_eq!(batch[0].meta.source_id.as_deref(), Some("preferred"));
+    }
+
+    #[tokio::test]
     async fn sorts_by_quality_height() {
         let low = direct_stream(
             test_url("https://cdn.example/720p.mp4"),
@@ -1167,5 +1481,17 @@ mod tests {
         }
         assert_eq!(engine.resolve(&media()).await?, result);
         Ok(())
+    }
+}
+
+#[cfg(all(test, not(feature = "default-fetcher")))]
+mod scoped_transport_tests {
+    use super::*;
+    #[test]
+    fn omitted_fetcher_fails_without_implicit_network_transport() {
+        assert!(matches!(
+            EngineBuilder::new().build(),
+            Err(EngineError::MissingFetcher)
+        ));
     }
 }

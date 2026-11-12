@@ -2643,6 +2643,7 @@ dependencies = [
  "moka",
  "serde",
  "serde_json",
+ "sha2",
  "thiserror 2.0.21",
  "tokio",
  "url",
@@ -2668,7 +2669,6 @@ dependencies = [
  "tracing",
  "url",
  "vsources-core",
- "vsources-net",
 ]
 
 [[package]]
@@ -2709,7 +2709,6 @@ dependencies = [
  "url",
  "vsources-core",
  "vsources-extractors",
- "vsources-net",
 ]
 
 [[package]]
