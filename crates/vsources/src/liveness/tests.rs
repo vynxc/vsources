@@ -502,7 +502,7 @@ async fn progressive_validation_publishes_ready_media_before_a_stalled_alternati
         },
     );
     tokio::pin!(run);
-    let first=tokio::time::timeout(Duration::from_secs(1),async{tokio::select!{batch=rx.recv()=>batch.unwrap(),_=&mut run=>panic!("must publish before whole batch completes")}}).await.unwrap();
+    let first=tokio::time::timeout(Duration::from_secs(1),async{tokio::select!{batch=rx.recv()=>batch.unwrap_or_else(|| panic!("expected provider batch")),_=&mut run=>panic!("must publish before whole batch completes")}}).await.unwrap_or_else(|error| panic!("fixture failed: {error}"));
     assert_eq!(first[0].url.path(), "/fast.mp4");
 }
 
@@ -537,7 +537,8 @@ async fn unspecified_multi_audio_is_inspected_in_disguised_transport_stream_segm
         section.push(0);
     }
     section.extend([0; 4]);
-    section[2] = (section.len() - 3) as u8;
+    section[2] =
+        u8::try_from(section.len() - 3).unwrap_or_else(|error| panic!("fixture length: {error}"));
     let mut packet = vec![0x47, 0x41, 0, 0x10, 0];
     packet.extend(section);
     packet.resize(188, 0xff);
