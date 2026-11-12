@@ -182,13 +182,12 @@ impl StreamProbe {
         audio_language: Option<vsources_core::types::CountryCode>,
         mut publish: impl FnMut(Vec<Stream>),
     ) -> Vec<Stream> {
-        let mut streams = streams;
-        streams.sort_by_key(|s| std::cmp::Reverse(s.meta.resolution.unwrap_or(0)));
+        let mut scheduled: Vec<_> = streams.iter().enumerate().collect();
+        scheduled.sort_by_key(|(_, stream)| std::cmp::Reverse(stream.meta.resolution.unwrap_or(0)));
         let mut completed = HashSet::new();
-        let mut kept = Vec::new();
-        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> = streams
-            .iter()
-            .enumerate()
+        let mut kept = BTreeMap::new();
+        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> = scheduled
+            .into_iter()
             .map(|(i, source)| {
                 Box::pin(async move {
                     let mut source = source.clone();
@@ -234,7 +233,7 @@ impl StreamProbe {
                 completed.insert(i);
                 if verdict != Verdict::Dead {
                     publish(vec![source.clone()]);
-                    kept.push(source);
+                    kept.insert(i, source);
                 }
             }
         })
@@ -243,47 +242,10 @@ impl StreamProbe {
         for (i, source) in streams.into_iter().enumerate() {
             if !completed.contains(&i) {
                 publish(vec![source.clone()]);
-                kept.push(source);
+                kept.insert(i, source);
             }
         }
-        kept
-    }
-
-    /// Bound the whole batch, so a provider with hundreds of URLs cannot
-    /// add hundreds of timeout windows. Unfinished probes remain unknown.
-    pub(crate) async fn filter(&self, fetcher: &dyn Fetcher, streams: Vec<Stream>) -> Vec<Stream> {
-        let mut completed = BTreeMap::new();
-        let jobs: Vec<BoxFuture<'_, (usize, CachedVerdict)>> = streams
-            .iter()
-            .enumerate()
-            .map(|(index, stream)| {
-                Box::pin(async move { (index, self.inspect(fetcher, stream).await) })
-                    as BoxFuture<'_, _>
-            })
-            .collect();
-        let mut pending = stream::iter(jobs).buffer_unordered(self.config.concurrency.max(1));
-        let _ = tokio::time::timeout(self.config.timeout, async {
-            while let Some((index, verdict)) = pending.next().await {
-                completed.insert(index, verdict);
-            }
-        })
-        .await;
-        drop(pending);
-        streams
-            .into_iter()
-            .enumerate()
-            .filter_map(|(index, mut stream)| {
-                if let Some(result) = completed.remove(&index) {
-                    if result.verdict == Verdict::Dead {
-                        return None;
-                    }
-                    if !result.audio.languages.is_empty() {
-                        stream.meta.languages = result.audio.languages;
-                    }
-                }
-                Some(stream)
-            })
-            .collect()
+        kept.into_values().collect()
     }
 }
 
