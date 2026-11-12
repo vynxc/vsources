@@ -350,7 +350,7 @@ pub struct BuildParams<'a> {
     pub source_id: &'a str,
     /// The consuming provider's display label.
     pub source_label: &'a str,
-    /// The provider's default country codes.
+    /// Catalog language support; individual streams require their own audio evidence.
     pub country_codes: &'a [CountryCode],
     /// Result lifetime — the JS source's `this.ttl`.
     pub ttl: Duration,
@@ -383,25 +383,20 @@ pub fn build_stream_results(params: &BuildParams<'_>) -> Vec<Stream> {
     results
 }
 
-/// One stream's language flags — the audio-track override (the JS's
-/// authoritative per-source audio) or the source defaults plus names
-/// found in the stream text.
+/// Per-stream audio declarations, server labels and filenames exclude catalog display text.
 fn stream_languages(
     stream: &NuvioStream,
-    stream_title: &str,
     filename: &str,
-    country_codes: &[CountryCode],
+    _country_codes: &[CountryCode],
 ) -> Vec<CountryCode> {
     let audio_tracks = normalize_audio_tracks(stream.audio_tracks.as_ref());
     if audio_tracks.is_empty() {
         let haystack = format!(
-            "{} {} {}",
-            stream_title,
+            "{} {}",
             stream.name.as_deref().unwrap_or_default(),
             filename
         );
-        let mut codes = country_codes.to_vec();
-        codes.extend(find_country_codes(&haystack));
+        let mut codes = find_country_codes(&haystack);
         codes.dedup();
         return codes;
     }
@@ -460,13 +455,15 @@ fn build_card(
     }
     let label = label_parts.join(" — ");
 
-    // Language flags: explicit audio tracks override the source
-    // defaults; otherwise defaults + names found in the stream text.
-    let languages = stream_languages(stream, &stream_title, &filename, country_codes);
+    let fact_filename = url
+        .path_segments()
+        .and_then(|mut segments| segments.next_back())
+        .unwrap_or_default();
+    let languages = stream_languages(stream, fact_filename, country_codes);
 
     let height = parse_height(stream.quality.as_deref())
-        .or_else(|| parse_height(stream.title.as_deref()))
-        .or_else(|| parse_height(Some(&filename)));
+        .or_else(|| parse_height(stream.name.as_deref()))
+        .or_else(|| parse_height(Some(fact_filename)));
 
     let mut meta = StreamMeta {
         dubbed: stream.category().map(|category| category == "dub"),
@@ -1122,6 +1119,20 @@ mod tests {
     }
 
     #[test]
+    fn provider_catalog_languages_do_not_label_an_unmarked_stream() {
+        let streams = vec![NuvioStream::new("https://cdn.example/movie.mp4")];
+        let results = build_stream_results(&BuildParams {
+            streams: &streams,
+            title: "Movie",
+            source_id: "fixture",
+            source_label: "Fixture",
+            country_codes: &[CountryCode::Multi, CountryCode::En, CountryCode::Hi],
+            ttl: Duration::from_mins(1),
+        });
+        assert!(results[0].meta.languages.is_empty());
+    }
+
+    #[test]
     fn deserializes_js_shaped_streams() {
         let raw = r#"{
             "url": "https://megap.akirax.buzz/hls/abc123/master.m3u8?token=xyz",
@@ -1209,5 +1220,36 @@ mod tests {
             card.meta.request_headers.get("Referer").map(String::as_str),
             Some("https://megaplay.buzz/")
         );
+    }
+    #[test]
+    fn catalog_rich_titles_do_not_supply_stream_facts() {
+        for title in [
+            "Johnny English",
+            "French Kiss",
+            "Hindi Medium",
+            "The 1080p Story",
+        ] {
+            let streams = vec![
+                NuvioStream::new("https://cdn.example/opaque.m3u8")
+                    .with_title(title)
+                    .with_name("Fixture"),
+            ];
+            let output = build_stream_results(&BuildParams {
+                streams: &streams,
+                title,
+                source_id: "fixture",
+                source_label: "Fixture",
+                country_codes: &[CountryCode::En],
+                ttl: Duration::from_mins(1),
+            });
+            assert!(
+                output[0].meta.languages.is_empty(),
+                "catalog title: {title}"
+            );
+            assert!(
+                output[0].meta.resolution.is_none(),
+                "catalog title: {title}"
+            );
+        }
     }
 }

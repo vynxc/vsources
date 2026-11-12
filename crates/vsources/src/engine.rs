@@ -472,7 +472,7 @@ impl Engine {
                         std::cmp::Reverse(stream.meta.resolution.unwrap_or(0))
                     });
                     if let Some(mut stream) = streams.into_iter().next() {
-                        let label = stream.label.clone().unwrap_or_default();
+                        let label = release_name_of(&stream.url);
                         enrich_stream(&mut stream, &label);
                         return Ok(Some(stream));
                     }
@@ -610,10 +610,7 @@ impl Engine {
                     any_answered = true;
                     let mut grew = false;
                     for mut stream in streams {
-                        let release_name = stream
-                            .label
-                            .clone()
-                            .unwrap_or_else(|| release_name_of(&stream.url));
+                        let release_name = release_name_of(&stream.url);
                         enrich_stream(&mut stream, &release_name);
                         let key = stream_key(&stream);
                         match claimed.get(&key) {
@@ -712,10 +709,7 @@ impl Engine {
         let stamp = |mut stream: Stream| {
             stream.meta.source_id = Some(source.info().id.clone());
             stream.meta.source_label = Some(source.info().label.clone());
-            let label = stream
-                .label
-                .clone()
-                .unwrap_or_else(|| release_name_of(&stream.url));
+            let label = release_name_of(&stream.url);
             enrich_stream(&mut stream, &label);
             stream
         };
@@ -835,8 +829,7 @@ fn provider_scope_allows(provider: &str, animation: Option<bool>) -> bool {
     animation != Some(false) || !vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider)
 }
 
-/// The release-name-ish string for a stream with no label: the URL's
-/// final path segment without its extension.
+/// Filename evidence excludes the provider's catalog/display label.
 fn release_name_of(url: &Url) -> String {
     let name = url
         .path_segments()
@@ -1369,6 +1362,98 @@ mod tests {
             published.extend(batch);
         }
         assert_stream_variants(&published);
+    }
+
+    #[tokio::test]
+    async fn filename_facts_and_explicit_audio_survive_display_labels() {
+        let mut source = (*StubSource::streaming(
+            "facts",
+            0,
+            &[
+                "https://cdn.example/The.Matrix.1999.1080p.BluRay.x264.DTS-HD.MA.5.1.mkv",
+                "https://cdn.example/opaque.mp4",
+            ],
+        ))
+        .clone();
+        for stream in &mut source.streams {
+            stream.label = Some("French Kiss — Provider".into());
+        }
+        source.streams[1].meta.languages = vec![CountryCode::Ja];
+        source.streams[1].meta.resolution = Some(720);
+        let engine = test_builder()
+            .sources(vec![Arc::new(source)])
+            .build()
+            .unwrap_or_else(|error| panic!("fixture engine: {error}"));
+        let streams = engine
+            .resolve(&media())
+            .await
+            .unwrap_or_else(|error| panic!("fixture resolve: {error}"));
+        let file = streams
+            .iter()
+            .find(|stream| stream.url.path().contains("Matrix"))
+            .unwrap_or_else(|| panic!("filename stream"));
+        assert_eq!(file.meta.resolution, Some(1080));
+        assert_eq!(file.meta.codec.as_deref(), Some("x264"));
+        assert!(file.meta.languages.is_empty());
+        let declared = streams
+            .iter()
+            .find(|stream| stream.url.path().ends_with("opaque.mp4"))
+            .unwrap_or_else(|| panic!("declared stream"));
+        assert_eq!(declared.meta.languages, vec![CountryCode::Ja]);
+        assert_eq!(declared.meta.resolution, Some(720));
+    }
+
+    #[tokio::test]
+    async fn catalog_display_labels_are_not_stream_evidence() {
+        for title in [
+            "Johnny English",
+            "French Kiss",
+            "Hindi Medium",
+            "The 1080p Story",
+            "BluRay",
+            "HEVC",
+        ] {
+            for enabled in [false, true] {
+                let mut source = (*StubSource::streaming(
+                    "display-only",
+                    0,
+                    &["https://cdn.example/opaque.m3u8"],
+                ))
+                .clone();
+                source.streams[0].label = Some(format!("{title} — Provider — Server 1"));
+                let engine = test_builder()
+                    .sources(vec![Arc::new(source)])
+                    .probe_config(ProbeConfig {
+                        enabled,
+                        ..ProbeConfig::default()
+                    })
+                    .build()
+                    .unwrap_or_else(|error| panic!("fixture engine: {error}"));
+                let ordinary = engine
+                    .resolve(&media())
+                    .await
+                    .unwrap_or_else(|error| panic!("fixture resolve: {error}"));
+                let (tx, _) = mpsc::unbounded_channel();
+                let preferred = engine
+                    .resolve_provider_progressive(&media(), "display-only", None, None, tx)
+                    .await
+                    .unwrap_or_else(|error| panic!("fixture resolve: {error}"));
+                for streams in [ordinary, preferred] {
+                    assert_eq!(streams.len(), 1);
+                    assert!(
+                        streams[0].meta.languages.is_empty(),
+                        "catalog title: {title}"
+                    );
+                    assert!(
+                        streams[0].meta.resolution.is_none(),
+                        "catalog title: {title}"
+                    );
+                    assert!(streams[0].meta.quality.is_none());
+                    assert!(streams[0].meta.codec.is_none());
+                    assert!(streams[0].meta.audio.is_empty());
+                }
+            }
+        }
     }
 
     #[tokio::test]

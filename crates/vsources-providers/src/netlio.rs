@@ -29,7 +29,7 @@
 //!   stream ships direct with the site `Referer` (and the same probe
 //!   headers the upstream attached: Chrome UA, `Range: bytes=0-1023`).
 //! - `meta.title` has no `StreamMeta` field — the stream label carries
-//!   the `${title} (Hindi + English)` form.
+//!   the resolved title without inferred language labels.
 //! - Result caching is the parent's `CachedSource` domain.
 
 use std::sync::Arc;
@@ -176,8 +176,7 @@ impl Source for Netlio {
         let mut stream = Stream::new(url, Format::Hls)
             .with_ttl(TTL)
             .with_referer(REFERER);
-        stream.label = Some(format!("{title} (Hindi + English)"));
-        stream.meta.languages = vec![CountryCode::Multi, CountryCode::Hi, CountryCode::En];
+        stream.label = Some(title);
         stream.meta.source_id = Some("netlio".to_string());
         stream.meta.source_label = Some("Netlio".to_string());
         Ok(vec![stream])
@@ -468,14 +467,8 @@ mod tests {
             "https://cdn.netlio.example/master.m3u8"
         );
         assert_eq!(stream.format, Format::Hls);
-        assert_eq!(
-            stream.label.as_deref(),
-            Some("Dune (2021) (Hindi + English)")
-        );
-        assert_eq!(
-            stream.meta.languages,
-            vec![CountryCode::Multi, CountryCode::Hi, CountryCode::En]
-        );
+        assert_eq!(stream.label.as_deref(), Some("Dune (2021)"));
+        assert!(stream.meta.languages.is_empty());
         assert_eq!(
             stream
                 .meta
@@ -542,10 +535,7 @@ mod tests {
             streams[0].url.as_str(),
             "https://cdn.netlio.example/ep6.m3u8"
         );
-        assert_eq!(
-            streams[0].label.as_deref(),
-            Some("Breaking Bad S12E02 (Hindi + English)")
-        );
+        assert_eq!(streams[0].label.as_deref(), Some("Breaking Bad S12E02"));
         Ok(())
     }
 

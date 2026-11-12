@@ -904,10 +904,6 @@ fn parse_stream_entry(entry: &Value, server: &str, info: &RequestInfo) -> Vec<Ra
 static PENGU_RESOURCE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"/resource/([^/]+)").unwrap_or_else(|_| panic!("invalid pengu regex"))
 });
-/// The server-name token in a display title (`[Lisbon]`).
-static SERVER_TOKEN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\[(\w+)\]").unwrap_or_else(|_| panic!("invalid server-token regex"))
-});
 
 /// Unwrap a `pengu.uk/hls/cinejoy/resource/{base64url}` frame to the
 /// original URL plus its `Referer` — the port of `unwrapPenguProxy`.
@@ -991,19 +987,7 @@ fn convert_streams(raw: &[RawStream], title: &str) -> Vec<NuvioStream> {
         } else {
             markers.push("x264".to_string());
         }
-        // The anime branch is cut (no original language in TmdbClient).
-        markers.push("English".to_string());
         let display_title = format!("{title} [{server}] {}", markers.join(" "));
-        // The wrapper re-extracts the server token from the title it
-        // just built (`title.match(/\[(\w+)\]/)`), falling back to
-        // `Stream` — warts included, the title itself may carry
-        // brackets.
-        let token = SERVER_TOKEN
-            .captures(&display_title)
-            .ok()
-            .flatten()
-            .and_then(|captures| captures.get(1))
-            .map_or_else(|| "Stream".to_string(), |group| group.as_str().to_string());
         if !seen.insert(raw_url.clone()) {
             continue;
         }
@@ -1011,7 +995,7 @@ fn convert_streams(raw: &[RawStream], title: &str) -> Vec<NuvioStream> {
             NuvioStream::new(raw_url)
                 .with_quality(height.map_or_else(|| "1080p".to_string(), |h| format!("{h}p")))
                 .with_title(display_title)
-                .with_name(format!("{LABEL} - {token}"))
+                .with_name(format!("{LABEL} - {server}"))
                 .with_header("Referer", referer),
         );
     }
@@ -1665,7 +1649,7 @@ mod tests {
         assert_eq!(lisbon.quality.as_deref(), Some("2160p"));
         assert_eq!(
             lisbon.title.as_deref(),
-            Some("Inception (2010) [Lisbon] 2160p WEB-DL HEVC HDR English")
+            Some("Inception (2010) [Lisbon] 2160p WEB-DL HEVC HDR")
         );
         assert_eq!(lisbon.name.as_deref(), Some("CineJoy - Lisbon"));
         assert_eq!(
@@ -1676,7 +1660,7 @@ mod tests {
         let solara = &converted[1];
         assert_eq!(
             solara.title.as_deref(),
-            Some("Inception (2010) [Solara] 1080p WEB-DL x264 English")
+            Some("Inception (2010) [Solara] 1080p WEB-DL x264")
         );
         assert_eq!(solara.name.as_deref(), Some("CineJoy - Solara"));
     }
@@ -2223,6 +2207,24 @@ mod tests {
         assert_eq!(
             decrypt_response(&response, &sealed).and_then(|v| v.get("status").cloned()),
             Some(json!(200))
+        );
+    }
+    #[test]
+    fn bracketed_catalog_titles_do_not_become_server_audio_labels() {
+        let converted = convert_streams(&raw_streams(), "[English] Movie");
+        assert_eq!(converted[0].name.as_deref(), Some("CineJoy - Lisbon"));
+        let streams = build_stream_results(&BuildParams {
+            streams: &converted,
+            title: "[English] Movie",
+            source_id: ID,
+            source_label: LABEL,
+            country_codes: &COUNTRY_CODES,
+            ttl: TTL,
+        });
+        assert!(
+            streams
+                .iter()
+                .all(|stream| stream.meta.languages.is_empty())
         );
     }
 }

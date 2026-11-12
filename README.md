@@ -204,6 +204,13 @@ be distinguished. The default fetcher caps reads even if Range is ignored.
 HTML pages, archives, images and missing files are filtered. Network failures,
 Cloudflare/IP blocks, rate limits and unsupported formats remain inconclusive.
 
+Audio labels use per-stream declarations and bounded manifest/container evidence.
+A provider's catalog languages do not label every URL. Catalog titles and combined
+display labels do not supply audio or quality facts. Shared media probes cache
+explicit HLS audio renditions and available transport-stream/Matroska tags without
+extra requests. Subtitle languages are excluded; unmarked audio stays unknown.
+These tags describe available tracks, not speech recognition or a playback guarantee.
+
 `vsources::liveness::ProbeConfig` controls the shared concurrency (6), total
 chain/provider-batch budget (4 s), and verdict lifetimes (alive 5 min, dead
 30 s, unknown 5 s, bounded by stream TTL). Pass it to
