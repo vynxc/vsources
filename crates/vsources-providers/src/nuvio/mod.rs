@@ -383,14 +383,12 @@ pub fn build_stream_results(params: &BuildParams<'_>) -> Vec<Stream> {
     results
 }
 
-/// One stream's language flags — the audio-track override (the JS's
-/// authoritative per-source audio) or the source defaults plus names
-/// found in the stream text.
+/// Per-stream audio declarations and release labels; catalog language support is not track evidence.
 fn stream_languages(
     stream: &NuvioStream,
     stream_title: &str,
     filename: &str,
-    country_codes: &[CountryCode],
+    _country_codes: &[CountryCode],
 ) -> Vec<CountryCode> {
     let audio_tracks = normalize_audio_tracks(stream.audio_tracks.as_ref());
     if audio_tracks.is_empty() {
@@ -400,8 +398,7 @@ fn stream_languages(
             stream.name.as_deref().unwrap_or_default(),
             filename
         );
-        let mut codes = country_codes.to_vec();
-        codes.extend(find_country_codes(&haystack));
+        let mut codes = find_country_codes(&haystack);
         codes.dedup();
         return codes;
     }
@@ -460,8 +457,6 @@ fn build_card(
     }
     let label = label_parts.join(" — ");
 
-    // Language flags: explicit audio tracks override the source
-    // defaults; otherwise defaults + names found in the stream text.
     let languages = stream_languages(stream, &stream_title, &filename, country_codes);
 
     let height = parse_height(stream.quality.as_deref())
@@ -1119,6 +1114,20 @@ mod tests {
             results[0].meta.languages,
             vec![CountryCode::Multi, CountryCode::Hi, CountryCode::Ta]
         );
+    }
+
+    #[test]
+    fn provider_catalog_languages_do_not_label_an_unmarked_stream() {
+        let streams = vec![NuvioStream::new("https://cdn.example/movie.mp4")];
+        let results = build_stream_results(&BuildParams {
+            streams: &streams,
+            title: "Movie",
+            source_id: "fixture",
+            source_label: "Fixture",
+            country_codes: &[CountryCode::Multi, CountryCode::En, CountryCode::Hi],
+            ttl: Duration::from_mins(1),
+        });
+        assert!(results[0].meta.languages.is_empty());
     }
 
     #[test]

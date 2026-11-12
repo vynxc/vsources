@@ -300,8 +300,7 @@ impl Source for IMDBPlay {
                 stream.meta.resolution = Some(height);
                 stream.meta.quality = Some(source_type.to_string());
                 stream.meta.codec = Some(codec.to_string());
-                stream.meta.audio = vec![language.to_string()];
-                stream.meta.languages = vec![CountryCode::Multi, CountryCode::Hi, CountryCode::En];
+                stream.meta.languages = vsources_core::language::find_country_codes(&file_name);
                 stream.meta.source_id = Some("imdbplay".to_string());
                 stream.meta.source_label = Some("IMDBPlay".to_string());
                 stream
@@ -423,15 +422,17 @@ fn parse_source_type(text: &str) -> &'static str {
 }
 
 /// The audio language label (upstream `parseLanguage` with the anime
-/// branch cut, default `English`).
+/// branch cut; missing language metadata remains unknown).
 fn parse_language(text: &str) -> &'static str {
     let lower = text.to_lowercase();
     if lower.contains("dual") || (lower.contains("hindi") && lower.contains("english")) {
         "Dual Audio"
     } else if lower.contains("hindi") {
         "Hindi"
-    } else {
+    } else if lower.contains("english") {
         "English"
+    } else {
+        "Unknown audio"
     }
 }
 
@@ -1166,10 +1167,10 @@ mod tests {
         assert_eq!(stream.meta.resolution, Some(1080));
         assert_eq!(stream.meta.quality.as_deref(), Some("WebDL"));
         assert_eq!(stream.meta.codec.as_deref(), Some("x264"));
-        assert_eq!(stream.meta.audio, vec!["Dual Audio".to_string()]);
+        assert!(stream.meta.audio.is_empty());
         assert_eq!(
             stream.meta.languages,
-            vec![CountryCode::Multi, CountryCode::Hi, CountryCode::En]
+            vec![CountryCode::Hi, CountryCode::En]
         );
         assert_eq!(
             stream
@@ -1428,6 +1429,6 @@ mod tests {
         assert_eq!(parse_language("hindi.english"), "Dual Audio");
         assert_eq!(parse_language("hindi"), "Hindi");
         assert_eq!(parse_language("english"), "English");
-        assert_eq!(parse_language("nothing"), "English");
+        assert_eq!(parse_language("nothing"), "Unknown audio");
     }
 }

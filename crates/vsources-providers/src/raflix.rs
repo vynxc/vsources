@@ -379,7 +379,7 @@ impl Raflix {
             let language = entry
                 .get("language")
                 .and_then(Value::as_str)
-                .unwrap_or("English")
+                .unwrap_or("")
                 .to_string();
             let mut stream = tagged(
                 Stream::new(
@@ -396,7 +396,7 @@ impl Raflix {
                 .meta
                 .with_header("Origin", VIDSTORM_ORIGIN)
                 .with_header("Referer", format!("{VIDSTORM_ORIGIN}/"));
-            stream.meta.audio = vec![language];
+            stream.meta.languages = vsources_core::language::find_country_codes(&language);
             stream.meta.resolution = Some(height);
             out.push(stream);
         }
@@ -586,8 +586,6 @@ fn parse_resolution(line: &str) -> Option<(u16, u16)> {
 fn tagged(mut stream: Stream, title: &str, server: &str, codec: &str) -> Stream {
     stream.label = Some(format!("{title} — [Raflix {server}]"));
     stream.ttl = TTL;
-    stream.meta.languages = vec![CountryCode::Multi, CountryCode::En];
-    stream.meta.audio = vec!["English".to_string()];
     stream.meta.quality = Some("WebDL".to_string());
     stream.meta.codec = Some(codec.to_string());
     stream.meta.resolution = stream.meta.resolution.or(Some(1080));
@@ -947,11 +945,8 @@ mod tests {
                 .as_deref()
                 .is_some_and(|label| label.contains("Dune: Part Two (2024) — [Raflix VidLink]"))
         );
-        assert_eq!(
-            stream.meta.languages,
-            vec![CountryCode::Multi, CountryCode::En]
-        );
-        assert_eq!(stream.meta.audio, vec!["English".to_string()]);
+        assert!(stream.meta.languages.is_empty());
+        assert!(stream.meta.audio.is_empty());
         assert_eq!(stream.meta.quality.as_deref(), Some("WebDL"));
         assert_eq!(stream.meta.codec.as_deref(), Some("x264"));
         assert_eq!(stream.meta.resolution, Some(1080));
@@ -1021,7 +1016,8 @@ mod tests {
                     .is_some_and(|label| label.contains("Helium"))
             })
             .unwrap_or_else(|| panic!("the helium card exists"));
-        assert_eq!(helium.meta.audio, vec!["Hindi".to_string()]);
+        assert_eq!(helium.meta.languages, vec![CountryCode::Hi]);
+        assert!(helium.meta.audio.is_empty());
         let lithium = streams
             .iter()
             .find(|stream| {
@@ -1031,7 +1027,8 @@ mod tests {
                     .is_some_and(|label| label.contains("Lithium"))
             })
             .unwrap_or_else(|| panic!("the lithium card exists"));
-        assert_eq!(lithium.meta.audio, vec!["English".to_string()]);
+        assert_eq!(lithium.meta.languages, vec![CountryCode::En]);
+        assert!(lithium.meta.audio.is_empty());
         Ok(())
     }
 

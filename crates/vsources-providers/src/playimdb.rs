@@ -14,9 +14,7 @@
 //!    `User-Agent` — the scraper's exact header set.
 //! 3. The answer must be `{status_code: 200, data: {stream_urls: [url…]}}`;
 //!    every other `status_code` (or a missing `data`) is an honest zero.
-//!    Each URL becomes one card: quality is hardcoded `1080p` (the
-//!    scraper never inspects the stream), the label is the scraper's
-//!    emoji card, and the hotlink headers
+//!    Each URL becomes one card with unknown quality and audio. The hotlink headers
 //!    (`Origin`/`Referer`/`User-Agent`) ride the stream.
 //! 4. The cards run through
 //!    `build_stream_results` —
@@ -27,10 +25,7 @@
 //!
 //! - `callNuvioProvider`'s 25 s timeout race becomes
 //!   `with_deadline` around the sweep.
-//! - The scraper's own TMDB details fetch (for the runtime in the card
-//!   label) is cut: the shared [`TmdbClient`] exposes no runtime, so
-//!   the label carries the scraper's 90-minute fallback, and the
-//!   name/year come from the context/client instead.
+//! - Name/year come from the shared context/client. Runtime is not guessed.
 //! - `meta.title` has no `StreamMeta` field — the emoji card title
 //!   rides [`Stream::label`], composed by `build_stream_results`.
 
@@ -60,8 +55,6 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 const TTL: Duration = Duration::from_mins(10);
 /// `callNuvioProvider`'s default timeout.
 const DEADLINE: Duration = Duration::from_secs(25);
-/// The scraper's runtime fallback when TMDB details lack one.
-const DEFAULT_RUNTIME_MIN: u32 = 90;
 
 /// The `PlayIMDb` provider.
 pub struct PlayImdb {
@@ -220,24 +213,14 @@ fn api_url(media: &MediaRef) -> Result<Url, url::ParseError> {
     Url::parse(&base)
 }
 
-/// One card — the scraper's fixed `1080p` label, emoji title, and
-/// hotlink headers.
+/// The API returns URLs and playback headers without quality or audio metadata.
 fn card(url: &str, name: &str, year: Option<u16>, media: &MediaRef, server: usize) -> NuvioStream {
-    let format = if url.contains(".m3u8") {
-        "M3U8"
-    } else if url.contains(".mp4") {
-        "MP4"
-    } else {
-        "MKV"
-    };
-    let title = format!(
-        "🎬 {media_line}\n💎 1080P | 🌍 Original-Audio\n🎞️ {format} | ⏱️ {DEFAULT_RUNTIME_MIN} min | 📌 Server {server}",
-        media_line = media_line(name, year, media),
-    );
     NuvioStream::new(url)
-        .with_name("🟡 PlayIMDb | 1080p FHD | Original-Audio")
-        .with_title(title)
-        .with_quality("1080p")
+        .with_name("PlayIMDb")
+        .with_title(format!(
+            "{} | Server {server}",
+            media_line(name, year, media)
+        ))
         .with_kind("direct")
         .with_header("Origin", ORIGIN)
         .with_header("Referer", REFERER)
@@ -511,7 +494,9 @@ mod tests {
             "https://scalableimpactgroup.site/hls/master.m3u8"
         );
         assert_eq!(first.format, Format::Hls);
-        assert_eq!(first.meta.resolution, Some(1080));
+        assert_eq!(first.meta.resolution, None);
+        assert!(first.meta.languages.is_empty());
+        assert!(first.meta.audio.is_empty());
         assert_eq!(first.meta.source_id.as_deref(), Some("playimdb"));
         assert_eq!(first.meta.source_label.as_deref(), Some("PlayIMDb"));
         assert_eq!(first.ttl, TTL);
@@ -537,7 +522,9 @@ mod tests {
         );
         // The label: base title — emoji card.
         let label = first.label.as_deref().unwrap_or_default();
-        assert!(label.starts_with("Dune (2021) — 🎬 Dune - 2021"), "{label}");
+        assert!(label.starts_with("Dune (2021) — Dune - 2021"), "{label}");
+        assert!(!label.contains("1080"));
+        assert!(!label.contains("Original-Audio"));
         assert!(label.contains("M3U8 | ⏱️ 90 min | 📌 Server 1"), "{label}");
         let second = &streams[1];
         assert_eq!(second.format, Format::Mp4);

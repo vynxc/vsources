@@ -580,3 +580,74 @@ async fn unspecified_multi_audio_is_inspected_in_disguised_transport_stream_segm
             .contains(&vsources_core::types::CountryCode::Hi)
     );
 }
+
+#[tokio::test]
+async fn ordinary_discovery_reuses_probe_audio_evidence_without_extra_requests() {
+    let fetcher = ScriptedFetcher::default();
+    fetcher.reply("/master.m3u8", response("/master.m3u8", 200, "application/vnd.apple.mpegurl", b"#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",LANGUAGE=\"eng\",URI=\"en.m3u8\"\n#EXT-X-MEDIA:TYPE=SUBTITLES,LANGUAGE=\"fr\",URI=\"fr.m3u8\"\n#EXT-X-STREAM-INF:BANDWIDTH=100,AUDIO=\"audio\"\nvideo.m3u8\n"));
+    fetcher.reply(
+        "/video.m3u8",
+        response(
+            "/video.m3u8",
+            200,
+            "application/vnd.apple.mpegurl",
+            b"#EXTM3U\n#EXTINF:2,\nfirst.ts\n",
+        ),
+    );
+    let mut ts = vec![0; 189];
+    ts[0] = 0x47;
+    ts[188] = 0x47;
+    fetcher.reply("/first.ts", response("/first.ts", 206, "video/mp2t", &ts));
+    let gate = probe();
+    for _ in 0..2 {
+        let result = gate
+            .filter(&fetcher, vec![stream("/master.m3u8", Format::Hls)])
+            .await;
+        assert_eq!(
+            result[0].meta.languages,
+            vec![vsources_core::types::CountryCode::En]
+        );
+        assert!(result[0].meta.audio_selection.is_none());
+    }
+    assert_eq!(fetcher.requests().len(), 3);
+}
+
+#[tokio::test]
+async fn preferred_audio_inspection_preserves_single_use_and_disabled_probe_guards() {
+    let fetcher = ScriptedFetcher::default();
+    let mut single_use = stream("/download", Format::Mp4);
+    single_use.url = url("https://video-downloads.googleusercontent.com/download");
+    let mut external = stream("/external", Format::Hls);
+    external.is_external = true;
+    probe()
+        .filter_progressive(
+            &fetcher,
+            vec![single_use, external],
+            Some(vsources_core::types::CountryCode::En),
+            |_| {},
+        )
+        .await;
+    let disabled = StreamProbe::new(ProbeConfig {
+        enabled: false,
+        ..ProbeConfig::default()
+    });
+    disabled
+        .filter_progressive(
+            &fetcher,
+            vec![stream("/disabled.m3u8", Format::Hls)],
+            Some(vsources_core::types::CountryCode::En),
+            |_| {},
+        )
+        .await;
+    assert!(fetcher.requests().is_empty());
+}
+
+#[test]
+fn audio_evidence_ignores_unreferenced_renditions_and_quoted_subtitle_names() {
+    let mut evidence = AudioEvidence::default();
+    evidence.observe(&response("/master.m3u8", 200, "application/vnd.apple.mpegurl", b"#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"other\",LANGUAGE=\"en\"\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"spoken\",NAME=\"French, main\",LANGUAGE=\"fr\"\n#EXT-X-MEDIA:TYPE=SUBTITLES,NAME=\"English,TYPE=AUDIO\",LANGUAGE=\"en\"\n#EXT-X-STREAM-INF:BANDWIDTH=100,AUDIO=\"spoken\"\nvideo.m3u8\n"));
+    assert_eq!(
+        evidence.languages,
+        vec![vsources_core::types::CountryCode::Fr]
+    );
+}

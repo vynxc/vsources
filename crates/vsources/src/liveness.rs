@@ -70,6 +70,13 @@ struct Key {
 struct CachedVerdict {
     verdict: Verdict,
     ttl: Duration,
+    audio: AudioEvidence,
+}
+
+#[derive(Clone, Default)]
+struct AudioEvidence {
+    languages: Vec<vsources_core::types::CountryCode>,
+    english_audio_index: Option<u32>,
 }
 
 struct VerdictExpiry;
@@ -108,6 +115,10 @@ impl StreamProbe {
     /// External pages, non-HTTP URLs and known single-use download URLs are
     /// skipped. Unknown verdicts must never be interpreted as dead streams.
     pub async fn check(&self, fetcher: &dyn Fetcher, stream: &Stream) -> Verdict {
+        self.inspect(fetcher, stream).await.verdict
+    }
+
+    async fn inspect(&self, fetcher: &dyn Fetcher, stream: &Stream) -> CachedVerdict {
         if !self.config.enabled
             || stream.is_external
             || !matches!(stream.url.scheme(), "http" | "https")
@@ -116,7 +127,11 @@ impl StreamProbe {
                     || host.ends_with(".video-downloads.googleusercontent.com")
             })
         {
-            return Verdict::Unknown;
+            return CachedVerdict {
+                verdict: Verdict::Unknown,
+                ttl: self.config.unknown_ttl,
+                audio: AudioEvidence::default(),
+            };
         }
         let key = Key {
             url: stream.url.clone(),
@@ -131,11 +146,12 @@ impl StreamProbe {
         };
         self.cache
             .get_with(key.clone(), async {
+                let mut audio = AudioEvidence::default();
                 let verdict = tokio::time::timeout(self.config.timeout, async {
                     let Ok(_permit) = self.permits.acquire().await else {
                         return Verdict::Unknown;
                     };
-                    probe_tree(fetcher, &key, self.config.timeout).await
+                    probe_tree(fetcher, &key, self.config.timeout, &mut audio).await
                 })
                 .await
                 .unwrap_or(Verdict::Unknown);
@@ -150,10 +166,13 @@ impl StreamProbe {
                     ?verdict,
                     "media probe completed"
                 );
-                CachedVerdict { verdict, ttl }
+                CachedVerdict {
+                    verdict,
+                    ttl,
+                    audio,
+                }
             })
             .await
-            .verdict
     }
 
     pub(crate) async fn filter_progressive(
@@ -167,40 +186,30 @@ impl StreamProbe {
         streams.sort_by_key(|s| std::cmp::Reverse(s.meta.resolution.unwrap_or(0)));
         let mut completed = HashSet::new();
         let mut kept = Vec::new();
-        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> =
-            streams
-                .iter()
-                .enumerate()
-                .map(|(i, source)| {
-                    Box::pin(async move {
-                        let mut source = source.clone();
-                        if audio_language.is_some()
-                            && source.meta.languages.iter().all(|language| {
-                                *language == vsources_core::types::CountryCode::Multi
-                            })
-                        {
-                            let _permit = self.permits.acquire().await.ok();
-                            inspect_audio(fetcher, &mut source, self.config.timeout).await;
-                        }
-                        let compatible = audio_language.is_none_or(|target| {
-                            source.meta.audio_selection.as_ref().map_or_else(
-                                || {
-                                    source.meta.languages.iter().all(|language| {
-                                        *language == vsources_core::types::CountryCode::Multi
-                                    }) || source.meta.languages.contains(&target)
-                                },
-                                |selected| selected.language == target,
-                            )
+        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> = streams
+            .iter()
+            .enumerate()
+            .map(|(i, source)| {
+                Box::pin(async move {
+                    let mut source = source.clone();
+                    let result = self.inspect(fetcher, &source).await;
+                    if !result.audio.languages.is_empty() {
+                        source.meta.languages = result.audio.languages;
+                    }
+                    if audio_language == Some(vsources_core::types::CountryCode::En)
+                        && source.meta.audio_selection.is_none()
+                        && let Some(audio_index) = result.audio.english_audio_index
+                    {
+                        source.meta.audio_selection = Some(vsources_core::types::AudioSelection {
+                            language: vsources_core::types::CountryCode::En,
+                            audio_index,
                         });
-                        let verdict = if compatible {
-                            self.check(fetcher, &source).await
-                        } else {
-                            Verdict::Unknown
-                        };
-                        (i, verdict, source)
-                    }) as BoxFuture<'_, (usize, Verdict, Stream)>
-                })
-                .collect();
+                    }
+                    let verdict = result.verdict;
+                    (i, verdict, source)
+                }) as BoxFuture<'_, (usize, Verdict, Stream)>
+            })
+            .collect();
         let mut pending = stream::iter(jobs).buffer_unordered(self.config.concurrency.max(1));
         let _ = tokio::time::timeout(self.config.timeout, async {
             while let Some((i, verdict, source)) = pending.next().await {
@@ -225,21 +234,19 @@ impl StreamProbe {
     /// Bound the whole batch, so a provider with hundreds of URLs cannot
     /// add hundreds of timeout windows. Unfinished probes remain unknown.
     pub(crate) async fn filter(&self, fetcher: &dyn Fetcher, streams: Vec<Stream>) -> Vec<Stream> {
-        let mut dead = HashSet::new();
-        let jobs: Vec<BoxFuture<'_, (usize, Verdict)>> = streams
+        let mut completed = BTreeMap::new();
+        let jobs: Vec<BoxFuture<'_, (usize, CachedVerdict)>> = streams
             .iter()
             .enumerate()
             .map(|(index, stream)| {
-                Box::pin(async move { (index, self.check(fetcher, stream).await) })
+                Box::pin(async move { (index, self.inspect(fetcher, stream).await) })
                     as BoxFuture<'_, _>
             })
             .collect();
         let mut pending = stream::iter(jobs).buffer_unordered(self.config.concurrency.max(1));
         let _ = tokio::time::timeout(self.config.timeout, async {
             while let Some((index, verdict)) = pending.next().await {
-                if verdict == Verdict::Dead {
-                    dead.insert(index);
-                }
+                completed.insert(index, verdict);
             }
         })
         .await;
@@ -247,7 +254,17 @@ impl StreamProbe {
         streams
             .into_iter()
             .enumerate()
-            .filter_map(|(index, stream)| (!dead.contains(&index)).then_some(stream))
+            .filter_map(|(index, mut stream)| {
+                if let Some(result) = completed.remove(&index) {
+                    if result.verdict == Verdict::Dead {
+                        return None;
+                    }
+                    if !result.audio.languages.is_empty() {
+                        stream.meta.languages = result.audio.languages;
+                    }
+                }
+                Some(stream)
+            })
             .collect()
     }
 }
@@ -267,90 +284,85 @@ fn audio_code(tag: &str) -> Option<vsources_core::types::CountryCode> {
         other => other,
     })
 }
-async fn inspect_audio(fetcher: &dyn Fetcher, source: &mut Stream, timeout: Duration) {
-    let mut current = source.url.clone();
-    let mut offset = 0_u64;
-    let mut seen = HashSet::new();
-    for _ in 0..=MAX_PLAYLISTS {
-        if !seen.insert(current.clone()) {
-            return;
+fn hls_attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
+    let mut quoted = false;
+    let mut start = 0;
+    for (index, ch) in line
+        .char_indices()
+        .chain(std::iter::once((line.len(), ',')))
+    {
+        if ch == '"' {
+            quoted = !quoted;
         }
-        let mut request = FetchRequest::get(current.clone()).with_timeout(timeout);
-        request.headers = source
-            .meta
-            .request_headers
-            .iter()
-            .map(|(key, value)| (key.to_ascii_lowercase(), value.clone()))
-            .collect();
-        request.headers.remove("range");
-        request = request.with_header("accept-encoding", "identity");
-        if offset > 0 {
-            let Some(end) = offset.checked_add(65535) else {
-                return;
-            };
-            request = request.with_header("range", format!("bytes={offset}-{end}"));
+        if ch == ',' && !quoted {
+            if let Some((key, value)) = line[start..index].trim().split_once('=') {
+                if key.trim() == name {
+                    return Some(value.trim().trim_matches('"'));
+                }
+            }
+            start = index + 1;
         }
-        let Ok(Some(response)) = fetcher.probe(request, 64 * 1024).await else {
-            return;
-        };
+    }
+    None
+}
+
+impl AudioEvidence {
+    fn observe(&mut self, response: &ProbeResponse) {
         if !(200..300).contains(&response.status) {
             return;
         }
         let body = String::from_utf8_lossy(&response.body);
-        if body.trim_start().starts_with("#EXTM3U") {
+        if body
+            .trim_start_matches('\u{feff}')
+            .trim_start()
+            .starts_with("#EXTM3U")
+        {
             if response.truncated {
                 return;
             }
+            let variants: Vec<_> = body
+                .lines()
+                .filter_map(|line| line.trim().strip_prefix("#EXT-X-STREAM-INF:"))
+                .collect();
+            let groups: HashSet<_> = variants
+                .iter()
+                .filter_map(|line| hls_attribute(line, "AUDIO"))
+                .collect();
             for line in body
                 .lines()
                 .filter_map(|line| line.trim().strip_prefix("#EXT-X-MEDIA:"))
             {
-                if !line.split(',').any(|field| field == "TYPE=AUDIO") {
+                if hls_attribute(line, "TYPE") != Some("AUDIO")
+                    || (!variants.is_empty()
+                        && !hls_attribute(line, "GROUP-ID")
+                            .is_some_and(|group| groups.contains(group)))
+                {
                     continue;
                 }
-                if let Some(language) = line
-                    .split(',')
-                    .find_map(|field| field.strip_prefix("LANGUAGE="))
-                    .and_then(audio_code)
-                {
-                    if !source.meta.languages.contains(&language) {
-                        source.meta.languages.push(language);
+                if let Some(language) = hls_attribute(line, "LANGUAGE").and_then(audio_code) {
+                    if !self.languages.contains(&language) {
+                        self.languages.push(language);
                     }
                 }
             }
-            if source
-                .meta
-                .languages
-                .iter()
-                .any(|language| *language != vsources_core::types::CountryCode::Multi)
-            {
-                return;
-            }
-            let Ok(Some(next)) = playlist_child(&response) else {
-                return;
-            };
-            current = next.url;
-            offset = next.offset;
-        } else {
+        } else if self.languages.is_empty() {
             if let Some(languages) = vsources_core::audio::mpegts_audio_languages(&response.body) {
-                for language in languages.iter().filter_map(|tag| audio_code(tag)) {
-                    if !source.meta.languages.contains(&language) {
-                        source.meta.languages.push(language);
-                    }
-                }
+                self.english_audio_index = languages
+                    .iter()
+                    .position(|tag| audio_code(tag) == Some(vsources_core::types::CountryCode::En))
+                    .and_then(|index| u32::try_from(index).ok());
+                self.languages = languages.iter().filter_map(|tag| audio_code(tag)).collect();
             }
             if let Some(index) = vsources_core::audio::matroska_english_audio_index(&response.body)
             {
-                source.meta.audio_selection = Some(vsources_core::types::AudioSelection {
-                    language: vsources_core::types::CountryCode::En,
-                    audio_index: index,
-                });
-                source
-                    .meta
+                self.english_audio_index = Some(index);
+                if !self
                     .languages
-                    .push(vsources_core::types::CountryCode::En);
+                    .contains(&vsources_core::types::CountryCode::En)
+                {
+                    self.languages.push(vsources_core::types::CountryCode::En);
+                }
             }
-            return;
         }
     }
 }
@@ -366,7 +378,12 @@ fn is_playlist_url(url: &Url) -> bool {
         .is_some_and(|(_, ext)| ext.eq_ignore_ascii_case("m3u8"))
 }
 
-async fn probe_tree(fetcher: &dyn Fetcher, key: &Key, timeout: Duration) -> Verdict {
+async fn probe_tree(
+    fetcher: &dyn Fetcher,
+    key: &Key,
+    timeout: Duration,
+    audio: &mut AudioEvidence,
+) -> Verdict {
     let mut current = key.url.clone();
     let mut playlist = key.format == Format::Hls || is_playlist_url(&current);
     let mut seen = HashSet::new();
@@ -406,6 +423,7 @@ async fn probe_tree(fetcher: &dyn Fetcher, key: &Key, timeout: Duration) -> Verd
             ) => return Verdict::Dead,
             _ => return Verdict::Unknown,
         };
+        audio.observe(&response);
         match classify(&response) {
             Payload::Verdict(verdict) => return verdict,
             Payload::Playlist => {
