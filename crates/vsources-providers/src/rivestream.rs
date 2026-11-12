@@ -15,13 +15,13 @@
 //!    directly; HLS URLs are **fetched as playlists** (the scraper
 //!    fetches with `Referer: rivestream.ru/`) — a master playlist
 //!    expands into one card per `#EXT-X-STREAM-INF` variant
-//!    (RESOLUTION/BANDWIDTH/CODECS/FRAME-RATE/VIDEO-RANGE parsed,
+//!    (RESOLUTION and CODECS parsed,
 //!    relative variant URLs resolved against the master, the master's
 //!    token propagated), a media playlist ships as-is with quality and
 //!    language parsed from the API label (`720p | Hindi`).
 //! 3. The wrapper maps the scraper cards onto stream metadata: height
 //!    from the quality label, language → `Multi Audio`/`Hindi`/…, the
-//!    `2160p → HEVC` codec markers, and the hotlink `Referer:
+//!    explicit manifest codec hints, and the hotlink `Referer:
 //!    https://rivestream.ru/` for every host except valhallastream
 //!    (the scraper's proxy, which handles Referer internally). Cards
 //!    dedupe by URL and sort 4K-first.
@@ -61,6 +61,11 @@ use vsources_core::traits::{FetchRequest, ResolveCtx, Source};
 use vsources_core::types::{CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream};
 
 use crate::nuvio::with_deadline;
+mod evidence;
+use evidence::{
+    TechnicalHints, language_from_label, manifest_hints, parse_country_codes, parse_height,
+    parse_language,
+};
 
 type ProviderJob<'a> = futures::future::BoxFuture<'a, (usize, Vec<ScrapedCard>)>;
 
@@ -139,17 +144,6 @@ static QUALITY_LABEL: LazyLock<Regex> = LazyLock::new(|| {
         .unwrap_or_else(|e| panic!("valid quality-label pattern: {e}"))
 });
 
-/// `\|\s*([A-Za-z]+)\s*$` — the language suffix of a quality label.
-static LANGUAGE_LABEL: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\|\s*([A-Za-z]+)\s*$").unwrap_or_else(|e| panic!("valid language pattern: {e}"))
-});
-
-/// `(\d{3,4})` — a bare number inside a quality label (the wrapper's
-/// `parseHeight` fallback).
-static HEIGHT_NUM: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(\d{3,4})").unwrap_or_else(|e| panic!("valid height pattern: {e}"))
-});
-
 /// One scraped card after the scraper's resolution step — the `.cjs`'s
 /// `buildStream` shape plus the language/source fields the wrapper
 /// reads.
@@ -165,6 +159,7 @@ struct ScrapedCard {
     provider: String,
     /// The provider's own source name.
     source_name: String,
+    hints: TechnicalHints,
 }
 
 /// The `RiveStream` provider.
@@ -397,9 +392,10 @@ async fn resolve_source(
         return vec![ScrapedCard {
             url: source.url,
             quality,
-            language: "multi".to_string(),
+            language: language_from_label(&quality_label),
             provider: provider.to_string(),
             source_name,
+            hints: TechnicalHints::default(),
         }];
     }
 
@@ -434,6 +430,7 @@ async fn resolve_source(
             language: language_from_label(&quality_label),
             provider: provider.to_string(),
             source_name,
+            hints: TechnicalHints::default(),
         }];
     }
     variants
@@ -444,6 +441,7 @@ async fn resolve_source(
             language: language_from_label(&quality_label),
             provider: provider.to_string(),
             source_name: source_name.clone(),
+            hints: variant.hints,
         })
         .collect()
 }
@@ -454,15 +452,16 @@ struct Variant {
     url: String,
     /// The height-bucketed quality label.
     quality: String,
+    hints: TechnicalHints,
 }
 
 /// Parse a master playlist into variants — the port of
-/// `parseMasterM3u8` (RESOLUTION/BANDWIDTH/CODECS/FRAME-RATE/VIDEO-
-/// RANGE, relative URL resolution, token carry). A media playlist
+/// `parseMasterM3u8` (RESOLUTION/CODECS, relative URL resolution and
+/// token carry). A media playlist
 /// answers empty.
 fn parse_master_playlist(text: &str, master: &Url) -> Vec<Variant> {
     let mut variants: Vec<Variant> = Vec::new();
-    let mut current: Option<(u32, u32)> = None;
+    let mut current: Option<(u32, u32, TechnicalHints)> = None;
     for line in text.lines() {
         let line = line.trim();
         if line.starts_with("#EXT-X-STREAM-INF") {
@@ -474,10 +473,11 @@ fn parse_master_playlist(text: &str, master: &Url) -> Vec<Variant> {
                     Some((
                         captures.get(1)?.as_str().parse().ok()?,
                         captures.get(2)?.as_str().parse().ok()?,
+                        manifest_hints(line),
                     ))
                 });
         } else if !line.is_empty() && !line.starts_with('#') {
-            let Some((width, height)) = current.take() else {
+            let Some((width, height, hints)) = current.take() else {
                 continue;
             };
             // Resolve the variant URL against the master.
@@ -522,6 +522,7 @@ fn parse_master_playlist(text: &str, master: &Url) -> Vec<Variant> {
                 } else {
                     format!("{primary}p")
                 },
+                hints,
             });
         }
     }
@@ -532,11 +533,11 @@ fn parse_master_playlist(text: &str, master: &Url) -> Vec<Variant> {
 /// construction (height, language, codec, headers, format).
 fn wrapper_stream(card: &ScrapedCard, url: &Url, language: &str, title: &str) -> Stream {
     let height = parse_height(card.quality.as_str());
-    let codec = if height >= 2160 { "HEVC" } else { "x264" };
     // The wrapper's URL/format inference: the scraper sets `type`, the
     // wrapper reads URL paths — HLS by .m3u8, else MP4.
     let is_hls = url.path().contains(".m3u8");
     let audio_label = language;
+    let quality_label = height.map_or_else(|| card.quality.clone(), |height| format!("{height}p"));
 
     let server_name = if card.source_name.is_empty() {
         card.provider.clone()
@@ -544,9 +545,10 @@ fn wrapper_stream(card: &ScrapedCard, url: &Url, language: &str, title: &str) ->
         format!("{} {}", card.provider, card.source_name)
     };
     let mut stream = Stream::new(url.clone(), if is_hls { Format::Hls } else { Format::Mp4 })
-        .with_label(format!(
-            "{title} — [RiveStream {server_name}] {height}p {audio_label}"
-        ))
+        .with_label(
+            format!("{title} — [RiveStream {server_name}] {quality_label} {audio_label}")
+                .trim_end(),
+        )
         .with_ttl(TTL);
     // For HLS streams that need Referer (Citadel img1.*, PrimeVids
     // ngcorp.dad): the player sends it directly. Already-proxied URLs
@@ -558,89 +560,12 @@ fn wrapper_stream(card: &ScrapedCard, url: &Url, language: &str, title: &str) ->
         stream.meta = stream.meta.with_header("Referer", REFERER);
     }
     stream.meta.languages = parse_country_codes(language);
-    stream.meta.audio = vec![language.to_string()];
-    stream.meta.quality = Some("WebDL".to_string());
-    stream.meta.codec = Some(codec.to_string());
-    stream.meta.resolution = Some(height);
+    stream.meta.audio.clone_from(&card.hints.audio);
+    stream.meta.codec.clone_from(&card.hints.codec);
+    stream.meta.resolution = height;
     stream.meta.source_id = Some(ID.to_string());
     stream.meta.source_label = Some(LABEL.to_string());
     stream
-}
-
-/// The wrapper's height parse: substring buckets then a bare number,
-/// defaulting to 1080.
-fn parse_height(quality: &str) -> u16 {
-    let lower = quality.to_ascii_lowercase();
-    if lower.contains("2160") || lower.contains("4k") {
-        return 2160;
-    }
-    if lower.contains("1080") {
-        return 1080;
-    }
-    if lower.contains("720") {
-        return 720;
-    }
-    if lower.contains("480") {
-        return 480;
-    }
-    if lower.contains("360") {
-        return 360;
-    }
-    HEIGHT_NUM
-        .captures(&lower)
-        .ok()
-        .flatten()
-        .and_then(|captures| captures.get(1))
-        .and_then(|group| group.as_str().parse().ok())
-        .unwrap_or(1080)
-}
-
-/// The wrapper's language normalization — `multi` → `Multi Audio`, a
-/// known name passes through, else `English`.
-fn parse_language(lang: &str) -> String {
-    let lower = lang.to_ascii_lowercase();
-    if lower.contains("multi") {
-        "Multi Audio".to_string()
-    } else if lower.contains("japanese") {
-        "Japanese".to_string()
-    } else if lower.contains("hindi") {
-        "Hindi".to_string()
-    } else if lower.contains("tamil") {
-        "Tamil".to_string()
-    } else if lower.contains("telugu") {
-        "Telugu".to_string()
-    } else if lower.contains("kannada") {
-        "Kannada".to_string()
-    } else {
-        // English, empty, and unknown labels alike (the JS's default).
-        "English".to_string()
-    }
-}
-
-/// The wrapper's language → country-code set (anime folded away — the
-/// probe is cut).
-fn parse_country_codes(language: &str) -> Vec<CountryCode> {
-    let lower = language.to_ascii_lowercase();
-    let mut codes = vec![CountryCode::Multi];
-    if lower.contains("hindi") {
-        codes.push(CountryCode::Hi);
-    }
-    if lower.contains("english") {
-        codes.push(CountryCode::En);
-    }
-    if lower.contains("japanese") {
-        codes.push(CountryCode::Ja);
-    }
-    if lower.contains("tamil") {
-        codes.push(CountryCode::Ta);
-    }
-    if lower.contains("telugu") {
-        codes.push(CountryCode::Te);
-    }
-    if codes.len() == 1 {
-        codes.push(CountryCode::En);
-    }
-    codes
 }
 
 /// The scraper's quality-from-label — `720p | Hindi` → `720p`.
@@ -673,18 +598,6 @@ fn quality_from_label(label: &str) -> String {
     }
 }
 
-/// The scraper's language-from-label — `720p | Hindi` → `Hindi`, else
-/// `multi`.
-fn language_from_label(label: &str) -> String {
-    LANGUAGE_LABEL
-        .captures(label)
-        .ok()
-        .flatten()
-        .and_then(|captures| captures.get(1))
-        .map_or_else(|| "multi".to_string(), |group| group.as_str().to_string())
-}
-
-/// The 4K-first sort order of the scraper's quality labels.
 fn quality_order(quality: &str) -> u8 {
     match quality {
         "4K" | "2160p" => 0,
@@ -800,6 +713,8 @@ mod tests {
 
     use super::*;
 
+    #[path = "evidence.rs"]
+    mod evidence;
     #[path = "incremental.rs"]
     mod incremental;
 
@@ -1030,7 +945,8 @@ mod tests {
             variant
                 .label
                 .as_deref()
-                .is_some_and(|label| label.contains("[RiveStream apex Apex] 1080p Multi Audio"))
+                .is_some_and(|label| label.contains("[RiveStream apex Apex] 1080p")
+                    && !label.contains("Multi Audio"))
         );
         assert!(
             citadel
@@ -1066,8 +982,8 @@ mod tests {
         let stream = &streams[0];
         assert_eq!(stream.format, Format::Mp4);
         assert_eq!(stream.meta.resolution, Some(720));
-        assert_eq!(stream.meta.codec.as_deref(), Some("x264"));
-        assert_eq!(stream.meta.quality.as_deref(), Some("WebDL"));
+        assert_eq!(stream.meta.codec, None);
+        assert_eq!(stream.meta.quality, None);
         // MP4 hosts still need the Referer.
         assert_eq!(
             stream
@@ -1137,20 +1053,14 @@ mod tests {
         assert_eq!(quality_from_label(""), "HLS");
         assert_eq!(quality_from_label("dcloud"), "dcloud");
         assert_eq!(language_from_label("720p | Hindi"), "Hindi");
-        assert_eq!(language_from_label("1080p"), "multi");
-        assert_eq!(parse_height("4K"), 2160);
-        assert_eq!(parse_height("1440p"), 1440);
-        assert_eq!(parse_height("Auto"), 1080);
-        assert_eq!(parse_language("multi"), "Multi Audio");
+        assert_eq!(language_from_label("1080p"), "");
+        assert_eq!(parse_height("4K"), Some(2160));
+        assert_eq!(parse_height("1440p"), Some(1440));
+        assert_eq!(parse_height("Auto"), None);
+        assert_eq!(parse_language("multi"), "multi");
         assert_eq!(parse_language("Hindi"), "Hindi");
-        assert_eq!(parse_language(""), "English");
-        assert_eq!(
-            parse_country_codes("Hindi"),
-            vec![CountryCode::Multi, CountryCode::Hi]
-        );
-        assert_eq!(
-            parse_country_codes("Multi Audio"),
-            vec![CountryCode::Multi, CountryCode::En]
-        );
+        assert_eq!(parse_language(""), "");
+        assert_eq!(parse_country_codes("Hindi"), vec![CountryCode::Hi]);
+        assert_eq!(parse_country_codes("Multi Audio"), vec![CountryCode::Multi]);
     }
 }
