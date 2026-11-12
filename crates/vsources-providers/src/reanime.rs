@@ -5,9 +5,10 @@
 //! Base-season title fallback retains exact-title and year checks. Site metadata
 //! uses the published JSON API paths/origins with a matching Referer per request.
 //!
-//! Progressive files retain their playback headers. English-only resolution
-//! inspects bounded Matroska tracks and emits a required English audio index;
-//! server categories and subtitle languages do not verify spoken audio.
+//! Progressive files retain playback headers and explicit API resolution.
+//! Other per-stream facts remain unknown until supported by evidence.
+//! English-only resolution inspects bounded Matroska tracks and emits a required
+//! English audio index; server categories and subtitles do not verify spoken audio.
 //! Legacy encrypted HLS carries its adapter key in `Stream::behavior_hints` and
 //! requires the corresponding playback adapter.
 
@@ -24,11 +25,13 @@ use vsources_core::tmdb::TmdbClient;
 use vsources_core::traits::{FetchRequest, FetchResponse, ResolveCtx, Source};
 use vsources_core::types::{
     AudioSelection, CountryCode, Format, MediaId, MediaRef, MediaType, SourceInfo, Stream,
-    StreamMeta,
 };
 
 use crate::nuvio::flixcloud::{m3u8_token_fields, parse_flix_page, resolve_flix_stream};
 use crate::nuvio::with_deadline;
+
+mod metadata;
+use metadata::{build_cards, stream_name};
 
 /// The provider id, upstream `this.id`.
 const ID: &str = "reanime";
@@ -63,11 +66,6 @@ static ANILIST_ID: LazyLock<Regex> = LazyLock::new(|| {
 
 static COVER_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"/[nb]?x(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
-});
-
-/// `(\d{3,4})` — the height inside the quality label.
-static HEIGHT: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(\d{3,4})").unwrap_or_else(|e| panic!("valid height pattern: {e}"))
 });
 
 /// `/e/([a-zA-Z0-9_-]+)` — the access id of a flix `dataLink`.
@@ -141,7 +139,7 @@ struct ReanimeResult {
 struct FlixServer {
     /// The server display name (`HD-1`).
     server_name: String,
-    /// The audio marker (`sub` / `dub`).
+    /// The server category (`sub` / `dub`).
     data_type: String,
     /// The flixcloud embed URL (`…/e/<accessId>`).
     data_link: String,
@@ -150,15 +148,12 @@ struct FlixServer {
 /// One scraper stream — the shape the wrapper consumes.
 #[derive(Debug, Clone)]
 struct ReanimeStream {
-    /// `ReAnime [<server>] | 1080p | <dataType>`.
+    /// Server label with its declared quality and category.
     name: String,
     /// The decrypted master playlist URL.
     url: String,
     /// The quality label.
     quality: String,
-    /// The audio marker — the wrapper's `isDub` probe target (never
-    /// set by the scraper, so always `None`).
-    language: Option<String>,
     /// Progressive download or legacy HLS.
     format: Format,
     /// The per-session playlist XOR key, base64 (empty when the WASM
@@ -281,14 +276,18 @@ impl Source for ReAnime {
                 audio_index: index,
             });
             stream.meta.dubbed = Some(true);
+            stream.meta.languages = vec![CountryCode::En];
             let title = stream
                 .label
                 .as_deref()
                 .and_then(|label| label.split_once(" — ").map(|(title, _)| title))
                 .unwrap_or("ReAnime");
+            let quality = stream
+                .meta
+                .resolution
+                .map_or_else(String::new, |height| format!(" · {height}p"));
             stream.label = Some(format!(
-                "{title} — ReAnime · English DUB · {}p (audio {})",
-                stream.meta.resolution.unwrap_or(1080),
+                "{title} — ReAnime · English DUB{quality} (audio {})",
                 index + 1
             ));
             selected.push(stream);
@@ -381,13 +380,9 @@ impl ReAnime {
             if let Some((url, quality)) = resolve_flix_download(ctx, &access_id, api).await {
                 if seen.insert(url.as_str().to_string()) {
                     streams.push(ReanimeStream {
-                        name: format!(
-                            "ReAnime [{}] | {quality} | {}",
-                            server.server_name, server.data_type
-                        ),
+                        name: stream_name(&server.server_name, &quality, &server.data_type),
                         url: url.to_string(),
                         quality,
-                        language: Some(server.data_type.clone()),
                         format: Format::Mp4,
                         xor_key_b64: String::new(),
                     });
@@ -404,13 +399,9 @@ impl ReAnime {
                 continue;
             }
             streams.push(ReanimeStream {
-                name: format!(
-                    "ReAnime [{}] | 1080p | {}",
-                    server.server_name, server.data_type
-                ),
+                name: stream_name(&server.server_name, "", &server.data_type),
                 url: flix.master_url,
-                quality: "1080p".to_string(),
-                language: None,
+                quality: String::new(),
                 format: Format::Hls,
                 xor_key_b64: flix.xor_key_b64,
             });
@@ -666,7 +657,7 @@ fn download_from_data(data: &Value) -> Option<(Url, String)> {
         base.query_pairs_mut().append_pair("token", token);
         let quality = field(values, video, "resolution")
             .and_then(Value::as_str)
-            .unwrap_or("1080p")
+            .unwrap_or_default()
             .to_string();
         return Some((base, quality));
     }
@@ -814,87 +805,6 @@ fn retry_backoff(attempt: u32) -> Duration {
 }
 
 // ---------------------------------------------------------------------------
-// Card building (the wrapper's hand-built results)
-// ---------------------------------------------------------------------------
-
-/// The wrapper's card building: dedupe by URL, audio label, language
-/// flags, and the flixcloud hotlink headers — the port of
-/// `ReAnime.js` `handleInternal`'s loop (see the module docs for the
-/// two oddities).
-fn build_cards(streams: &[ReanimeStream], display_title: &str) -> Vec<Stream> {
-    let mut seen = HashSet::new();
-    let mut out = Vec::new();
-    for stream in streams {
-        if !stream.url.starts_with("http") || !seen.insert(stream.url.clone()) {
-            continue;
-        }
-        // isDub probes `language`/`lang`, which the scraper never
-        // sets — always false.
-        let is_dub = stream
-            .language
-            .as_deref()
-            .is_some_and(|language| language.to_lowercase().contains("dub"));
-        let audio_label = if stream.format == Format::Mp4 {
-            "Multi-audio (select a track)"
-        } else if is_dub {
-            "English (Dub)"
-        } else {
-            "Japanese (Sub)"
-        };
-        let country_codes = if is_dub {
-            vec![CountryCode::Multi, CountryCode::En, CountryCode::Ja]
-        } else {
-            vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En]
-        };
-        // The fallback chain (`s.source || s.serverName || s.name`)
-        // lands on the full name string — the scraper sets neither
-        // `source` nor `serverName` at the top level.
-        let server_name = stream.name.clone();
-
-        let height = HEIGHT
-            .captures(&stream.quality)
-            .ok()
-            .flatten()
-            .and_then(|captures| captures.get(1))
-            .and_then(|group| group.as_str().parse::<u16>().ok())
-            .unwrap_or(1080);
-
-        let mut meta = StreamMeta {
-            languages: country_codes,
-            resolution: Some(height),
-            quality: Some("WebDL".to_string()),
-            codec: Some("x264".to_string()),
-            source_id: Some(ID.to_string()),
-            source_label: Some(LABEL.to_string()),
-            ..StreamMeta::default()
-        };
-        // The headers the proxy sent upstream.
-        meta.request_headers
-            .insert("Referer".to_string(), format!("{FLIXCLOUD}/"));
-        meta.request_headers
-            .insert("Origin".to_string(), FLIXCLOUD.to_string());
-
-        let mut card = Stream {
-            url: Url::parse(&stream.url).unwrap_or_else(|e| panic!("valid master URL: {e}")),
-            format: stream.format,
-            label: Some(format!(
-                "{display_title} — [ReAnime {server_name}] {audio_label}"
-            )),
-            meta,
-            ttl: TTL,
-            is_external: false,
-            behavior_hints: std::collections::BTreeMap::new(),
-        };
-        if !stream.xor_key_b64.is_empty() {
-            card.behavior_hints
-                .insert("reanimeXorKey".to_string(), stream.xor_key_b64.clone());
-        }
-        out.push(card);
-    }
-    out
-}
-
-// ---------------------------------------------------------------------------
 // Text helpers
 // ---------------------------------------------------------------------------
 
@@ -978,6 +888,8 @@ fn soften<T>(error: Result<T, SourceError>) -> Result<T, SourceError> {
 
 #[cfg(test)]
 mod tests {
+    #[path = "evidence.rs"]
+    mod evidence;
     use std::collections::{BTreeMap, HashMap};
     use std::sync::{Arc, Mutex, PoisonError};
 
@@ -1433,22 +1345,14 @@ mod tests {
         assert_eq!(card.url.as_str(), LIVE_MASTER_URL);
         assert_eq!(card.format, Format::Hls);
 
-        // The wrapper's oddity chain: the server-name fallback lands
-        // on the full name string, and `language` is never set, so
-        // the audio label is always Japanese (Sub).
         assert_eq!(
             card.label.as_deref(),
-            Some("Haikyuu!! S01E01 — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)")
+            Some("Haikyuu!! S01E01 — [ReAnime ReAnime [HD-1] | sub]")
         );
-
-        // The meta markers: 1080, x264, WebDL, [multi, ja, en].
-        assert_eq!(card.meta.resolution, Some(1080));
-        assert_eq!(card.meta.codec.as_deref(), Some("x264"));
-        assert_eq!(card.meta.quality.as_deref(), Some("WebDL"));
-        assert_eq!(
-            card.meta.languages,
-            vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En]
-        );
+        assert_eq!(card.meta.resolution, None);
+        assert_eq!(card.meta.codec, None);
+        assert_eq!(card.meta.quality, None);
+        assert!(card.meta.languages.is_empty());
         assert_eq!(card.meta.source_id.as_deref(), Some("reanime"));
 
         // The flixcloud hotlink headers the proxy sent.
@@ -1828,8 +1732,8 @@ mod tests {
                 }))
             }
         }
-        for english in [true, false] {
-            let data=serde_json::json!({"nodes":[{"data":[{"video":1,"download":4},{"fileId":2,"resolution":3},"file","1080p",{"base":5,"token":6},"https://cdn.example","fixture"]}]}).to_string();
+        for (english, resolution) in [(true, Some("1080p")), (true, None), (false, Some("1080p"))] {
+            let data=serde_json::json!({"nodes":[{"data":[{"video":1,"download":4},{"fileId":2,"resolution":3},"file",resolution,{"base":5,"token":6},"https://cdn.example","fixture"]}]}).to_string();
             let fetcher = Arc::new(BinaryFetcher {
                 pages: pages(ScriptedFetcher::default()).page(
                     "/d/vimu1sw5xonj/__data.json",
@@ -1851,14 +1755,7 @@ mod tests {
             if english {
                 let streams = result?;
                 assert_eq!(streams.len(), 1);
-                assert_eq!(
-                    streams[0].meta.audio_selection,
-                    Some(AudioSelection {
-                        language: CountryCode::En,
-                        audio_index: 1
-                    })
-                );
-                assert_eq!(streams[0].meta.dubbed, Some(true));
+                evidence::assert_verified_english_metadata(&streams[0], resolution);
             } else {
                 assert!(matches!(result, Err(SourceError::NotFound)));
             }
