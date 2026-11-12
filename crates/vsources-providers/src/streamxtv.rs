@@ -296,8 +296,13 @@ impl Source for StreamXTV {
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
         let title = display_title(&name, year, media);
 
-        let sweep = self.sweep(ctx, media, tmdb_id);
-        let anime = self.anime_streams(ctx, media, &name, &title, publish);
+        let direct_permits = tokio::sync::Semaphore::new(2);
+        let sweep = self.sweep(ctx, media, tmdb_id, &direct_permits);
+        let anime = async {
+            let result = self.anime_streams(ctx, media, &name, &title, publish).await;
+            direct_permits.add_permits(BATCH_SIZE - 2);
+            result
+        };
         let (mut direct, (is_anime, anime_streams)) = tokio::join!(sweep, anime);
 
         let mut streams = Vec::new();
@@ -415,6 +420,7 @@ impl StreamXTV {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
         tmdb_id: u64,
+        direct_permits: &tokio::sync::Semaphore,
     ) -> Vec<NuvioStream> {
         let is_tv = media.season.is_some();
         let mut streams: Vec<NuvioStream> = Vec::new();
@@ -437,8 +443,9 @@ impl StreamXTV {
             }
             let batch =
                 &ALL_PROVIDERS[batch_start..(batch_start + BATCH_SIZE).min(ALL_PROVIDERS.len())];
-            let runs = futures::future::join_all(batch.iter().map(|provider| {
-                fetch_provider(ctx, provider, is_tv, tmdb_id, media.season, media.episode)
+            let runs = futures::future::join_all(batch.iter().map(|provider| async move {
+                let _permit = direct_permits.acquire().await.ok()?;
+                fetch_provider(ctx, provider, is_tv, tmdb_id, media.season, media.episode).await
             }))
             .await;
             for (provider, run) in batch.iter().zip(runs) {

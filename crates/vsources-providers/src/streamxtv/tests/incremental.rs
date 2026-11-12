@@ -82,6 +82,149 @@ fn anime_mock() -> Arc<ScriptedFetcher> {
     ))
 }
 
+struct SharedFour {
+    inner: Arc<ScriptedFetcher>,
+    permits: tokio::sync::Semaphore,
+    direct_active: AtomicUsize,
+    direct_peak: AtomicUsize,
+}
+
+#[async_trait]
+impl Fetcher for SharedFour {
+    async fn request(&self, request: FetchRequest) -> Result<FetchResponse, FetchError> {
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .unwrap_or_else(|_| panic!("fixture remains open"));
+        if request.url.path() == "/api/stream" {
+            let active = self.direct_active.fetch_add(1, Ordering::SeqCst) + 1;
+            self.direct_peak.fetch_max(active, Ordering::SeqCst);
+            let _active = Active(&self.direct_active);
+            return std::future::pending().await;
+        }
+        self.inner.request(request).await
+    }
+}
+
+struct NetworkAnime;
+
+#[async_trait]
+impl Extractor for NetworkAnime {
+    fn id(&self) -> &'static str {
+        "network-anime"
+    }
+    fn label(&self) -> &'static str {
+        "NetworkAnime"
+    }
+    fn supports(&self, _ctx: &ResolveCtx<'_>, url: &Url) -> bool {
+        url.host_str() == Some("megaplay.buzz")
+    }
+    async fn extract(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        url: &Url,
+    ) -> Result<Vec<Stream>, ExtractorError> {
+        ctx.fetcher.request(FetchRequest::get(url.clone())).await?;
+        StubExtractor.extract(ctx, url).await
+    }
+}
+
+#[tokio::test(start_paused = true)]
+async fn shared_four_permits_admit_anime_then_restore_direct_capacity() {
+    let mock = Arc::new(
+        ScriptedFetcher::default()
+            .page(
+                "/api/anime/search",
+                200,
+                r#"{"results":[{"id":21,"title":"Solo Leveling"}]}"#,
+            )
+            .page("/stream/ani/21/2/sub", 200, "sub")
+            .page("/stream/ani/21/2/dub", 200, "dub"),
+    );
+    let fetcher = SharedFour {
+        inner: mock.clone(),
+        permits: tokio::sync::Semaphore::new(4),
+        direct_active: AtomicUsize::new(0),
+        direct_peak: AtomicUsize::new(0),
+    };
+    let provider = StreamXTV::new(
+        Arc::new(TmdbClient::new("test-key", mock.clone())),
+        Arc::new(ExtractorRegistry::new(vec![Arc::new(NetworkAnime)])),
+    );
+    let ctx = ResolveCtx {
+        fetcher: &fetcher,
+        media: Some(resolved()),
+        source_id: None,
+        referer: None,
+    };
+    let batches = Mutex::new(Vec::new());
+    let publish = |batch: Vec<Stream>| {
+        assert!(
+            fetcher.direct_active.load(Ordering::SeqCst) <= 2,
+            "direct work reserves capacity until anime publication completes"
+        );
+        batches
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .push(batch);
+    };
+    let media = MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 2);
+    assert!(
+        tokio::time::timeout(
+            Duration::from_secs(18),
+            provider.resolve_incremental(&ctx, &media, &publish)
+        )
+        .await
+        .is_err()
+    );
+    assert_eq!(
+        batches.lock().unwrap_or_else(PoisonError::into_inner).len(),
+        2,
+        "shared shipping transport must admit lookup and both embed fetches"
+    );
+    assert_eq!(mock.hits("/stream/ani/21/2/sub"), 1);
+    assert_eq!(mock.hits("/stream/ani/21/2/dub"), 1);
+    assert_eq!(
+        fetcher.direct_peak.load(Ordering::SeqCst),
+        4,
+        "direct work regains the full shared capacity after anime completes"
+    );
+    assert_eq!(fetcher.direct_active.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test(start_paused = true)]
+async fn absent_anime_restores_full_shared_direct_capacity() {
+    let mock =
+        Arc::new(ScriptedFetcher::default().page("/api/anime/search", 200, r#"{"results":[]}"#));
+    let fetcher = SharedFour {
+        inner: mock.clone(),
+        permits: tokio::sync::Semaphore::new(4),
+        direct_active: AtomicUsize::new(0),
+        direct_peak: AtomicUsize::new(0),
+    };
+    let provider = provider(&mock);
+    let ctx = ResolveCtx {
+        fetcher: &fetcher,
+        media: Some(resolved()),
+        source_id: None,
+        referer: None,
+    };
+    let media = MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 2);
+    assert!(
+        tokio::time::timeout(
+            Duration::from_secs(18),
+            provider.resolve_incremental(&ctx, &media, &|_| panic!(
+                "no anime match publishes nothing"
+            ))
+        )
+        .await
+        .is_err()
+    );
+    assert_eq!(fetcher.direct_peak.load(Ordering::SeqCst), 4);
+    assert_eq!(fetcher.direct_active.load(Ordering::SeqCst), 0);
+}
+
 #[tokio::test(start_paused = true)]
 async fn anime_publishes_before_caller_deadline_and_cancels_direct_work() {
     let mock = anime_mock();
