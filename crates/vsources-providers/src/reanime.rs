@@ -113,7 +113,7 @@ static ANILIST_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"anilist_id:(\d+)").unwrap_or_else(|e| panic!("valid anilist-id pattern: {e}"))
 });
 
-/// The canonical id encoded in an AniList cover filename.
+/// The canonical id encoded in an `AniList` cover filename.
 static COVER_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"/[nb]?x(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
 });
@@ -314,6 +314,9 @@ impl ReAnime {
             if !streams.is_empty() {
                 return streams;
             }
+        }
+        if media.season.is_some_and(|season| season != 1) {
+            return Vec::new();
         }
         self.sweep_inner(ctx, name, year, media, None).await
     }
@@ -1063,9 +1066,9 @@ mod tests {
     #[tokio::test]
     async fn current_cover_filenames_recover_only_explicit_identity_prefixes() {
         for (file, expected) in [
-            ("nx154587-fixture.jpg", Some(154587)),
-            ("bx154587-fixture.jpg", Some(154587)),
-            ("x154587-fixture.jpg", Some(154587)),
+            ("nx154587-fixture.jpg", Some(154_587)),
+            ("bx154587-fixture.jpg", Some(154_587)),
+            ("x154587-fixture.jpg", Some(154_587)),
             ("154587-unrelated.jpg", None),
         ] {
             let value = serde_json::json!({"results":[{
@@ -1084,14 +1087,14 @@ mod tests {
     #[tokio::test]
     async fn current_search_payload_keeps_exact_title_year_and_identity() {
         let value = serde_json::json!({"data":[{
-            "slug":"frieren-fixture","anilistId":154587,"season_year":2023,
+            "slug":"frieren-fixture","anilistId":154_587,"season_year":2023,
             "title":"Frieren: Beyond Journey's End"
         }]});
         let mock =
             Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
         let results = search_reanime(&ctx_for(&mock), "Frieren").await;
         assert_eq!(results.len(), 1);
-        assert_eq!(results[0].anilist_id, Some(154587));
+        assert_eq!(results[0].anilist_id, Some(154_587));
         assert_eq!(results[0].anime_id, "frieren-fixture");
         assert_eq!(results[0].year, Some(2023));
         assert_eq!(results[0].title, "Frieren: Beyond Journey's End");
@@ -1100,7 +1103,7 @@ mod tests {
     #[tokio::test]
     async fn current_api_search_path_fallback_is_bounded() {
         let value = serde_json::json!({"results":[{
-            "anime_id":"frieren-fixture","anilist_id":154587,"season_year":2023,
+            "anime_id":"frieren-fixture","anilist_id":154_587,"season_year":2023,
             "title":{"english":"Frieren: Beyond Journey's End"}
         }]});
         let mock = Arc::new(
@@ -1110,7 +1113,7 @@ mod tests {
         );
         let results = search_reanime(&ctx_for(&mock), "Frieren").await;
         assert_eq!(results.len(), 1);
-        assert_eq!(results[0].anilist_id, Some(154587));
+        assert_eq!(results[0].anilist_id, Some(154_587));
         assert_eq!(mock.requests().len(), API_ORIGINS.len() + 1);
         assert!(mock.requests().iter().all(|request| {
             request
@@ -1359,6 +1362,37 @@ mod tests {
                 .any(|r| r.url.path() == "/api/v1/search")
         );
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn non_base_season_requires_usable_canonical_mapping() {
+        for (season, use_mappings) in [(2, true), (2, false), (0, false)] {
+            let mock = Arc::new(pages(ScriptedFetcher::default()).page(
+                "/api/v2/themoviedb",
+                200,
+                r#"[
+                    {"anilist":11,"themoviedb-season":1},
+                    {"anilist":22,"themoviedb-season":2}
+                ]"#,
+            ));
+            let mut provider = provider(&mock);
+            if use_mappings {
+                provider = provider
+                    .with_mappings(vsources_core::mappings::MappingService::new(mock.clone()));
+            }
+            let result = provider
+                .resolve(
+                    &ctx_for(&mock),
+                    &MediaRef::series(MediaId::Tmdb(TMDB_ID), season, 1),
+                )
+                .await;
+            assert!(matches!(result, Err(SourceError::NotFound)));
+            assert!(mock.requests().iter().all(|request| {
+                request.url.path() != "/api/flix/11/1"
+                    && request.url.path() != "/api/v1/search"
+                    && request.url.path() != "/api/search"
+            }));
+        }
     }
 
     #[tokio::test]
