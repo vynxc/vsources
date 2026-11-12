@@ -871,7 +871,7 @@
       "relay_consumed_bytes": 0
     }
   ],
-  "media_relay_consumed_bytes": 31440824,
+  "media_relay_consumed_bytes": 64995256,
   "media_relay_limit_bytes": 134217728,
   "media_relay_accounting_note": "Consumed socket/TLS bytes, not packet-wire total; TCP/IP/DNS/kernel prefetch excluded",
   "source_observed_body_bytes": 7698626,
@@ -879,5 +879,242 @@
   "core_parser_repair": "#22 / PR#24: bounded complete-entry metadata only; no whole-file/spoken-language certification",
   "provider_contract_repair": "#17 / PR#21: current ReAnime API/identity and whole-resolve denial fence",
   "metadata_repair": "#23: remove invented language/codec/quality defaults",
-  "final_repaired_main_validation": "pending final merged source/forced worker build"
+  "final_repaired_main_validation": "Measured ReAnime/core/ABI at b9b84e9; laterStreamX29 requires unchanged-component hash re-attestation only",
+  "anichan_public_metadata": {
+    "calls": 3,
+    "statuses": [
+      200,
+      200,
+      401
+    ],
+    "relay_consumed_bytes": 40045,
+    "session_calls": 0,
+    "credentials_used": false,
+    "media_calls": 0,
+    "qualification": "Access boundary reached; current encrypted/session contract not qualified"
+  },
+  "nika_deployed_roster_metadata": {
+    "calls": 1,
+    "status": 200,
+    "read_bytes": 1254,
+    "relay_consumed_bytes": 6992,
+    "deployed_backend_ids": [
+      "mkissa",
+      "reanime",
+      "anikoto",
+      "animegg",
+      "anineko",
+      "anidbapp",
+      "2dhive",
+      "animenosub",
+      "anizone",
+      "aniwaves",
+      "anibd",
+      "senshi",
+      "kaa",
+      "animedunya",
+      "animeonsen"
+    ],
+    "all_11_sdk_backend_ids_still_supported": true,
+    "session_calls": 0,
+    "watch_calls": 0,
+    "media_calls": 0
+  },
+  "shortlist_media_relay_consumed_bytes": 31440824,
+  "repaired_reanime_validation": {
+    "sdk_revision": "b9b84e9f949839010257f52ba88e226f1bf2c9d0",
+    "worker_binary_sha256": "5ea1a84b1222c0bd49670795c6861b2c84ed911af155ec225d901dca72fb2d2d",
+    "forced_current_core_provider_worker_manifests": true,
+    "source_samples": 4,
+    "content_fixtures": 1,
+    "decode_attempts": 2,
+    "cases": [
+      {
+        "mode": "dub",
+        "source_samples": [
+          {
+            "status": "resolved",
+            "elapsed_ms": 4921.156814999999,
+            "requests": 5,
+            "engine_reused": false
+          },
+          {
+            "status": "resolved",
+            "elapsed_ms": 21.889955999999998,
+            "requests": 0,
+            "engine_reused": true
+          }
+        ],
+        "source_format": "mp4",
+        "source_resolution": 1080,
+        "required_audio_selection": {
+          "audio_index": 1,
+          "language": "En"
+        },
+        "qualification": "inconclusive_byte_cap",
+        "frames": 152,
+        "media_seconds": 6.465,
+        "audio_decoded": true,
+        "selected_audio_language": "eng",
+        "first_frame_ms": 2906.179,
+        "decode_ms": 3827.164,
+        "english_track_tag_selected": true,
+        "observed_input_audio_tracks": [
+          {
+            "container_index": 1,
+            "ordinal_index": 0,
+            "language_tag": "jpn",
+            "codec": "aac (LC)"
+          },
+          {
+            "container_index": 2,
+            "ordinal_index": 1,
+            "language_tag": "eng",
+            "codec": "aac (LC)"
+          }
+        ],
+        "observed_input_subtitle_tracks": [
+          {
+            "container_index": 3,
+            "ordinal_index": 0,
+            "language_tag": "eng",
+            "codec": "ass (default)"
+          },
+          {
+            "container_index": 4,
+            "ordinal_index": 1,
+            "language_tag": "eng",
+            "codec": "ass"
+          },
+          {
+            "container_index": 5,
+            "ordinal_index": 2,
+            "language_tag": "en",
+            "codec": "subrip"
+          }
+        ],
+        "hls_policy_override": {
+          "applied": false,
+          "extra_observed_segment_extensions": [],
+          "extension_picky_disabled": false,
+          "finite_allowlist_only": true
+        },
+        "actual_container": "Matroska",
+        "actual_video_codec": "h264",
+        "actual_width": 1920,
+        "actual_height": 1080,
+        "shipping_qualification": false,
+        "full_eight_second_target_met": false,
+        "per_card_limit_bytes": 16777216,
+        "relay_consumed_bytes": 16777216,
+        "byte_cap_reached": true,
+        "subtitle_rendering_verified": false,
+        "spoken_language_verified": false,
+        "actual_input_demuxer": "matroska,webm"
+      },
+      {
+        "mode": "sub",
+        "source_samples": [
+          {
+            "status": "resolved",
+            "elapsed_ms": 2883.1846140000002,
+            "requests": 4,
+            "engine_reused": false
+          },
+          {
+            "status": "resolved",
+            "elapsed_ms": 22.841869,
+            "requests": 0,
+            "engine_reused": true
+          }
+        ],
+        "source_format": "mp4",
+        "source_resolution": 1080,
+        "required_audio_selection": null,
+        "qualification": "inconclusive_byte_cap",
+        "frames": 152,
+        "media_seconds": 6.465,
+        "audio_decoded": true,
+        "selected_audio_language": "jpn",
+        "first_frame_ms": 2284.024,
+        "decode_ms": 3174.473,
+        "english_track_tag_selected": false,
+        "observed_input_audio_tracks": [
+          {
+            "container_index": 1,
+            "ordinal_index": 0,
+            "language_tag": "jpn",
+            "codec": "aac (LC)"
+          },
+          {
+            "container_index": 2,
+            "ordinal_index": 1,
+            "language_tag": "eng",
+            "codec": "aac (LC)"
+          }
+        ],
+        "observed_input_subtitle_tracks": [
+          {
+            "container_index": 3,
+            "ordinal_index": 0,
+            "language_tag": "eng",
+            "codec": "ass (default)"
+          },
+          {
+            "container_index": 4,
+            "ordinal_index": 1,
+            "language_tag": "eng",
+            "codec": "ass"
+          },
+          {
+            "container_index": 5,
+            "ordinal_index": 2,
+            "language_tag": "en",
+            "codec": "subrip"
+          }
+        ],
+        "hls_policy_override": {
+          "applied": false,
+          "extra_observed_segment_extensions": [],
+          "extension_picky_disabled": false,
+          "finite_allowlist_only": true
+        },
+        "actual_container": "Matroska",
+        "actual_video_codec": "h264",
+        "actual_width": 1920,
+        "actual_height": 1080,
+        "shipping_qualification": false,
+        "full_eight_second_target_met": false,
+        "per_card_limit_bytes": 16777216,
+        "relay_consumed_bytes": 16777216,
+        "byte_cap_reached": true,
+        "subtitle_rendering_verified": false,
+        "spoken_language_verified": false,
+        "actual_input_demuxer": "matroska,webm"
+      }
+    ],
+    "native_probe_bytes": 8192,
+    "classification": "Observed English/Japanese selected track tags and partial audio/video; full8s inconclusive at per-card cap",
+    "harness_correction": "Serialized En case normalization corrected before first planned decode using retained fresh context; zero repeated source calls",
+    "component_source_hashes": {
+      "reanime": {
+        "sha256": "8d828343f87ef28e2a0093dd719903d495e56850057a54905ec500a9eeec574b",
+        "files": 1
+      },
+      "core_and_engine_abi": {
+        "sha256": "db8401be26d01ec41e098f3770857c6e386b8ac12f7c8a9c5db8713807fbde95",
+        "files": 25
+      },
+      "other_build_inputs_except_streamx": {
+        "sha256": "a2a38e950a92941a5edffc844c50fa3964231824852ad7c11b660430b8eef67e",
+        "files": 196
+      }
+    }
+  },
+  "final_observed_body_budget": {
+    "observed_response_body_bytes": 7975098,
+    "between_attempt_soft_stop_bytes": 33554432,
+    "note": "Completed retained response bodies only; excludes incomplete calls and wire overhead; not a hard network cap.",
+    "soft_stop_reached": false
+  }
 }
