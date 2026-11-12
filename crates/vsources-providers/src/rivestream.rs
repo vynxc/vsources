@@ -39,9 +39,12 @@
 //!   label. No `/proxy`: the scraper's proxyHeaders contract becomes
 //!   the wrapper's `Referer` request header (the wrapper's own final
 //!   header policy, not the scraper's richer proxyHeaders).
-//! - The 34.5 s outer race becomes [`with_deadline`].
+//! - Backend batches publish as they finish, with at most two in flight.
+//!   The 34.5 s outer race cancels pending work but retains completed batches.
+//!   Final results keep backend-priority URL winners and the existing sort;
+//!   progressive batches are provisional until that final result.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt::Write as _;
 use std::sync::Arc;
 use std::sync::LazyLock;
@@ -49,6 +52,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use fancy_regex::Regex;
+use futures::{StreamExt, stream};
 use serde::Deserialize;
 use url::Url;
 use vsources_core::error::{FetchError, SourceError};
@@ -62,6 +66,8 @@ use evidence::{
     TechnicalHints, language_from_label, manifest_hints, parse_country_codes, parse_height,
     parse_language,
 };
+
+type ProviderJob<'a> = futures::future::BoxFuture<'a, (usize, Vec<ScrapedCard>)>;
 
 /// The provider id, upstream `this.id`.
 const ID: &str = "rivestream";
@@ -199,29 +205,82 @@ impl Source for RiveStream {
         ctx: &ResolveCtx<'_>,
         media: &MediaRef,
     ) -> Result<Vec<Stream>, SourceError> {
+        self.resolve_incremental(ctx, media, &|_| {}).await
+    }
+
+    async fn resolve_incremental(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        media: &MediaRef,
+        publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+    ) -> Result<Vec<Stream>, SourceError> {
         let tmdb_id = tmdb_id(ctx, &self.tmdb, media).await?;
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
         let title = display_title(&name, year, media);
-
-        // The scraper's whole chain inside the outer race.
-        let scrape = async { self.scrape(ctx, media, tmdb_id).await };
-        let cards = with_deadline(scrape, SWEEP_DEADLINE)
-            .await
-            .unwrap_or_default();
-
-        // The wrapper's card mapping.
-        let mut streams: Vec<Stream> = Vec::new();
-        let mut seen: HashSet<String> = HashSet::new();
-        for card in cards {
-            if !card.url.starts_with("http") || !seen.insert(card.url.clone()) {
-                continue;
+        let mut completed = BTreeMap::new();
+        let mut published = HashSet::new();
+        let sweep = async {
+            // Bound the fan-out independently of the caller's HTTP transport.
+            let jobs: Vec<ProviderJob<'_>> = ALL_PROVIDERS
+                .into_iter()
+                .enumerate()
+                .map(|(index, provider)| {
+                    Box::pin(
+                        async move { (index, provider_cards(ctx, media, tmdb_id, provider).await) },
+                    ) as ProviderJob<'_>
+                })
+                .collect();
+            let mut pending = stream::iter(jobs).buffer_unordered(2);
+            while let Some((index, batch)) = pending.next().await {
+                let mut ready = Vec::new();
+                for card in &batch {
+                    let Ok(url) = Url::parse(&card.url) else {
+                        continue;
+                    };
+                    if !matches!(url.scheme(), "http" | "https")
+                        || !published.insert(card.url.clone())
+                    {
+                        continue;
+                    }
+                    ready.push(wrapper_stream(
+                        card,
+                        &url,
+                        &parse_language(&card.language),
+                        &title,
+                    ));
+                }
+                if !ready.is_empty() {
+                    publish(ready);
+                }
+                completed.insert(index, batch);
             }
-            let Ok(url) = Url::parse(&card.url) else {
-                continue;
-            };
-            let language = parse_language(&card.language);
-            streams.push(wrapper_stream(&card, &url, &language, &title));
-        }
+        };
+        // Cancellation drops pending requests but not already collected results.
+        let _ = with_deadline(sweep, SWEEP_DEADLINE).await;
+        // Early batches are provisional. Canonical final winners and ties retain
+        // the original backend priority and each backend's source order.
+        let mut seen = HashSet::new();
+        let mut cards: Vec<_> = completed
+            .into_values()
+            .flatten()
+            .filter(|card| {
+                Url::parse(&card.url).is_ok_and(|url| matches!(url.scheme(), "http" | "https"))
+                    && seen.insert(card.url.clone())
+            })
+            .collect();
+        cards.sort_by_key(|card| std::cmp::Reverse(quality_order(&card.quality)));
+        let streams: Vec<_> = cards
+            .iter()
+            .filter_map(|card| {
+                let url = Url::parse(&card.url).ok()?;
+                Some(wrapper_stream(
+                    card,
+                    &url,
+                    &parse_language(&card.language),
+                    &title,
+                ))
+            })
+            .collect();
         if streams.is_empty() {
             return Err(SourceError::NotFound);
         }
@@ -229,35 +288,26 @@ impl Source for RiveStream {
     }
 }
 
-impl RiveStream {
-    /// The scraper chain: every provider's sources resolved into cards,
-    /// deduped by URL and sorted 4K-first — the port of
-    /// `rivestream.cjs getStreams`.
-    async fn scrape(
-        &self,
-        ctx: &ResolveCtx<'_>,
-        media: &MediaRef,
-        tmdb_id: u64,
-    ) -> Vec<ScrapedCard> {
-        let is_tv = media.season.is_some();
-        let mut cards: Vec<ScrapedCard> = Vec::new();
-        let mut seen: HashSet<String> = HashSet::new();
-        for provider in ALL_PROVIDERS {
-            let sources =
-                fetch_provider_sources(ctx, provider, tmdb_id, is_tv, media.season, media.episode)
-                    .await;
-            for source in sources {
-                for card in resolve_source(ctx, provider, source).await {
-                    if seen.insert(card.url.clone()) {
-                        cards.push(card);
-                    }
-                }
-            }
-        }
-        // Sort by quality (4K first).
-        cards.sort_by_key(|card| std::cmp::Reverse(quality_order(&card.quality)));
-        cards
+async fn provider_cards(
+    ctx: &ResolveCtx<'_>,
+    media: &MediaRef,
+    tmdb_id: u64,
+    provider: &str,
+) -> Vec<ScrapedCard> {
+    let sources = fetch_provider_sources(
+        ctx,
+        provider,
+        tmdb_id,
+        media.season.is_some(),
+        media.season,
+        media.episode,
+    )
+    .await;
+    let mut cards = Vec::new();
+    for source in sources {
+        cards.extend(resolve_source(ctx, provider, source).await);
     }
+    cards
 }
 
 /// One provider's raw sources — the port of `fetchProviderSources`
@@ -665,6 +715,8 @@ mod tests {
 
     #[path = "evidence.rs"]
     mod evidence;
+    #[path = "incremental.rs"]
+    mod incremental;
 
     /// A fetcher serving canned bodies keyed by URL path (or
     /// `path?query`) in call order — the last body repeats — recording
