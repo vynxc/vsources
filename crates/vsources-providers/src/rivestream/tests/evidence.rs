@@ -138,8 +138,7 @@ fn external_rendition_codecs_are_not_claimed_on_detached_child() {
 }
 
 #[tokio::test]
-async fn mp4_labels_preserve_existing_ordering_until_the_separate_sort_fix()
--> Result<(), SourceError> {
+async fn equivalent_mp4_quality_labels_preserve_source_order() -> Result<(), SourceError> {
     let mock = Arc::new(tmdb_mock().page("/api/provider", 200,
         r#"{"data":{"sources":[{"quality":"1080p","url":"https://media.example/plain.mp4","format":"mp4"},{"quality":"1080p | English","url":"https://media.example/labelled.mp4","format":"mp4"}]}}"#));
     let source = provider(&mock);
@@ -148,7 +147,48 @@ async fn mp4_labels_preserve_existing_ordering_until_the_separate_sort_fix()
         .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(TMDB_ID)))
         .await?;
     assert_eq!(streams.len(), 2);
-    assert_eq!(streams[0].url.path(), "/labelled.mp4");
-    assert_eq!(streams[1].url.path(), "/plain.mp4");
+    assert_eq!(streams[0].url.path(), "/plain.mp4");
+    assert_eq!(streams[1].url.path(), "/labelled.mp4");
+    Ok(())
+}
+
+#[tokio::test]
+async fn final_quality_order_prefers_known_high_quality_and_stable_equal_tiers()
+-> Result<(), SourceError> {
+    let values = [
+        ("Auto", "unknown"),
+        ("360p", "360"),
+        ("1080p | English", "1080-labelled"),
+        ("4K", "4k"),
+        ("720p", "720"),
+        ("1080p", "1080"),
+        ("1440p", "1440"),
+    ];
+    let sources: Vec<_> = values.into_iter().map(|(quality, name)| serde_json::json!({"quality":quality,"url":format!("https://media.example/{name}.mp4"),"format":"mp4"})).collect();
+    let mock = Arc::new(tmdb_mock().page(
+        "/api/provider",
+        200,
+        serde_json::json!({"data":{"sources":sources}}).to_string(),
+    ));
+    let source = provider(&mock);
+    let ctx = ctx_for(&mock);
+    let streams = source
+        .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(TMDB_ID)))
+        .await?;
+    assert_eq!(
+        streams
+            .iter()
+            .map(|stream| stream.url.path())
+            .collect::<Vec<_>>(),
+        vec![
+            "/4k.mp4",
+            "/1440.mp4",
+            "/1080-labelled.mp4",
+            "/1080.mp4",
+            "/720.mp4",
+            "/360.mp4",
+            "/unknown.mp4"
+        ]
+    );
     Ok(())
 }
