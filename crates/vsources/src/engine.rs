@@ -517,8 +517,14 @@ impl Engine {
     }
 
     /// Resolve normally while omitting suppliers already attempted by the host.
-    pub async fn resolve_progressive_excluding(&self, media: &MediaRef, excluded: &[String], progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
-        self.resolve_progressive_with_audio(media, progress, false, excluded).await
+    pub async fn resolve_progressive_excluding(
+        &self,
+        media: &MediaRef,
+        excluded: &[String],
+        progress: mpsc::UnboundedSender<Vec<Stream>>,
+    ) -> Result<Vec<Stream>, EngineError> {
+        self.resolve_progressive_with_audio(media, progress, false, excluded)
+            .await
     }
 
     async fn resolve_progressive_with_audio(
@@ -555,7 +561,10 @@ impl Engine {
             .registry
             .all()
             .into_iter()
-            .filter(|source| !excluded.contains(&source.info().id) && provider_scope_allows(&source.info().id, animation))
+            .filter(|source| {
+                !excluded.contains(&source.info().id)
+                    && provider_scope_allows(&source.info().id, animation)
+            })
             .enumerate()
             .map(|(index, source)| {
                 self.resolve_source(
@@ -628,32 +637,78 @@ impl Engine {
     }
     /// Resolve one enabled supplier and publish each usable stream as its probe finishes.
     /// The host owns the total attempt deadline, including metadata and validation.
-    pub async fn resolve_provider_progressive(&self, media: &MediaRef, provider_id: &str, audio_language: Option<&str>, metadata: Option<ResolvedMedia>, progress: mpsc::UnboundedSender<Vec<Stream>>) -> Result<Vec<Stream>, EngineError> {
-        let started=std::time::Instant::now();
-        let Some(source) = self.registry.all().into_iter().find(|source| source.info().id == provider_id) else { return Ok(Vec::new()); };
-        let metadata = match metadata { Some(metadata) => Some(metadata), None => match &self.tmdb { Some(tmdb) => tmdb.resolve_media(media).await.ok(), None => None } };
-        let animation = if vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider_id) { self.animation_status(media, metadata.as_ref()).await } else { None };
-        if !provider_scope_allows(provider_id, animation) { return Ok(Vec::new()); }
-        tracing::info!(provider=provider_id, metadata_ms=started.elapsed().as_millis() as u64, "Preferred supplier request started");
-        let ctx = ResolveCtx { fetcher: self.fetcher.as_ref(), media: metadata, source_id: Some(provider_id), referer: None };
+    pub async fn resolve_provider_progressive(
+        &self,
+        media: &MediaRef,
+        provider_id: &str,
+        audio_language: Option<&str>,
+        metadata: Option<ResolvedMedia>,
+        progress: mpsc::UnboundedSender<Vec<Stream>>,
+    ) -> Result<Vec<Stream>, EngineError> {
+        let started = std::time::Instant::now();
+        let Some(source) = self
+            .registry
+            .all()
+            .into_iter()
+            .find(|source| source.info().id == provider_id)
+        else {
+            return Ok(Vec::new());
+        };
+        let metadata = match metadata {
+            Some(metadata) => Some(metadata),
+            None => match &self.tmdb {
+                Some(tmdb) => tmdb.resolve_media(media).await.ok(),
+                None => None,
+            },
+        };
+        let animation = if vsources_providers::ANIME_ONLY_PROVIDER_IDS.contains(&provider_id) {
+            self.animation_status(media, metadata.as_ref()).await
+        } else {
+            None
+        };
+        if !provider_scope_allows(provider_id, animation) {
+            return Ok(Vec::new());
+        }
+        tracing::info!(
+            provider = provider_id,
+            metadata_ms = started.elapsed().as_millis() as u64,
+            "Preferred supplier request started"
+        );
+        let ctx = ResolveCtx {
+            fetcher: self.fetcher.as_ref(),
+            media: metadata,
+            source_id: Some(provider_id),
+            referer: None,
+        };
         let (raw_tx, mut raw_rx) = mpsc::unbounded_channel();
-        let publish_raw = |streams| { let _ = raw_tx.send(streams); };
+        let publish_raw = |streams| {
+            let _ = raw_tx.send(streams);
+        };
         let resolve = tokio::time::timeout(self.per_source_timeout, async {
-            if audio_language==Some("en") && source.supports_english_audio_selection() {
-                let streams = source.resolve_english_dub(&ctx,media).await?;
+            if audio_language == Some("en") && source.supports_english_audio_selection() {
+                let streams = source.resolve_english_dub(&ctx, media).await?;
                 publish_raw(streams.clone());
                 Ok(streams)
-            } else { source.resolve_incremental(&ctx,media,&publish_raw).await }
+            } else {
+                source.resolve_incremental(&ctx, media, &publish_raw).await
+            }
         });
         tokio::pin!(resolve);
         let stamp = |mut stream: Stream| {
-            stream.meta.source_id=Some(source.info().id.clone());stream.meta.source_label=Some(source.info().label.clone());
-            let label=stream.label.clone().unwrap_or_else(||release_name_of(&stream.url));enrich_stream(&mut stream,&label);stream
+            stream.meta.source_id = Some(source.info().id.clone());
+            stream.meta.source_label = Some(source.info().label.clone());
+            let label = stream
+                .label
+                .clone()
+                .unwrap_or_else(|| release_name_of(&stream.url));
+            enrich_stream(&mut stream, &label);
+            stream
         };
-        let language=audio_language.and_then(CountryCode::parse);
+        let language = audio_language.and_then(CountryCode::parse);
         let mut seen = std::collections::HashSet::new();
         let mut result = Vec::new();
-        let mut validating = futures::stream::FuturesUnordered::<futures::future::BoxFuture<'_, Vec<Stream>>>::new();
+        let mut validating =
+            futures::stream::FuturesUnordered::<futures::future::BoxFuture<'_, Vec<Stream>>>::new();
         let mut finished = false;
         let mut failed = false;
         loop {
@@ -677,9 +732,15 @@ impl Engine {
                 }
                 Some(validated) = validating.next(), if !validating.is_empty() => { result.extend(validated); }
             }
-            if finished && raw_rx.is_empty() && validating.is_empty() { break; }
+            if finished && raw_rx.is_empty() && validating.is_empty() {
+                break;
+            }
         }
-        if failed && result.is_empty() { Err(EngineError::AllProvidersFailed { count: 1 }) } else { Ok(result) }
+        if failed && result.is_empty() {
+            Err(EngineError::AllProvidersFailed { count: 1 })
+        } else {
+            Ok(result)
+        }
     }
 
     /// One provider's bounded resolve, as a type-erased future.
@@ -719,8 +780,8 @@ impl Engine {
                 Ok(Ok(mut streams)) => {
                     streams.truncate(self.stream_limit);
                     for stream in &mut streams {
-                        stream.meta.source_id=Some(id.clone());
-                        stream.meta.source_label=Some(source.info().label.clone());
+                        stream.meta.source_id = Some(id.clone());
+                        stream.meta.source_label = Some(source.info().label.clone());
                     }
                     if english_only {
                         streams.retain(english_dub);
@@ -1182,56 +1243,159 @@ mod tests {
         struct NoMetadataNetwork;
         #[async_trait]
         impl Fetcher for NoMetadataNetwork {
-            async fn request(&self,_:vsources_core::traits::FetchRequest)->Result<vsources_core::traits::FetchResponse,vsources_core::error::FetchError>{panic!("metadata was already supplied")}
+            async fn request(
+                &self,
+                _: vsources_core::traits::FetchRequest,
+            ) -> Result<vsources_core::traits::FetchResponse, vsources_core::error::FetchError>
+            {
+                panic!("metadata was already supplied")
+            }
         }
-        let engine=EngineBuilder::new().fetcher(Arc::new(NoMetadataNetwork)).tmdb_key("fixture-key").sources(vec![StubSource::streaming("preferred",1,&["https://cdn.example/ready.mp4"])]).build().unwrap();
-        let (tx,_)=mpsc::unbounded_channel();let metadata=ResolvedMedia{tmdb_id:Some(27205),imdb_id:None,name:"Verified title".into(),year:Some(2010),season:None,episode:None};
-        let result=engine.resolve_provider_progressive(&media(),"preferred",None,Some(metadata),tx).await.unwrap();assert_eq!(result.len(),1);
+        let engine = EngineBuilder::new()
+            .fetcher(Arc::new(NoMetadataNetwork))
+            .tmdb_key("fixture-key")
+            .sources(vec![StubSource::streaming(
+                "preferred",
+                1,
+                &["https://cdn.example/ready.mp4"],
+            )])
+            .build()
+            .unwrap();
+        let (tx, _) = mpsc::unbounded_channel();
+        let metadata = ResolvedMedia {
+            tmdb_id: Some(27205),
+            imdb_id: None,
+            name: "Verified title".into(),
+            year: Some(2010),
+            season: None,
+            episode: None,
+        };
+        let result = engine
+            .resolve_provider_progressive(&media(), "preferred", None, Some(metadata), tx)
+            .await
+            .unwrap();
+        assert_eq!(result.len(), 1);
     }
 
     #[tokio::test]
     async fn selected_supplier_bypasses_unrelated_provider_queue() {
-        let mut sources: Vec<Arc<dyn Source>> = (0..29).map(|n| Arc::new(StubSource { info: info(&format!("slow-{n}"), n), streams: vec![], error: Some(SourceError::scrape("other", "must not run")), delay: Some(Duration::from_secs(30)) }) as Arc<dyn Source>).collect();
-        sources.push(StubSource::streaming("preferred", 30, &["https://cdn.example/ready.mp4"]));
-        let engine = test_builder().sources(sources).concurrency(1).build().unwrap();
+        let mut sources: Vec<Arc<dyn Source>> = (0..29)
+            .map(|n| {
+                Arc::new(StubSource {
+                    info: info(&format!("slow-{n}"), n),
+                    streams: vec![],
+                    error: Some(SourceError::scrape("other", "must not run")),
+                    delay: Some(Duration::from_secs(30)),
+                }) as Arc<dyn Source>
+            })
+            .collect();
+        sources.push(StubSource::streaming(
+            "preferred",
+            30,
+            &["https://cdn.example/ready.mp4"],
+        ));
+        let engine = test_builder()
+            .sources(sources)
+            .concurrency(1)
+            .build()
+            .unwrap();
         let (tx, mut rx) = mpsc::unbounded_channel();
-        let result = tokio::time::timeout(Duration::from_secs(1), engine.resolve_provider_progressive(&media(), "preferred", None, None, tx)).await.unwrap().unwrap();
-        assert_eq!(result.len(), 1);assert_eq!(rx.recv().await.unwrap()[0].meta.source_id.as_deref(), Some("preferred"));
+        let result = tokio::time::timeout(
+            Duration::from_secs(1),
+            engine.resolve_provider_progressive(&media(), "preferred", None, None, tx),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(
+            rx.recv().await.unwrap()[0].meta.source_id.as_deref(),
+            Some("preferred")
+        );
     }
 
     #[tokio::test]
     async fn selected_supplier_validates_extractions_before_its_remaining_lookups_finish() {
-        struct IncrementalSource { info: SourceInfo }
+        struct IncrementalSource {
+            info: SourceInfo,
+        }
         #[async_trait]
         impl Source for IncrementalSource {
-            fn info(&self) -> &SourceInfo { &self.info }
-            async fn resolve(&self, _: &ResolveCtx<'_>, _: &MediaRef) -> Result<Vec<Stream>, SourceError> { panic!("complete-batch resolution must not run") }
-            async fn resolve_incremental(&self, _: &ResolveCtx<'_>, _: &MediaRef, publish: &(dyn Fn(Vec<Stream>) + Send + Sync)) -> Result<Vec<Stream>, SourceError> {
-                publish(vec![Stream::new(test_url("https://cdn.example/stalled.mp4"), Format::Mp4)]);
-                publish(vec![Stream::new(test_url("https://cdn.example/early.mp4"), Format::Mp4)]);
+            fn info(&self) -> &SourceInfo {
+                &self.info
+            }
+            async fn resolve(
+                &self,
+                _: &ResolveCtx<'_>,
+                _: &MediaRef,
+            ) -> Result<Vec<Stream>, SourceError> {
+                panic!("complete-batch resolution must not run")
+            }
+            async fn resolve_incremental(
+                &self,
+                _: &ResolveCtx<'_>,
+                _: &MediaRef,
+                publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
+            ) -> Result<Vec<Stream>, SourceError> {
+                publish(vec![Stream::new(
+                    test_url("https://cdn.example/stalled.mp4"),
+                    Format::Mp4,
+                )]);
+                publish(vec![Stream::new(
+                    test_url("https://cdn.example/early.mp4"),
+                    Format::Mp4,
+                )]);
                 std::future::pending().await
             }
         }
         struct SlowProbe;
         #[async_trait]
         impl Fetcher for SlowProbe {
-            async fn request(&self, _: vsources_core::traits::FetchRequest) -> Result<vsources_core::traits::FetchResponse, vsources_core::error::FetchError> { panic!("only bounded probes expected") }
-            async fn probe(&self, request: vsources_core::traits::FetchRequest, _: usize) -> Result<Option<vsources_core::traits::ProbeResponse>, vsources_core::error::FetchError> {
-                if request.url.path() == "/stalled.mp4" { std::future::pending().await } else { Ok(None) }
+            async fn request(
+                &self,
+                _: vsources_core::traits::FetchRequest,
+            ) -> Result<vsources_core::traits::FetchResponse, vsources_core::error::FetchError>
+            {
+                panic!("only bounded probes expected")
+            }
+            async fn probe(
+                &self,
+                request: vsources_core::traits::FetchRequest,
+                _: usize,
+            ) -> Result<
+                Option<vsources_core::traits::ProbeResponse>,
+                vsources_core::error::FetchError,
+            > {
+                if request.url.path() == "/stalled.mp4" {
+                    std::future::pending().await
+                } else {
+                    Ok(None)
+                }
             }
         }
-        let source = Arc::new(vsources_providers::CachedSource::new(Arc::new(IncrementalSource { info: info("preferred", 0) })));
-        let engine = test_builder().fetcher(Arc::new(SlowProbe)).sources(vec![source]).build().unwrap();
+        let source = Arc::new(vsources_providers::CachedSource::new(Arc::new(
+            IncrementalSource {
+                info: info("preferred", 0),
+            },
+        )));
+        let engine = test_builder()
+            .fetcher(Arc::new(SlowProbe))
+            .sources(vec![source])
+            .build()
+            .unwrap();
         let (tx, mut rx) = mpsc::unbounded_channel();
         let reference = media();
-        let resolving = engine.resolve_provider_progressive(&reference, "preferred", None, None, tx);
+        let resolving =
+            engine.resolve_provider_progressive(&reference, "preferred", None, None, tx);
         tokio::pin!(resolving);
         let batch = tokio::time::timeout(Duration::from_secs(1), async {
             tokio::select! {
                 batch = rx.recv() => batch.unwrap(),
                 _ = &mut resolving => panic!("remaining lookup should still be pending"),
             }
-        }).await.unwrap();
+        })
+        .await
+        .unwrap();
         assert_eq!(batch[0].url.as_str(), "https://cdn.example/early.mp4");
         assert_eq!(batch[0].meta.source_id.as_deref(), Some("preferred"));
     }
@@ -1320,6 +1484,9 @@ mod scoped_transport_tests {
     use super::*;
     #[test]
     fn omitted_fetcher_fails_without_implicit_network_transport() {
-        assert!(matches!(EngineBuilder::new().build(), Err(EngineError::MissingFetcher)));
+        assert!(matches!(
+            EngineBuilder::new().build(),
+            Err(EngineError::MissingFetcher)
+        ));
     }
 }

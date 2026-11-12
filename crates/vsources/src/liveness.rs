@@ -156,31 +156,68 @@ impl StreamProbe {
             .verdict
     }
 
-    pub(crate) async fn filter_progressive(&self, fetcher: &dyn Fetcher, streams: Vec<Stream>, audio_language: Option<vsources_core::types::CountryCode>, mut publish: impl FnMut(Vec<Stream>)) -> Vec<Stream> {
+    pub(crate) async fn filter_progressive(
+        &self,
+        fetcher: &dyn Fetcher,
+        streams: Vec<Stream>,
+        audio_language: Option<vsources_core::types::CountryCode>,
+        mut publish: impl FnMut(Vec<Stream>),
+    ) -> Vec<Stream> {
         let mut streams = streams;
         streams.sort_by_key(|s| std::cmp::Reverse(s.meta.resolution.unwrap_or(0)));
         let mut completed = HashSet::new();
         let mut kept = Vec::new();
-        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> = streams.iter().enumerate().map(|(i, source)| Box::pin(async move {
-            let mut source = source.clone();
-            if audio_language.is_some() && source.meta.languages.iter().all(|language| *language==vsources_core::types::CountryCode::Multi) {
-                let _permit = self.permits.acquire().await.ok();
-                inspect_audio(fetcher,&mut source,self.config.timeout).await;
-            }
-            let compatible=audio_language.is_none_or(|target|source.meta.audio_selection.as_ref().map_or_else(||source.meta.languages.iter().all(|language|*language==vsources_core::types::CountryCode::Multi)||source.meta.languages.contains(&target),|selected|selected.language==target));
-            let verdict = if compatible { self.check(fetcher, &source).await } else { Verdict::Unknown };
-            (i, verdict, source)
-        }) as BoxFuture<'_, (usize, Verdict, Stream)>).collect();
+        let jobs: Vec<BoxFuture<'_, (usize, Verdict, Stream)>> =
+            streams
+                .iter()
+                .enumerate()
+                .map(|(i, source)| {
+                    Box::pin(async move {
+                        let mut source = source.clone();
+                        if audio_language.is_some()
+                            && source.meta.languages.iter().all(|language| {
+                                *language == vsources_core::types::CountryCode::Multi
+                            })
+                        {
+                            let _permit = self.permits.acquire().await.ok();
+                            inspect_audio(fetcher, &mut source, self.config.timeout).await;
+                        }
+                        let compatible = audio_language.is_none_or(|target| {
+                            source.meta.audio_selection.as_ref().map_or_else(
+                                || {
+                                    source.meta.languages.iter().all(|language| {
+                                        *language == vsources_core::types::CountryCode::Multi
+                                    }) || source.meta.languages.contains(&target)
+                                },
+                                |selected| selected.language == target,
+                            )
+                        });
+                        let verdict = if compatible {
+                            self.check(fetcher, &source).await
+                        } else {
+                            Verdict::Unknown
+                        };
+                        (i, verdict, source)
+                    }) as BoxFuture<'_, (usize, Verdict, Stream)>
+                })
+                .collect();
         let mut pending = stream::iter(jobs).buffer_unordered(self.config.concurrency.max(1));
         let _ = tokio::time::timeout(self.config.timeout, async {
             while let Some((i, verdict, source)) = pending.next().await {
                 completed.insert(i);
-                if verdict != Verdict::Dead { publish(vec![source.clone()]);kept.push(source); }
+                if verdict != Verdict::Dead {
+                    publish(vec![source.clone()]);
+                    kept.push(source);
+                }
             }
-        }).await;
+        })
+        .await;
         drop(pending);
         for (i, source) in streams.into_iter().enumerate() {
-            if !completed.contains(&i) { publish(vec![source.clone()]);kept.push(source); }
+            if !completed.contains(&i) {
+                publish(vec![source.clone()]);
+                kept.push(source);
+            }
         }
         kept
     }
@@ -216,29 +253,103 @@ impl StreamProbe {
 }
 
 fn audio_code(tag: &str) -> Option<vsources_core::types::CountryCode> {
-    let tag=tag.trim_matches('"').to_ascii_lowercase();let tag=tag.split('-').next().unwrap_or("");
-    vsources_core::types::CountryCode::parse(match tag {"eng"=>"en","spa"=>"es","fra"|"fre"=>"fr","deu"|"ger"=>"de","jpn"=>"ja","ita"=>"it","por"=>"pt","hin"=>"hi",other=>other})
+    let tag = tag.trim_matches('"').to_ascii_lowercase();
+    let tag = tag.split('-').next().unwrap_or("");
+    vsources_core::types::CountryCode::parse(match tag {
+        "eng" => "en",
+        "spa" => "es",
+        "fra" | "fre" => "fr",
+        "deu" | "ger" => "de",
+        "jpn" => "ja",
+        "ita" => "it",
+        "por" => "pt",
+        "hin" => "hi",
+        other => other,
+    })
 }
 async fn inspect_audio(fetcher: &dyn Fetcher, source: &mut Stream, timeout: Duration) {
-    let mut current=source.url.clone();let mut offset=0_u64;let mut seen=HashSet::new();
+    let mut current = source.url.clone();
+    let mut offset = 0_u64;
+    let mut seen = HashSet::new();
     for _ in 0..=MAX_PLAYLISTS {
-        if !seen.insert(current.clone()){return;}
-        let mut request=FetchRequest::get(current.clone()).with_timeout(timeout);request.headers=source.meta.request_headers.iter().map(|(key,value)|(key.to_ascii_lowercase(),value.clone())).collect();request.headers.remove("range");
-        request=request.with_header("accept-encoding","identity");if offset>0{let Some(end)=offset.checked_add(65535) else{return;};request=request.with_header("range",format!("bytes={offset}-{end}"));}
-        let Ok(Some(response))=fetcher.probe(request,64*1024).await else{return;};
-        if !(200..300).contains(&response.status){return;}
-        let body=String::from_utf8_lossy(&response.body);
+        if !seen.insert(current.clone()) {
+            return;
+        }
+        let mut request = FetchRequest::get(current.clone()).with_timeout(timeout);
+        request.headers = source
+            .meta
+            .request_headers
+            .iter()
+            .map(|(key, value)| (key.to_ascii_lowercase(), value.clone()))
+            .collect();
+        request.headers.remove("range");
+        request = request.with_header("accept-encoding", "identity");
+        if offset > 0 {
+            let Some(end) = offset.checked_add(65535) else {
+                return;
+            };
+            request = request.with_header("range", format!("bytes={offset}-{end}"));
+        }
+        let Ok(Some(response)) = fetcher.probe(request, 64 * 1024).await else {
+            return;
+        };
+        if !(200..300).contains(&response.status) {
+            return;
+        }
+        let body = String::from_utf8_lossy(&response.body);
         if body.trim_start().starts_with("#EXTM3U") {
-            if response.truncated{return;}
-            for line in body.lines().filter_map(|line|line.trim().strip_prefix("#EXT-X-MEDIA:")) {
-                if !line.split(',').any(|field|field=="TYPE=AUDIO"){continue;}
-                if let Some(language)=line.split(',').find_map(|field|field.strip_prefix("LANGUAGE=")).and_then(audio_code){if !source.meta.languages.contains(&language){source.meta.languages.push(language);}}
+            if response.truncated {
+                return;
             }
-            if source.meta.languages.iter().any(|language|*language!=vsources_core::types::CountryCode::Multi){return;}
-            let Ok(Some(next))=playlist_child(&response) else{return;};current=next.url;offset=next.offset;
-        }else{
-            if let Some(languages)=vsources_core::audio::mpegts_audio_languages(&response.body){for language in languages.iter().filter_map(|tag|audio_code(tag)){if !source.meta.languages.contains(&language){source.meta.languages.push(language);}}}
-            if let Some(index)=vsources_core::audio::matroska_english_audio_index(&response.body){source.meta.audio_selection=Some(vsources_core::types::AudioSelection{language:vsources_core::types::CountryCode::En,audio_index:index});source.meta.languages.push(vsources_core::types::CountryCode::En);}
+            for line in body
+                .lines()
+                .filter_map(|line| line.trim().strip_prefix("#EXT-X-MEDIA:"))
+            {
+                if !line.split(',').any(|field| field == "TYPE=AUDIO") {
+                    continue;
+                }
+                if let Some(language) = line
+                    .split(',')
+                    .find_map(|field| field.strip_prefix("LANGUAGE="))
+                    .and_then(audio_code)
+                {
+                    if !source.meta.languages.contains(&language) {
+                        source.meta.languages.push(language);
+                    }
+                }
+            }
+            if source
+                .meta
+                .languages
+                .iter()
+                .any(|language| *language != vsources_core::types::CountryCode::Multi)
+            {
+                return;
+            }
+            let Ok(Some(next)) = playlist_child(&response) else {
+                return;
+            };
+            current = next.url;
+            offset = next.offset;
+        } else {
+            if let Some(languages) = vsources_core::audio::mpegts_audio_languages(&response.body) {
+                for language in languages.iter().filter_map(|tag| audio_code(tag)) {
+                    if !source.meta.languages.contains(&language) {
+                        source.meta.languages.push(language);
+                    }
+                }
+            }
+            if let Some(index) = vsources_core::audio::matroska_english_audio_index(&response.body)
+            {
+                source.meta.audio_selection = Some(vsources_core::types::AudioSelection {
+                    language: vsources_core::types::CountryCode::En,
+                    audio_index: index,
+                });
+                source
+                    .meta
+                    .languages
+                    .push(vsources_core::types::CountryCode::En);
+            }
             return;
         }
     }

@@ -310,7 +310,9 @@ pub trait Source: Send + Sync {
     }
 
     /// Whether a separate resolution can select a different embedded English track.
-    fn supports_english_audio_selection(&self) -> bool { false }
+    fn supports_english_audio_selection(&self) -> bool {
+        false
+    }
 
     /// Resolve English spoken audio only.
     ///

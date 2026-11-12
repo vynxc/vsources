@@ -174,7 +174,9 @@ impl CachedSource {
 
 #[async_trait]
 impl Source for CachedSource {
-    fn supports_english_audio_selection(&self) -> bool { self.inner.supports_english_audio_selection() }
+    fn supports_english_audio_selection(&self) -> bool {
+        self.inner.supports_english_audio_selection()
+    }
     fn info(&self) -> &SourceInfo {
         self.inner.info()
     }
@@ -201,19 +203,31 @@ impl Source for CachedSource {
         media: &MediaRef,
         publish: &(dyn Fn(Vec<Stream>) + Send + Sync),
     ) -> Result<Vec<Stream>, SourceError> {
-        let key = CacheKey { provider: self.info().id.clone().into(), media: media.clone(), english_dub: false };
+        let key = CacheKey {
+            provider: self.info().id.clone().into(),
+            media: media.clone(),
+            english_dub: false,
+        };
         if let Some(streams) = self.results.get(&key).await {
             publish(streams.as_ref().clone());
             return Ok(streams.as_ref().clone());
         }
-        if self.empty.get(&key).await.is_some() { return Ok(Vec::new()); }
+        if self.empty.get(&key).await.is_some() {
+            return Ok(Vec::new());
+        }
         match self.inner.resolve_incremental(ctx, media, publish).await {
             Ok(streams) => {
-                if streams.is_empty() { self.empty.insert(key, ()).await; }
-                else { self.results.insert(key, Arc::new(streams.clone())).await; }
+                if streams.is_empty() {
+                    self.empty.insert(key, ()).await;
+                } else {
+                    self.results.insert(key, Arc::new(streams.clone())).await;
+                }
                 Ok(streams)
             }
-            Err(SourceError::NotFound) => { self.empty.insert(key, ()).await; Ok(Vec::new()) }
+            Err(SourceError::NotFound) => {
+                self.empty.insert(key, ()).await;
+                Ok(Vec::new())
+            }
             Err(error) => Err(error),
         }
     }

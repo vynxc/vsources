@@ -339,33 +339,58 @@ impl Source for CineWave {
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
         let imdb_id = imdb_id(ctx, &self.tmdb, media, tmdb_id).await?;
         let direct = async {
-            let streams = self.hdhub_streams(ctx, media, &name, year, imdb_id.as_deref()).await;
-            if !streams.is_empty() { publish(streams.clone()); }
+            let streams = self
+                .hdhub_streams(ctx, media, &name, year, imdb_id.as_deref())
+                .await;
+            if !streams.is_empty() {
+                publish(streams.clone());
+            }
             streams
         };
         let embeds = async {
-            let jobs: Vec<futures::future::BoxFuture<'_, Vec<Stream>>> = EMBED_SOURCES.iter().filter_map(|source| embed_url(source, tmdb_id, media.season, media.episode)).map(|url| {
-                let name = &name;
-                Box::pin(async move {
-                    let embed_ctx = ResolveCtx {
-                        fetcher: ctx.fetcher,
-                        media: media.season.is_none().then(|| ResolvedMedia { tmdb_id: Some(tmdb_id), imdb_id: None, name: name.clone(), year, season: None, episode: None }),
-                        source_id: Some(self.info.id.as_str()), referer: self.info.base_url.as_ref(),
-                    };
-                    self.extractors.extract(&embed_ctx, &url).await.unwrap_or_default()
-                }) as futures::future::BoxFuture<'_, Vec<Stream>>
-            }).collect();
+            let jobs: Vec<futures::future::BoxFuture<'_, Vec<Stream>>> = EMBED_SOURCES
+                .iter()
+                .filter_map(|source| embed_url(source, tmdb_id, media.season, media.episode))
+                .map(|url| {
+                    let name = &name;
+                    Box::pin(async move {
+                        let embed_ctx = ResolveCtx {
+                            fetcher: ctx.fetcher,
+                            media: media.season.is_none().then(|| ResolvedMedia {
+                                tmdb_id: Some(tmdb_id),
+                                imdb_id: None,
+                                name: name.clone(),
+                                year,
+                                season: None,
+                                episode: None,
+                            }),
+                            source_id: Some(self.info.id.as_str()),
+                            referer: self.info.base_url.as_ref(),
+                        };
+                        self.extractors
+                            .extract(&embed_ctx, &url)
+                            .await
+                            .unwrap_or_default()
+                    }) as futures::future::BoxFuture<'_, Vec<Stream>>
+                })
+                .collect();
             let mut pending = stream::iter(jobs).buffer_unordered(6);
             let mut all = Vec::new();
             while let Some(streams) = pending.next().await {
-                if !streams.is_empty() { publish(streams.clone()); }
+                if !streams.is_empty() {
+                    publish(streams.clone());
+                }
                 all.extend(streams);
             }
             all
         };
         let (mut streams, embeds) = tokio::join!(direct, embeds);
         streams.extend(embeds);
-        if streams.is_empty() { Err(SourceError::NotFound) } else { Ok(streams) }
+        if streams.is_empty() {
+            Err(SourceError::NotFound)
+        } else {
+            Ok(streams)
+        }
     }
 }
 
@@ -1073,25 +1098,53 @@ mod tests {
         struct StalledFetcher;
         #[async_trait]
         impl Fetcher for StalledFetcher {
-            async fn request(&self, _: FetchRequest) -> Result<FetchResponse, FetchError> { std::future::pending().await }
+            async fn request(&self, _: FetchRequest) -> Result<FetchResponse, FetchError> {
+                std::future::pending().await
+            }
         }
         struct FirstEmbed;
         #[async_trait]
         impl Extractor for FirstEmbed {
-            fn id(&self) -> &'static str { "first-embed" }
-            fn label(&self) -> &'static str { "First embed" }
-            fn supports(&self, _: &ResolveCtx<'_>, _: &Url) -> bool { true }
-            async fn extract(&self, _: &ResolveCtx<'_>, url: &Url) -> Result<Vec<Stream>, ExtractorError> {
-                if url.host_str() == Some("vidsrc-embed.ru") { Ok(vec![Stream::new(Url::parse("https://cdn.example/early.mp4").unwrap(), Format::Mp4)]) }
-                else { std::future::pending().await }
+            fn id(&self) -> &'static str {
+                "first-embed"
+            }
+            fn label(&self) -> &'static str {
+                "First embed"
+            }
+            fn supports(&self, _: &ResolveCtx<'_>, _: &Url) -> bool {
+                true
+            }
+            async fn extract(
+                &self,
+                _: &ResolveCtx<'_>,
+                url: &Url,
+            ) -> Result<Vec<Stream>, ExtractorError> {
+                if url.host_str() == Some("vidsrc-embed.ru") {
+                    Ok(vec![Stream::new(
+                        Url::parse("https://cdn.example/early.mp4").unwrap(),
+                        Format::Mp4,
+                    )])
+                } else {
+                    std::future::pending().await
+                }
             }
         }
         let fetcher = Arc::new(StalledFetcher);
-        let provider = CineWave::new(Arc::new(TmdbClient::new("fixture-key", fetcher.clone())), Arc::new(ExtractorRegistry::new(vec![Arc::new(FirstEmbed)])));
-        let ctx = ResolveCtx { fetcher: fetcher.as_ref(), media: Some(dune_media()), source_id: None, referer: None };
+        let provider = CineWave::new(
+            Arc::new(TmdbClient::new("fixture-key", fetcher.clone())),
+            Arc::new(ExtractorRegistry::new(vec![Arc::new(FirstEmbed)])),
+        );
+        let ctx = ResolveCtx {
+            fetcher: fetcher.as_ref(),
+            media: Some(dune_media()),
+            source_id: None,
+            referer: None,
+        };
         let media = dune_movie();
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
-        let publish = |streams| { let _ = tx.send(streams); };
+        let publish = |streams| {
+            let _ = tx.send(streams);
+        };
         let resolving = provider.resolve_incremental(&ctx, &media, &publish);
         tokio::pin!(resolving);
         let batch = tokio::time::timeout(Duration::from_secs(1), async {

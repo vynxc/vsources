@@ -236,10 +236,7 @@ async fn run_chain(
 ) -> Result<Vec<Stream>, ExtractorError> {
     let mut last_error = None;
     for extractor in matching {
-        tracing::debug!(
-            extractor = extractor.id(),
-            "extracting"
-        );
+        tracing::debug!(extractor = extractor.id(), "extracting");
         match extractor.extract(ctx, canonical).await {
             Ok(streams) if !streams.is_empty() => {
                 return Ok(decorate(streams, extractor, ctx));
