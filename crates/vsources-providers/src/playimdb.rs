@@ -91,8 +91,9 @@ impl PlayImdb {
         media: &MediaRef,
         name: &str,
         year: Option<u16>,
+        tmdb_id: u64,
     ) -> Vec<Stream> {
-        let Ok(target) = api_url(media) else {
+        let Ok(target) = api_url(media, tmdb_id) else {
             return Vec::new();
         };
         let request = FetchRequest::get(target)
@@ -145,7 +146,7 @@ impl Source for PlayImdb {
         let tmdb_id = tmdb_id(ctx, media, &self.tmdb).await?;
         let (name, year) = name_and_year(ctx, media, &self.tmdb, tmdb_id).await?;
 
-        let streams = with_deadline(self.sweep(ctx, media, &name, year), DEADLINE)
+        let streams = with_deadline(self.sweep(ctx, media, &name, year, tmdb_id), DEADLINE)
             .await
             .unwrap_or_default();
         if streams.is_empty() {
@@ -196,11 +197,7 @@ impl ApiResponse {
 }
 
 /// The API URL for a reference — `?tmdb={id}&type=…[&season&episode]`.
-fn api_url(media: &MediaRef) -> Result<Url, url::ParseError> {
-    let id = match &media.id {
-        MediaId::Tmdb(id) => id.to_string(),
-        MediaId::Imdb(imdb) => imdb.clone(),
-    };
+fn api_url(media: &MediaRef, id: u64) -> Result<Url, url::ParseError> {
     let base = if media.season.is_some() {
         format!(
             "{API}?tmdb={id}&type=tv&season={}&episode={}",
@@ -423,6 +420,31 @@ mod tests {
             season: None,
             episode: None,
         }
+    }
+
+    #[tokio::test]
+    async fn imdb_reference_uses_the_resolved_tmdb_namespace() -> Result<(), SourceError> {
+        let payload = serde_json::json!({"status_code":200,"data":{"stream_urls":["https://media.example/movie.m3u8"]}});
+        let fetcher = Arc::new(MockFetcher::new().serve(
+            "streamdata.vaplayer.ru/api.php",
+            200,
+            payload.to_string(),
+        ));
+        let ctx = ctx_for(&fetcher, Some(dune_media()));
+        provider(&fetcher)
+            .resolve(&ctx, &MediaRef::movie(MediaId::Imdb("tt1160419".into())))
+            .await?;
+        let requests = fetcher.requests();
+        assert_eq!(requests.len(), 1);
+        assert_eq!(
+            requests[0]
+                .url
+                .query_pairs()
+                .find(|(key, _)| key == "tmdb")
+                .map(|(_, value)| value.into_owned()),
+            Some("438631".into())
+        );
+        Ok(())
     }
 
     #[test]
