@@ -41,7 +41,7 @@
 //!   header policy, not the scraper's richer proxyHeaders).
 //! - Backend batches publish as they finish, with at most two in flight.
 //!   The 34.5 s outer race cancels pending work but retains completed batches.
-//!   Final results keep backend-priority URL winners and the existing sort;
+//!   Final results keep backend-priority URL winners and known-quality descending order;
 //!   progressive batches are provisional until that final result.
 
 use std::collections::{BTreeMap, HashSet};
@@ -268,7 +268,7 @@ impl Source for RiveStream {
                     && seen.insert(card.url.clone())
             })
             .collect();
-        cards.sort_by_key(|card| std::cmp::Reverse(quality_order(&card.quality)));
+        cards.sort_by_key(|card| std::cmp::Reverse(parse_height(&card.quality)));
         let streams: Vec<_> = cards
             .iter()
             .filter_map(|card| {
@@ -595,19 +595,6 @@ fn quality_from_label(label: &str) -> String {
             }
         }
         None => label.to_string(),
-    }
-}
-
-fn quality_order(quality: &str) -> u8 {
-    match quality {
-        "4K" | "2160p" => 0,
-        "1440p" => 1,
-        "1080p" => 2,
-        "720p" => 3,
-        "480p" => 4,
-        "360p" => 5,
-        "HLS" => 6,
-        _ => 9,
     }
 }
 
