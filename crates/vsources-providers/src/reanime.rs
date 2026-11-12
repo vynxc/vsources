@@ -345,7 +345,7 @@ impl ReAnime {
             };
             match anime.anilist_id {
                 Some(id) => id,
-                None => match fetch_anime_meta(ctx, &anime.anime_id).await {
+                None => match fetch_anime_meta(ctx, &anime.anime_id, api).await {
                     Some(id) => id,
                     None => return Vec::new(),
                 },
@@ -378,7 +378,7 @@ impl ReAnime {
             }
             // The current FlixCloud download route is directly playable and
             // avoids the legacy encrypted-playlist adapter requirement.
-            if let Some((url, quality)) = resolve_flix_download(ctx, &access_id).await {
+            if let Some((url, quality)) = resolve_flix_download(ctx, &access_id, api).await {
                 if seen.insert(url.as_str().to_string()) {
                     streams.push(ReanimeStream {
                         name: format!(
@@ -394,7 +394,10 @@ impl ReAnime {
                 }
                 continue;
             }
-            let Some(flix) = resolve_flixcloud(ctx, &access_id).await else {
+            if api.failure.is_some() {
+                return Vec::new();
+            }
+            let Some(flix) = resolve_flixcloud(ctx, &access_id, api).await else {
                 continue;
             };
             if !seen.insert(flix.master_url.clone()) {
@@ -548,9 +551,9 @@ fn title_queries(title: &str) -> Vec<String> {
 
 /// The watch-page anilist id — the port of `fetchAnimeMeta`
 /// (`GET /watch/<animeId>?ep=1`).
-async fn fetch_anime_meta(ctx: &ResolveCtx<'_>, anime_id: &str) -> Option<u64> {
+async fn fetch_anime_meta(ctx: &ResolveCtx<'_>, anime_id: &str, api: &mut ApiState) -> Option<u64> {
     let url = format!("{BASE_URL}/watch/{anime_id}?ep=1");
-    let html = fetch_text_retry(ctx, &url).await?;
+    let html = fetch_text_retry(ctx, &url, api).await?;
     ANILIST_ID
         .captures(&html)
         .ok()
@@ -612,18 +615,21 @@ async fn fetch_flix_servers(
 /// Resolve the site's current Svelte download metadata (Nuvio's September
 /// 2026 `ReAnime` adapter uses the same endpoint). Values are indexes into the
 /// node's devalue array; parse those references instead of guessing tokens.
-async fn resolve_flix_download(ctx: &ResolveCtx<'_>, access_id: &str) -> Option<(Url, String)> {
+async fn resolve_flix_download(
+    ctx: &ResolveCtx<'_>,
+    access_id: &str,
+    api: &mut ApiState,
+) -> Option<(Url, String)> {
     let url = Url::parse(&format!("{FLIXCLOUD}/d/{access_id}/__data.json")).ok()?;
-    let response = ctx
-        .fetcher
-        .request(
-            FetchRequest::get(url)
-                .with_header("Referer", format!("{FLIXCLOUD}/"))
-                .with_header("User-Agent", UA)
-                .with_timeout(Duration::from_secs(8)),
-        )
-        .await
-        .ok()?;
+    let response = guarded_fetch(
+        ctx,
+        FetchRequest::get(url)
+            .with_header("Referer", format!("{FLIXCLOUD}/"))
+            .with_header("User-Agent", UA)
+            .with_timeout(Duration::from_secs(8)),
+        api,
+    )
+    .await?;
     if !response.is_success() {
         return None;
     }
@@ -674,13 +680,14 @@ fn download_from_data(data: &Value) -> Option<(Url, String)> {
 async fn resolve_flixcloud(
     ctx: &ResolveCtx<'_>,
     access_id: &str,
+    api: &mut ApiState,
 ) -> Option<crate::nuvio::flixcloud::FlixStream> {
     let page_url = format!("{FLIXCLOUD}/e/{access_id}?v=2");
-    let response = flix_get(ctx, &page_url).await?;
+    let response = flix_get(ctx, &page_url, api).await?;
     let page = parse_flix_page(&response.body)?;
 
     let token_url = format!("{FLIXCLOUD}/api/m3u8/{}", page.token_value);
-    let response = flix_get(ctx, &token_url).await?;
+    let response = flix_get(ctx, &token_url, api).await?;
     let json: Value = serde_json::from_str(&response.body).ok()?;
     let (vid_b64, key_b64) = m3u8_token_fields(&json, &page.token_value)?;
     let materials = page.materials(&vid_b64, &key_b64);
@@ -689,13 +696,13 @@ async fn resolve_flixcloud(
 
 /// One flixcloud fetch — `fetchBufNodeChain` (the simple UA, a plain
 /// `Accept`, no retry).
-async fn flix_get(ctx: &ResolveCtx<'_>, url: &str) -> Option<FetchResponse> {
+async fn flix_get(ctx: &ResolveCtx<'_>, url: &str, api: &mut ApiState) -> Option<FetchResponse> {
     let url = Url::parse(url).ok()?;
     let request = FetchRequest::get(url)
         .with_header("User-Agent", UA_SIMPLE)
         .with_header("Accept", "*/*")
         .with_timeout(FETCH_TIMEOUT);
-    let response = ctx.fetcher.request(request).await.ok()?;
+    let response = guarded_fetch(ctx, request, api).await?;
     if !response.is_success() {
         return None;
     }
@@ -705,6 +712,36 @@ async fn flix_get(ctx: &ResolveCtx<'_>, url: &str) -> Option<FetchResponse> {
 // ---------------------------------------------------------------------------
 // Fetch helpers with retry
 // ---------------------------------------------------------------------------
+
+async fn guarded_fetch(
+    ctx: &ResolveCtx<'_>,
+    request: FetchRequest,
+    api: &mut ApiState,
+) -> Option<FetchResponse> {
+    if api.failure.is_some() {
+        return None;
+    }
+    let response = match ctx.fetcher.request(request).await {
+        Ok(response) => response,
+        Err(
+            error @ (FetchError::RateLimited { .. }
+            | FetchError::Http {
+                status: 401 | 403 | 429,
+                ..
+            }
+            | FetchError::Blocked { .. }),
+        ) => {
+            api.failure = Some(error);
+            return None;
+        }
+        Err(_) => return None,
+    };
+    if let Some(error) = access_error(&response.url, response.status, &response.headers) {
+        api.failure = Some(error);
+        return None;
+    }
+    Some(response)
+}
 
 async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url, api: &mut ApiState) -> Option<Value> {
     if api.failure.is_some() {
@@ -729,25 +766,12 @@ async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url, api: &mut ApiState) -> 
             .with_header("Accept", "application/json")
             .with_header("Referer", format!("{origin}/"))
             .with_timeout(Duration::from_secs(4));
-        let response = match ctx.fetcher.request(request).await {
-            Ok(response) => response,
-            Err(
-                error @ (FetchError::RateLimited { .. }
-                | FetchError::Http {
-                    status: 401 | 403 | 429,
-                    ..
-                }
-                | FetchError::Blocked { .. }),
-            ) => {
-                api.failure = Some(error);
+        let Some(response) = guarded_fetch(ctx, request, api).await else {
+            if api.failure.is_some() {
                 return None;
             }
-            Err(_) => continue,
+            continue;
         };
-        if let Some(error) = access_error(&response.url, response.status, &response.headers) {
-            api.failure = Some(error);
-            return None;
-        }
         if response.is_success()
             && let Ok(json) = serde_json::from_str::<Value>(&response.body)
         {
@@ -759,7 +783,7 @@ async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url, api: &mut ApiState) -> 
 
 /// GET a URL as text with the 3-attempt retry — the scraper's
 /// `fetchText`.
-async fn fetch_text_retry(ctx: &ResolveCtx<'_>, url: &str) -> Option<String> {
+async fn fetch_text_retry(ctx: &ResolveCtx<'_>, url: &str, api: &mut ApiState) -> Option<String> {
     let Ok(url) = Url::parse(url) else {
         return None;
     };
@@ -769,10 +793,13 @@ async fn fetch_text_retry(ctx: &ResolveCtx<'_>, url: &str) -> Option<String> {
             .with_header("Accept", "*/*")
             .with_header("Referer", format!("{BASE_URL}/"))
             .with_timeout(FETCH_TIMEOUT);
-        if let Ok(response) = ctx.fetcher.request(request).await
+        if let Some(response) = guarded_fetch(ctx, request, api).await
             && response.is_success()
         {
             return Some(response.body);
+        }
+        if api.failure.is_some() {
+            return None;
         }
         if attempt + 1 < RETRIES {
             tokio::time::sleep(retry_backoff(attempt)).await;
@@ -1203,6 +1230,88 @@ mod tests {
                 ..
             })
         ));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn denied_watch_lookup_stops_without_retry_or_alternate_title() {
+        for status in [401, 403, 429] {
+            let search = serde_json::json!({"results":[{
+                "anime_id":"fixture-watch","anilist_id":0,"season_year":2014,
+                "title":{"english":"Haikyuu!!"}
+            }]});
+            let mock = Arc::new(
+                ScriptedFetcher::default()
+                    .page(
+                        format!("/3/tv/{TMDB_ID}"),
+                        200,
+                        r#"{"name":"Haikyuu!!","first_air_date":"2014-04-06"}"#,
+                    )
+                    .page("/api/v1/search", 200, search.to_string())
+                    .page("/watch/fixture-watch", status, "denied"),
+            );
+            let result = provider(&mock)
+                .resolve(
+                    &ctx_for(&mock),
+                    &MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 1),
+                )
+                .await;
+            assert!(matches!(
+                result,
+                Err(SourceError::Fetch(
+                    FetchError::Http {
+                        status: 401 | 403,
+                        ..
+                    } | FetchError::RateLimited { .. }
+                ))
+            ));
+            assert_eq!(
+                mock.requests()
+                    .iter()
+                    .filter(|request| request.url.path() == "/watch/fixture-watch")
+                    .count(),
+                1
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn denied_download_stops_before_legacy_and_next_server() {
+        for status in [401, 403, 429] {
+            let servers = serde_json::json!({"success":true,"servers":[
+                {"serverName":"first","dataType":"sub","dataLink":"https://flixcloud.cc/e/vimu1sw5xonj"},
+                {"serverName":"second","dataType":"dub","dataLink":"https://flixcloud.cc/e/next-fixture"}
+            ]});
+            let mock = Arc::new(
+                pages(ScriptedFetcher::default())
+                    .page(
+                        format!("{BASE_URL}/api/flix/11/1"),
+                        200,
+                        servers.to_string(),
+                    )
+                    .page("/d/vimu1sw5xonj/__data.json", status, "denied"),
+            );
+            let result = provider(&mock)
+                .resolve(
+                    &ctx_for(&mock),
+                    &MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 1),
+                )
+                .await;
+            assert!(matches!(
+                result,
+                Err(SourceError::Fetch(
+                    FetchError::Http {
+                        status: 401 | 403,
+                        ..
+                    } | FetchError::RateLimited { .. }
+                ))
+            ));
+            assert!(
+                mock.requests()
+                    .iter()
+                    .all(|request| !request.url.path().starts_with("/e/")
+                        && !request.url.path().contains("next-fixture"))
+            );
+        }
     }
 
     // -- fixtures ------------------------------------------------------------
