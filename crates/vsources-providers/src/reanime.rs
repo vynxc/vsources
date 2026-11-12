@@ -11,9 +11,9 @@
 //! Legacy encrypted HLS carries its adapter key in `Stream::behavior_hints` and
 //! requires the corresponding playback adapter.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::sync::{Arc, LazyLock};
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use async_trait::async_trait;
 use fancy_regex::Regex;
@@ -81,6 +81,46 @@ static ACCESS_ID: LazyLock<Regex> = LazyLock::new(|| {
 static TRAILING_PARENS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\s*\(.*?\)\s*$").unwrap_or_else(|e| panic!("valid trailing-parens pattern: {e}"))
 });
+
+#[derive(Default)]
+struct ApiState {
+    failure: Option<FetchError>,
+}
+
+fn access_error(url: &Url, status: u16, headers: &BTreeMap<String, String>) -> Option<FetchError> {
+    match status {
+        401 | 403 => Some(FetchError::Http {
+            url: url.clone(),
+            status,
+        }),
+        429 => {
+            let retry_after_ms = headers
+                .iter()
+                .find(|(name, _)| name.eq_ignore_ascii_case("retry-after"))
+                .and_then(|(_, value)| {
+                    value
+                        .parse::<u64>()
+                        .ok()
+                        .map(|seconds| seconds.saturating_mul(1000))
+                        .or_else(|| {
+                            httpdate::parse_http_date(value).ok().and_then(|date| {
+                                u64::try_from(
+                                    date.duration_since(SystemTime::now())
+                                        .unwrap_or_default()
+                                        .as_millis(),
+                                )
+                                .ok()
+                            })
+                        })
+                });
+            Some(FetchError::RateLimited {
+                url: url.clone(),
+                retry_after_ms,
+            })
+        }
+        _ => None,
+    }
+}
 
 /// One reanime search result.
 #[derive(Debug, Clone)]
@@ -183,10 +223,14 @@ impl Source for ReAnime {
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
         let title = display_title(&name, year, media);
 
-        let sweep = async { self.sweep(ctx, &name, year, media).await };
+        let mut api = ApiState::default();
+        let sweep = async { self.sweep(ctx, &name, year, media, &mut api).await };
         let raw = with_deadline(sweep, SWEEP_DEADLINE)
             .await
             .unwrap_or_default();
+        if let Some(error) = api.failure {
+            return Err(error.into());
+        }
         if raw.is_empty() {
             return Err(SourceError::NotFound);
         }
@@ -210,9 +254,21 @@ impl Source for ReAnime {
                 FetchRequest::get(stream.url.clone()).with_timeout(Duration::from_secs(3));
             request.headers.clone_from(&stream.meta.request_headers);
             request = request.with_header("Range", "bytes=0-131071");
-            let Ok(Some(prefix)) = ctx.fetcher.probe(request, 131_072).await else {
-                continue;
+            let prefix = match ctx.fetcher.probe(request, 131_072).await {
+                Ok(Some(prefix)) => prefix,
+                Err(
+                    error @ (FetchError::RateLimited { .. }
+                    | FetchError::Http {
+                        status: 401 | 403 | 429,
+                        ..
+                    }
+                    | FetchError::Blocked { .. }),
+                ) => return Err(error.into()),
+                _ => continue,
             };
+            if let Some(error) = access_error(&prefix.url, prefix.status, &prefix.headers) {
+                return Err(error.into());
+            }
             if !(200..300).contains(&prefix.status) {
                 continue;
             }
@@ -255,17 +311,20 @@ impl ReAnime {
         name: &str,
         year: Option<u16>,
         media: &MediaRef,
+        api: &mut ApiState,
     ) -> Vec<ReanimeStream> {
         if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
-            let streams = self.sweep_inner(ctx, name, year, media, Some(ids)).await;
+            let streams = self
+                .sweep_inner(ctx, name, year, media, Some(ids), api)
+                .await;
             if !streams.is_empty() {
                 return streams;
             }
         }
-        if media.season.is_some_and(|season| season != 1) {
+        if api.failure.is_some() || media.season.is_some_and(|season| season != 1) {
             return Vec::new();
         }
-        self.sweep_inner(ctx, name, year, media, None).await
+        self.sweep_inner(ctx, name, year, media, None, api).await
     }
 
     async fn sweep_inner(
@@ -275,12 +334,13 @@ impl ReAnime {
         year: Option<u16>,
         media: &MediaRef,
         mapped: Option<vsources_core::mappings::SeasonIds>,
+        api: &mut ApiState,
     ) -> Vec<ReanimeStream> {
         let is_tv = media.season.is_some();
         let anilist_id = if let Some(ids) = mapped {
             ids.anilist_id
         } else {
-            let Some(anime) = find_anime_by_title(ctx, name, year, is_tv).await else {
+            let Some(anime) = find_anime_by_title(ctx, name, year, is_tv, api).await else {
                 return Vec::new();
             };
             match anime.anilist_id {
@@ -294,7 +354,7 @@ impl ReAnime {
 
         // Absolute episode numbering; movies watch episode 1.
         let ep_num = if is_tv { media.episode.unwrap_or(1) } else { 1 };
-        let servers = fetch_flix_servers(ctx, anilist_id, ep_num).await;
+        let servers = fetch_flix_servers(ctx, anilist_id, ep_num, api).await;
         if servers.is_empty() {
             return Vec::new();
         }
@@ -360,7 +420,11 @@ impl ReAnime {
 // Search + match
 // ---------------------------------------------------------------------------
 
-async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult> {
+async fn search_reanime(
+    ctx: &ResolveCtx<'_>,
+    query: &str,
+    api: &mut ApiState,
+) -> Vec<ReanimeResult> {
     for path in ["/api/v1/search", "/api/search"] {
         let Ok(mut url) = Url::parse(&format!("{BASE_URL}{path}")) else {
             continue;
@@ -368,7 +432,7 @@ async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult>
         url.query_pairs_mut()
             .append_pair("q", query)
             .append_pair("limit", "36");
-        if let Some(json) = fetch_api_json(ctx, &url).await {
+        if let Some(json) = fetch_api_json(ctx, &url, api).await {
             let results = parse_search_results(&json);
             if !results.is_empty() {
                 return results;
@@ -443,12 +507,13 @@ async fn find_anime_by_title(
     title: &str,
     year: Option<u16>,
     is_tv: bool,
+    api: &mut ApiState,
 ) -> Option<ReanimeResult> {
     let normalized = normalize(title);
     let target_year = u32::from(year.unwrap_or(0));
     let tolerance = if is_tv { 3 } else { 1 };
     for query in title_queries(title) {
-        for result in search_reanime(ctx, &query).await {
+        for result in search_reanime(ctx, &query, api).await {
             if normalize(&result.title) != normalized {
                 continue;
             }
@@ -501,11 +566,16 @@ async fn fetch_anime_meta(ctx: &ResolveCtx<'_>, anime_id: &str) -> Option<u64> {
 /// The flix server list — the port of the `/api/flix/<anilistId>/<ep>`
 /// fetch (a `{success, servers}` answer, `success: false` or an empty
 /// server list both yielding nothing).
-async fn fetch_flix_servers(ctx: &ResolveCtx<'_>, anilist_id: u64, ep: u32) -> Vec<FlixServer> {
+async fn fetch_flix_servers(
+    ctx: &ResolveCtx<'_>,
+    anilist_id: u64,
+    ep: u32,
+    api: &mut ApiState,
+) -> Vec<FlixServer> {
     let Ok(url) = Url::parse(&format!("{BASE_URL}/api/flix/{anilist_id}/{ep}")) else {
         return Vec::new();
     };
-    let Some(json) = fetch_api_json(ctx, &url).await else {
+    let Some(json) = fetch_api_json(ctx, &url, api).await else {
         return Vec::new();
     };
     if json.get("success").and_then(Value::as_bool) != Some(true) {
@@ -636,7 +706,10 @@ async fn flix_get(ctx: &ResolveCtx<'_>, url: &str) -> Option<FetchResponse> {
 // Fetch helpers with retry
 // ---------------------------------------------------------------------------
 
-async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
+async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url, api: &mut ApiState) -> Option<Value> {
+    if api.failure.is_some() {
+        return None;
+    }
     let initial = url.origin().ascii_serialization();
     if !API_ORIGINS.contains(&initial.as_str()) {
         return None;
@@ -656,9 +729,25 @@ async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
             .with_header("Accept", "application/json")
             .with_header("Referer", format!("{origin}/"))
             .with_timeout(Duration::from_secs(4));
-        let Ok(response) = ctx.fetcher.request(request).await else {
-            continue;
+        let response = match ctx.fetcher.request(request).await {
+            Ok(response) => response,
+            Err(
+                error @ (FetchError::RateLimited { .. }
+                | FetchError::Http {
+                    status: 401 | 403 | 429,
+                    ..
+                }
+                | FetchError::Blocked { .. }),
+            ) => {
+                api.failure = Some(error);
+                return None;
+            }
+            Err(_) => continue,
         };
+        if let Some(error) = access_error(&response.url, response.status, &response.headers) {
+            api.failure = Some(error);
+            return None;
+        }
         if response.is_success()
             && let Ok(json) = serde_json::from_str::<Value>(&response.body)
         {
@@ -987,7 +1076,7 @@ mod tests {
             .unwrap_or_else(|error| panic!("fixture URL: {error}"));
         let result = tokio::time::timeout(
             Duration::from_secs(1),
-            fetch_api_json(&ctx_for(&mock), &url),
+            fetch_api_json(&ctx_for(&mock), &url, &mut ApiState::default()),
         )
         .await
         .unwrap_or_else(|error| panic!("stale HTML spent retry backoff budget: {error}"))
@@ -1019,7 +1108,8 @@ mod tests {
             }]});
             let mock =
                 Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
-            let results = search_reanime(&ctx_for(&mock), "Frieren").await;
+            let results =
+                search_reanime(&ctx_for(&mock), "Frieren", &mut ApiState::default()).await;
             assert_eq!(results.len(), 1);
             assert_eq!(results[0].anilist_id, expected, "{file}");
         }
@@ -1033,7 +1123,7 @@ mod tests {
         }]});
         let mock =
             Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
-        let results = search_reanime(&ctx_for(&mock), "Frieren").await;
+        let results = search_reanime(&ctx_for(&mock), "Frieren", &mut ApiState::default()).await;
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].anilist_id, Some(154_587));
         assert_eq!(results[0].anime_id, "frieren-fixture");
@@ -1052,7 +1142,7 @@ mod tests {
                 .page("/api/v1/search", 404, "missing")
                 .page("/api/search", 200, value.to_string()),
         );
-        let results = search_reanime(&ctx_for(&mock), "Frieren").await;
+        let results = search_reanime(&ctx_for(&mock), "Frieren", &mut ApiState::default()).await;
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].anilist_id, Some(154_587));
         assert_eq!(mock.requests().len(), API_ORIGINS.len() + 1);
@@ -1065,38 +1155,54 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn current_api_uses_only_published_anonymous_fallbacks_after_http_failure() {
+    async fn current_api_auth_and_rate_limits_stop_all_paths_and_origins() {
         for status in [401, 403, 429] {
             let mock = Arc::new(
                 ScriptedFetcher::default()
+                    .page("/api/v1/search", status, "denied")
+                    .page("/api/search", 200, r#"{"results":[]}"#)
                     .page(
-                        "https://reanime.cz/api/flix/154587/2",
-                        status,
-                        "unavailable",
-                    )
-                    .page(
-                        "https://reanime.to/api/flix/154587/2",
+                        "/api/flix/154587/2",
                         200,
                         r#"{"success":true,"servers":[]}"#,
                     ),
             );
-            let url = Url::parse("https://reanime.cz/api/flix/154587/2")
-                .unwrap_or_else(|error| panic!("fixture URL: {error}"));
-            assert_eq!(
-                fetch_api_json(&ctx_for(&mock), &url)
+            let mut api = ApiState::default();
+            assert!(
+                search_reanime(&ctx_for(&mock), "Frieren", &mut api)
                     .await
-                    .map(|value| value["success"].clone()),
-                Some(Value::Bool(true))
+                    .is_empty()
             );
-            let requests = mock.requests();
-            assert_eq!(requests.len(), 2);
-            assert!(requests.iter().all(|request| {
-                request
-                    .headers
-                    .keys()
-                    .all(|name| ["User-Agent", "Accept", "Referer"].contains(&name.as_str()))
-            }));
+            assert!(
+                fetch_flix_servers(&ctx_for(&mock), 154_587, 2, &mut api)
+                    .await
+                    .is_empty()
+            );
+            assert!(api.failure.is_some());
+            assert_eq!(mock.requests().len(), 1);
         }
+    }
+
+    #[test]
+    fn retry_after_seconds_and_http_date_are_preserved() {
+        let url = Url::parse(BASE_URL).unwrap_or_else(|error| panic!("fixture: {error}"));
+        let headers = BTreeMap::from([("Retry-After".into(), "37".into())]);
+        assert!(matches!(
+            access_error(&url, 429, &headers),
+            Some(FetchError::RateLimited {
+                retry_after_ms: Some(37_000),
+                ..
+            })
+        ));
+        let headers =
+            BTreeMap::from([("retry-after".into(), "Wed, 21 Oct 2015 07:28:00 GMT".into())]);
+        assert!(matches!(
+            access_error(&url, 429, &headers),
+            Some(FetchError::RateLimited {
+                retry_after_ms: Some(0),
+                ..
+            })
+        ));
     }
 
     // -- fixtures ------------------------------------------------------------
