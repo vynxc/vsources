@@ -652,3 +652,23 @@ fn audio_evidence_ignores_unreferenced_renditions_and_quoted_subtitle_names() {
         vec![vsources_core::types::CountryCode::Fr]
     );
 }
+
+#[tokio::test]
+async fn preferred_language_does_not_probe_a_known_incompatible_stream() {
+    let fetcher = ScriptedFetcher::default();
+    let mut source = stream("/hindi.m3u8", Format::Hls);
+    source.meta.languages = vec![vsources_core::types::CountryCode::Hi];
+    let output = probe()
+        .filter_progressive(
+            &fetcher,
+            vec![source],
+            Some(vsources_core::types::CountryCode::En),
+            |_| {},
+        )
+        .await;
+    assert_eq!(
+        output[0].meta.languages,
+        vec![vsources_core::types::CountryCode::Hi]
+    );
+    assert!(fetcher.requests().is_empty());
+}

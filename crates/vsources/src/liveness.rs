@@ -192,7 +192,25 @@ impl StreamProbe {
             .map(|(i, source)| {
                 Box::pin(async move {
                     let mut source = source.clone();
-                    let result = self.inspect(fetcher, &source).await;
+                    let compatible = audio_language.is_none_or(|target| {
+                        source.meta.audio_selection.as_ref().map_or_else(
+                            || {
+                                source.meta.languages.iter().all(|language| {
+                                    *language == vsources_core::types::CountryCode::Multi
+                                }) || source.meta.languages.contains(&target)
+                            },
+                            |selected| selected.language == target,
+                        )
+                    });
+                    let result = if compatible {
+                        self.inspect(fetcher, &source).await
+                    } else {
+                        CachedVerdict {
+                            verdict: Verdict::Unknown,
+                            ttl: self.config.unknown_ttl,
+                            audio: AudioEvidence::default(),
+                        }
+                    };
                     if !result.audio.languages.is_empty() {
                         source.meta.languages = result.audio.languages;
                     }
