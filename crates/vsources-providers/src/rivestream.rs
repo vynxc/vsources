@@ -387,7 +387,7 @@ async fn resolve_source(
             } else if quality_label.is_empty() {
                 "MP4".to_string()
             } else {
-                quality_from_label(&quality_label)
+                quality_label.clone()
             };
         return vec![ScrapedCard {
             url: source.url,

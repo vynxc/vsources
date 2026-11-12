@@ -51,6 +51,12 @@ async fn declared_languages_are_not_audio_codecs_or_default_english() {
         ("720p | Multi Audio", vec![CountryCode::Multi]),
         ("720p | mystery", vec![]),
         ("720p | Not English", vec![]),
+        ("720p | No English", vec![]),
+        ("720p | No English, Hindi", vec![]),
+        ("720p | Hindi/No English", vec![]),
+        ("720p | no,en", vec![CountryCode::No, CountryCode::En]),
+        ("720p | Hindi + No English", vec![]),
+        ("720p | no", vec![CountryCode::No]),
         ("720p | English subtitles", vec![]),
         ("720p | French", vec![CountryCode::Fr]),
     ] {
@@ -115,4 +121,34 @@ fn codec_hints_require_an_actual_unambiguous_attribute() {
             .audio
             .is_empty()
     );
+}
+
+#[test]
+fn external_rendition_codecs_are_not_claimed_on_detached_child() {
+    let hints = manifest_hints(
+        r#"#EXT-X-STREAM-INF:RESOLUTION=1920x1080,CODECS="avc1.640028,mp4a.40.2",AUDIO="external""#,
+    );
+    assert_eq!(hints.codec.as_deref(), Some("AVC"));
+    assert!(hints.audio.is_empty());
+    assert!(
+        manifest_hints(r#"#EXT-X-STREAM-INF:CODECS="mp4a.40.2",AUDIO=unknown"#)
+            .audio
+            .is_empty()
+    );
+}
+
+#[tokio::test]
+async fn mp4_labels_preserve_existing_ordering_until_the_separate_sort_fix()
+-> Result<(), SourceError> {
+    let mock = Arc::new(tmdb_mock().page("/api/provider", 200,
+        r#"{"data":{"sources":[{"quality":"1080p","url":"https://media.example/plain.mp4","format":"mp4"},{"quality":"1080p | English","url":"https://media.example/labelled.mp4","format":"mp4"}]}}"#));
+    let source = provider(&mock);
+    let ctx = ctx_for(&mock);
+    let streams = source
+        .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(TMDB_ID)))
+        .await?;
+    assert_eq!(streams.len(), 2);
+    assert_eq!(streams[0].url.path(), "/labelled.mp4");
+    assert_eq!(streams[1].url.path(), "/plain.mp4");
+    Ok(())
 }

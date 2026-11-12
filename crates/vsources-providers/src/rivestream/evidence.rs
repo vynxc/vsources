@@ -30,6 +30,18 @@ pub(super) fn parse_language(language: &str) -> String {
 
 pub(super) fn parse_country_codes(language: &str) -> Vec<CountryCode> {
     let lower = language.to_ascii_lowercase();
+    // A standalone ISO "no" is Norwegian; a natural-language negation is not.
+    let words: Vec<_> = lower.split_whitespace().collect();
+    if words.windows(2).any(|pair| {
+        let previous = pair[0]
+            .rsplit([',', '/', '+', '&'])
+            .next()
+            .unwrap_or_default();
+        let following = pair[1].trim_matches(|character: char| !character.is_alphabetic());
+        previous == "no" && !following.is_empty()
+    }) {
+        return Vec::new();
+    }
     // Subtitle declarations do not establish spoken audio.
     if lower
         .split_whitespace()
@@ -73,7 +85,7 @@ pub(super) fn language_from_label(label: &str) -> String {
         .map_or_else(String::new, |(_, language)| language.trim().to_owned())
 }
 
-fn quoted_attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
+fn attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
     let (_, attributes) = line.split_once(':')?;
     let mut quoted = false;
     let mut start = 0;
@@ -89,7 +101,7 @@ fn quoted_attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
             if let Some((key, value)) = field.split_once('=')
                 && key == name
             {
-                return value.strip_prefix('"')?.strip_suffix('"');
+                return Some(value.trim());
             }
             start = index + 1;
         }
@@ -97,8 +109,15 @@ fn quoted_attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
     None
 }
 
+fn quoted_attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
+    attribute(line, name)?.strip_prefix('"')?.strip_suffix('"')
+}
+
 pub(super) fn manifest_hints(line: &str) -> TechnicalHints {
     let mut hints = TechnicalHints::default();
+    if line.chars().filter(|character| *character == '"').count() % 2 != 0 {
+        return hints;
+    }
     let mut conflicting_video = false;
     for codec in quoted_attribute(line, "CODECS")
         .unwrap_or_default()
@@ -132,8 +151,12 @@ pub(super) fn manifest_hints(line: &str) -> TechnicalHints {
             hints.audio.push(audio.into());
         }
     }
-    if conflicting_video {
+    // CODECS may describe external groups, not the detached child URI we emit.
+    if conflicting_video || attribute(line, "VIDEO").is_some() {
         hints.codec = None;
+    }
+    if attribute(line, "AUDIO").is_some() {
+        hints.audio.clear();
     }
     hints
 }
