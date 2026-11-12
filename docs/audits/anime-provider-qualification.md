@@ -16,6 +16,8 @@ The pinned SDK `320645b0` worker ran 36 source samples: one verified Frieren epi
 
 The worker receives numeric TMDB MediaId values. AniList and MAL IDs were verified through canonical mappings and primary metadata, not inserted into the TMDB field. No later-season numbering was guessed. Movie/series deserialization and language classification were checked offline first.
 
+Language declaration counts below are **SDK-output labels**, including any fallback fields supplied by a wrapper; they are not independent upstream declarations or evidence of selected spoken language. [Issue 31](https://github.com/viptv-org/vsources/issues/31) separately tracks inherited StreamX metadata overwrite. Observed decoder track tags remain a separate evidence category.
+
 ## All-route discovery
 
 Completion timings below are cold source-discovery times, not playback startup times. These single-fixture outcomes do not establish global provider availability.
@@ -45,7 +47,7 @@ Portal names are not independent CDN coverage. AllWish, AniDoor, Anikoto, Anikot
 
 ## Shortlist follow-up
 
-AnimeKai and AnikotoTV were selected for repeatable declared-dub and Japanese/English-caption contexts. Across three verified fixtures and both modes, 12 selected cases produced 24 source samples: one fresh engine and one reused-engine sample per case. Ten cases resolved; both AnikotoTV Akira modes were empty immediately with zero requests. The reused-engine timings are cache behavior, not renewed origin availability.
+AnimeKai and AnikotoTV were selected for repeatable SDK-labeled dub and Japanese/English-caption contexts. Across three verified fixtures and both modes, 12 selected cases produced 24 source samples: one fresh engine and one reused-engine sample per case. Ten cases resolved; both AnikotoTV Akira modes were empty immediately with zero requests. The reused-engine timings are cache behavior, not renewed origin availability.
 
 | Route | Fresh resolve range for positive cases | Reused-engine range | Decoded cases |
 |---|---:|---:|---:|
@@ -56,7 +58,7 @@ Each of the ten positive cases decoded about 8 seconds of audio/video (190–198
 
 In those policy-override attempts, first decoded-video progress arrived 1.916–2.697s after decoder launch for AnimeKai (median2.410s, n=6) and 1.440–1.737s for AnikotoTV (median1.624s, n=4). These timings exclude source resolution and the preceding strict refusal; they are not deployed end-to-end startup times.
 
-All selected audio streams were untagged in the decoder evidence. Five dub cases had provider-declared English DUB contexts and decoded audio/video, but English speech was not independently established. Five ordinary cases had provider-declared Japanese audio with English captions; the decoded audio language remained unknown. Subtitles never establish dubbed audio.
+All selected audio streams were untagged in the decoder evidence. Five dub cases had SDK-labeled English DUB contexts and decoded audio/video, but English speech was not independently established. Five ordinary cases had SDK-labeled Japanese audio with English captions; the decoded audio language remained unknown. Subtitles never establish dubbed audio.
 
 For AnimeKai’s three ordinary cases, a bounded 4096-byte caption prefix contained parseable WebVTT timed cues on an English-declared track. AnikotoTV’s two ordinary caption samples were not verified. No subtitle rendering, translation accuracy, or spoken-language listening assessment was performed.
 
@@ -95,7 +97,9 @@ The current [Anivexa routing implementation](https://github.com/walterwhite-69/A
 
 Separate diagnostic work is not folded into the discovery/playback success counts: two public canonical-mapping calls, one AniWaves metadata redirect check, two ReAnime API metadata checks, three AniChan metadata checks, and one NikaStream root/catalog check. One separately capped larger Matroska-prefix diagnostic failed with an HTTP error and did not establish language availability. Two intermediate forced-source ReAnime samples reproduced ordinary resolution versus a bounded English-selection false negative; two earlier source attempts with uncertain exact artifact provenance were retained as attempts and excluded from repaired-revision qualification.
 
-The ReAnime repairs are measured on merged SDK `b9b84e9`. StreamX [PR 30](https://github.com/viptv-org/vsources/pull/30) is a separate scheduling repair; later final-main attribution requires unchanged ReAnime/core/probe/ABI component hashes rather than repeated media for unrelated source history. Earlier privately built workers whose exact checkout provenance could not be established after shared-target artifact reuse are excluded from repaired-revision qualification.
+A separate **one-sample StreamX scheduling witness** used intermediate head `304179097370d7b5bdb58896f55af5a2f7c12884`: ordinary Frieren S1E2, the same 18-second source budget, and the stricter audit 2-HTTP cap. It retained two SDK-labeled candidates at 18.001s, with the first English-compatible SDK-labeled candidate at 5.726s and an SDK-labeled dub at 6.859s (49 requests;65,573 retained response-body bytes). It performed **zero decodes** and established no spoken language. The final per-mode fairness delta at `9da35754f44c8deb86f6ab457fe1c728da45d690` is fixture-qualified only: 18 focused tests, including shared shipping 4-permit behavior and two slow sub backends not blocking a ready dub lane. The intermediate witness is not final-head live proof; metadata labels are additionally limited by issue 31. This is one additional SDK source sample beyond the 64 primary audit samples, not playback qualification.
+
+The final runtime SDK revision is **`4195c1d71d155270738ff52343e9e2b3c7f6433a`**, after the reviewed final StreamX [PR 30](https://github.com/viptv-org/vsources/pull/30) merged with green CI. ReAnime/core/probe/engine-ABI component hashes and all other build inputs excluding the two StreamX implementation/fixture files match the measured `b9b84e9` tree exactly. This is unchanged-component source attribution: the actual measured binary remains `b9b84e9`, not a newly built final-revision binary. Zero provider or media requests were repeated for attribution. Final StreamX fairness is fixture-qualified only, with the intermediate live witness scoped separately above. Earlier privately built workers whose exact checkout provenance could not be established after shared-target artifact reuse are excluded from repaired-revision qualification.
 
 ## Budgets and limits
 

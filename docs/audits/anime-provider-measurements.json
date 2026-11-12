@@ -879,7 +879,7 @@
   "core_parser_repair": "#22 / PR#24: bounded complete-entry metadata only; no whole-file/spoken-language certification",
   "provider_contract_repair": "#17 / PR#21: current ReAnime API/identity and whole-resolve denial fence",
   "metadata_repair": "#23: remove invented language/codec/quality defaults",
-  "final_repaired_main_validation": "Measured ReAnime/core/ABI at b9b84e9; laterStreamX29 requires unchanged-component hash re-attestation only",
+  "final_repaired_main_validation": "Unchanged ReAnime/core/probe/ABI source attribution PASS at4195c1d; actual measurements/binary b9b84e9; StreamX final fairness separately fixture-qualified",
   "anichan_public_metadata": {
     "calls": 3,
     "statuses": [
@@ -1116,5 +1116,58 @@
     "between_attempt_soft_stop_bytes": 33554432,
     "note": "Completed retained response bodies only; excludes incomplete calls and wire overhead; not a hard network cap.",
     "soft_stop_reached": false
+  },
+  "language_label_definition": "declared_* fields count SDK-output labels, possibly including wrapper fallbacks; not independent upstream declarations or spoken-language certification",
+  "streamx_scheduling_witness": {
+    "sdk_revision": "304179097370d7b5bdb58896f55af5a2f7c12884",
+    "final_fairness_delta_live_tested": false,
+    "provider": "streamxtv",
+    "case": "frieren-s1-e2",
+    "mode": "ordinary",
+    "source_timeout_seconds": 18,
+    "http_concurrency": 2,
+    "source_status": "resolved",
+    "retained_candidates": 2,
+    "first_candidate_ms": 5726.4582869999995,
+    "first_sdk_labeled_dub_ms": 6859.324229,
+    "elapsed_ms": 18001.277933,
+    "requests": 49,
+    "observed_retained_response_body_bytes": 65573,
+    "decode_calls": 0,
+    "language_claim": "SDK labels only; no observed spoken language. Pre-existing embed metadata overwrite tracked independently as SDK31.",
+    "limit_note": "Observed retained response bodies exclude incomplete calls and wire overhead; not a hard network-byte cap. Audit2 is stricter than shipping4 fixture.",
+    "final_fairness_fixture_revision": "9da35754f44c8deb86f6ab457fe1c728da45d690",
+    "final_fairness_named_tests": 18,
+    "final_revision_live_requests": 0,
+    "metadata_overwrite_issue": 31
+  },
+  "assessment_phase_source_samples": 64,
+  "separate_streamx_repair_witness_samples": 1,
+  "final_source_attribution": {
+    "final_runtime_sdk_revision": "4195c1d71d155270738ff52343e9e2b3c7f6433a",
+    "measured_sdk_revision": "b9b84e9f949839010257f52ba88e226f1bf2c9d0",
+    "actual_worker_binary_revision": "b9b84e9f949839010257f52ba88e226f1bf2c9d0",
+    "binary_rebuilt_for_final_revision": false,
+    "new_provider_requests": 0,
+    "new_media_requests": 0,
+    "unchanged_component_hashes": {
+      "reanime": {
+        "sha256": "8d828343f87ef28e2a0093dd719903d495e56850057a54905ec500a9eeec574b",
+        "files": 1
+      },
+      "core_and_engine_abi": {
+        "sha256": "db8401be26d01ec41e098f3770857c6e386b8ac12f7c8a9c5db8713807fbde95",
+        "files": 25
+      },
+      "other_build_inputs_except_streamx": {
+        "sha256": "a2a38e950a92941a5edffc844c50fa3964231824852ad7c11b660430b8eef67e",
+        "files": 196
+      }
+    },
+    "runtime_diff_paths": [
+      "crates/vsources-providers/src/streamxtv.rs",
+      "crates/vsources-providers/src/streamxtv/tests/incremental.rs"
+    ],
+    "qualification_scope": "Unchanged ReAnime/core/probe/ABI source components; final StreamX is separately qualified"
   }
 }
