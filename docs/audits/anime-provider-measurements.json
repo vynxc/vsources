@@ -1,0 +1,883 @@
+{
+  "issue": 10,
+  "measurement_date": "2026-11-12",
+  "baseline_sdk": "320645b0a95ef1ba942e27b8ae4ee1c96ee5a523",
+  "baseline_worker_sha256": "31d1f0ce128c247bfeee6cc5c34a07d46823660408d0878926062c06cbc20cc0",
+  "vantage": "Standalone server worker/software decoder, not deployed beta or physical TV",
+  "licensing_policy": "Recorded for provenance/notices; not an eligibility gate",
+  "baseline": [
+    {
+      "provider": "aniwaves",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "empty",
+      "elapsed_ms": 9883.159,
+      "requests": 11,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "reanime",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "error",
+      "elapsed_ms": 18001.601,
+      "requests": 6,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "anichan",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "empty",
+      "elapsed_ms": 6748.757,
+      "requests": 9,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "animekai",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 5016.456,
+      "requests": 8,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "animegg",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 15957.774,
+      "requests": 11,
+      "cards": 1,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "anikototv",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 2872.148,
+      "requests": 10,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "aniwaves",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "empty",
+      "elapsed_ms": 7081.849,
+      "requests": 14,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "reanime",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "error",
+      "elapsed_ms": 18001.833,
+      "requests": 6,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "anichan",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "empty",
+      "elapsed_ms": 7337.102,
+      "requests": 9,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "animekai",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 4859.06,
+      "requests": 11,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "animegg",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 5151.907,
+      "requests": 12,
+      "cards": 1,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "anikototv",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 3262.578,
+      "requests": 13,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "allwish",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 7417.082,
+      "requests": 17,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "anidoor",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 5247.278,
+      "requests": 17,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "anikage",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 9499.387,
+      "requests": 11,
+      "cards": 5,
+      "declared_english_dub_cards": 2,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "anikoto",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 13639.936,
+      "requests": 33,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "animeflix",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 8150.683,
+      "requests": 18,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "animesuge",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "empty",
+      "elapsed_ms": 3826.592,
+      "requests": 10,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "animotvslash",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 10542.482,
+      "requests": 19,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "hianime",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 11328.362,
+      "requests": 12,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "itachi",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "error",
+      "elapsed_ms": 18002.304,
+      "requests": 3,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "2dhive",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "resolved",
+      "elapsed_ms": 4620.585,
+      "requests": 10,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "nikastream",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "error",
+      "elapsed_ms": 18002.385,
+      "requests": 5,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "streamxtv",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "status": "error",
+      "elapsed_ms": 18001.738,
+      "requests": 31,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "allwish",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 7058.103,
+      "requests": 20,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "anidoor",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 4713.686,
+      "requests": 20,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "anikage",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 7895.938,
+      "requests": 14,
+      "cards": 5,
+      "declared_english_dub_cards": 2,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "anikoto",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 8124.286,
+      "requests": 36,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "animeflix",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 8122.042,
+      "requests": 21,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "animesuge",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "empty",
+      "elapsed_ms": 4254.698,
+      "requests": 10,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "animotvslash",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 5554.981,
+      "requests": 17,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "hianime",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 5534.078,
+      "requests": 15,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "itachi",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 6645.367,
+      "requests": 19,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "2dhive",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "resolved",
+      "elapsed_ms": 3098.26,
+      "requests": 13,
+      "cards": 2,
+      "declared_english_dub_cards": 1,
+      "declared_japanese_english_subtitle_cards": 1
+    },
+    {
+      "provider": "nikastream",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "error",
+      "elapsed_ms": 18001.778,
+      "requests": 5,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    },
+    {
+      "provider": "streamxtv",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "status": "error",
+      "elapsed_ms": 18002.337,
+      "requests": 36,
+      "cards": 0,
+      "declared_english_dub_cards": 0,
+      "declared_japanese_english_subtitle_cards": 0
+    }
+  ],
+  "shortlist": [
+    {
+      "provider": "animekai",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 4747.416279,
+          "requests": 8,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 65.98320100000001,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 198,
+      "seconds": 8.0,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 2697.184,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": true,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 2582873
+    },
+    {
+      "provider": "anikototv",
+      "case": "frieren-s1-e2",
+      "mode": "dub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 3275.165688,
+          "requests": 10,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 65.117636,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 198,
+      "seconds": 8.0,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 1440.412,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": true,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 5294552
+    },
+    {
+      "provider": "animekai",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 4661.096861,
+          "requests": 11,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 67.056879,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 198,
+      "seconds": 8.0,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 2431.887,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": true,
+      "english_declared_caption_cue_prefix_verified": true,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 4065552
+    },
+    {
+      "provider": "anikototv",
+      "case": "frieren-s1-e2",
+      "mode": "sub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 3237.202967,
+          "requests": 13,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 63.589496999999994,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 198,
+      "seconds": 8.0,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 1564.178,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": true,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 4490438
+    },
+    {
+      "provider": "animekai",
+      "case": "cowboy-bebop-s1-e2",
+      "mode": "dub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 3993.537696,
+          "requests": 8,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 68.35291000000001,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 190,
+      "seconds": 8.008,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 1915.617,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": true,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 2276808
+    },
+    {
+      "provider": "anikototv",
+      "case": "cowboy-bebop-s1-e2",
+      "mode": "dub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 3490.947668,
+          "requests": 10,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 33.297442,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 190,
+      "seconds": 8.008,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 1683.154,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": true,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 2282898
+    },
+    {
+      "provider": "animekai",
+      "case": "cowboy-bebop-s1-e2",
+      "mode": "sub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 4237.086447000001,
+          "requests": 11,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 33.52539,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 190,
+      "seconds": 8.008,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 2050.42,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": true,
+      "english_declared_caption_cue_prefix_verified": true,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 2251435
+    },
+    {
+      "provider": "anikototv",
+      "case": "cowboy-bebop-s1-e2",
+      "mode": "sub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 3928.9926140000002,
+          "requests": 13,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 31.716130000000003,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 190,
+      "seconds": 8.008,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 1736.89,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": true,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 2252292
+    },
+    {
+      "provider": "animekai",
+      "case": "akira-film",
+      "mode": "dub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 4103.486755,
+          "requests": 8,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 41.112586,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 192,
+      "seconds": 8.017,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 2504.978,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": true,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 3029616
+    },
+    {
+      "provider": "anikototv",
+      "case": "akira-film",
+      "mode": "dub",
+      "source_samples": [
+        {
+          "status": "empty",
+          "elapsed_ms": 0.18998299999999999,
+          "requests": 0,
+          "engine_reused": false
+        },
+        {
+          "status": "empty",
+          "elapsed_ms": 0.062955,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "no_eligible_candidate",
+      "decode_attempts": 0,
+      "frames": null,
+      "seconds": null,
+      "audio_decoded": false,
+      "selected_audio_language": null,
+      "first_frame_ms": null,
+      "hls_policy_override": {},
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 0
+    },
+    {
+      "provider": "animekai",
+      "case": "akira-film",
+      "mode": "sub",
+      "source_samples": [
+        {
+          "status": "resolved",
+          "elapsed_ms": 4387.886202,
+          "requests": 11,
+          "engine_reused": false
+        },
+        {
+          "status": "resolved",
+          "elapsed_ms": 69.71475000000001,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "decoded_unlabelled_audio",
+      "decode_attempts": 2,
+      "frames": 192,
+      "seconds": 8.017,
+      "audio_decoded": true,
+      "selected_audio_language": null,
+      "first_frame_ms": 2388.028,
+      "hls_policy_override": {
+        "applied": true,
+        "extra_observed_segment_extensions": [
+          "jpg"
+        ],
+        "extension_picky_disabled": true,
+        "finite_allowlist_only": true
+      },
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": true,
+      "english_declared_caption_cue_prefix_verified": true,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 2914360
+    },
+    {
+      "provider": "anikototv",
+      "case": "akira-film",
+      "mode": "sub",
+      "source_samples": [
+        {
+          "status": "empty",
+          "elapsed_ms": 0.15289,
+          "requests": 0,
+          "engine_reused": false
+        },
+        {
+          "status": "empty",
+          "elapsed_ms": 0.08390600000000001,
+          "requests": 0,
+          "engine_reused": true
+        }
+      ],
+      "classification": "no_eligible_candidate",
+      "decode_attempts": 0,
+      "frames": null,
+      "seconds": null,
+      "audio_decoded": false,
+      "selected_audio_language": null,
+      "first_frame_ms": null,
+      "hls_policy_override": {},
+      "shipping_qualification": false,
+      "declared_english_dub": false,
+      "declared_japanese_english_subtitle": false,
+      "english_declared_caption_cue_prefix_verified": false,
+      "subtitle_rendering_verified": false,
+      "relay_consumed_bytes": 0
+    }
+  ],
+  "media_relay_consumed_bytes": 31440824,
+  "media_relay_limit_bytes": 134217728,
+  "media_relay_accounting_note": "Consumed socket/TLS bytes, not packet-wire total; TCP/IP/DNS/kernel prefetch excluded",
+  "source_observed_body_bytes": 7698626,
+  "source_body_limit_note": "32MiB completed-response-body between-attempt soft stop; not wire or hard campaign cap",
+  "core_parser_repair": "#22 / PR#24: bounded complete-entry metadata only; no whole-file/spoken-language certification",
+  "provider_contract_repair": "#17 / PR#21: current ReAnime API/identity and whole-resolve denial fence",
+  "metadata_repair": "#23: remove invented language/codec/quality defaults",
+  "final_repaired_main_validation": "pending final merged source/forced worker build"
+}
