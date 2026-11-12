@@ -1,71 +1,19 @@
-//! `ReAnime`: reanime.to — direct downloads and legacy HLS through `FlixCloud`
-//! CDN.
+//! `ReAnime` progressive files and legacy `FlixCloud` HLS.
 //!
-//! Ports `src/source/ReAnime.js` + `src/nuvio/reanime.cjs`:
+//! Protocol references: `src/source/ReAnime.js` and `src/nuvio/reanime.cjs`.
+//! Canonical season ids take priority; non-base seasons require a usable mapping.
+//! Base-season title fallback retains exact-title and year checks. Site metadata
+//! uses the published JSON API paths/origins with a matching Referer per request.
 //!
-//! 1. TMDB → title/year → `GET /api/v1/search?q=<title>&limit=10`
-//!    (the reanime.to Referer, a 3-attempt retry ladder) → anime
-//!    entries with `anilist_id` (falling back to the id encoded in
-//!    the cover URL, `/nx<id>-<hash>.jpg`) and `season_year`.
-//! 2. An **exact-title + year gate** picks the match: normalized title
-//!    equality plus `|season_year − tmdb_year| ≤ 3` for TV (± 1 for
-//!    movies) — the blind first-result fallback served the wrong
-//!    anime upstream (Task 37). A missing anilist id is recovered
-//!    from the watch page's `anilist_id:<N>` payload.
-//! 3. `GET /api/flix/<anilistId>/<ep>` gives the server embeds. Prefer
-//!    `/d/<accessId>/__data.json`, resolving its indexed download metadata
-//!    into a signed progressive file. Older deployments fall back to the
-//!    shared encrypted HLS chain in [`crate::nuvio::flixcloud`].
-//! 4. The wrapper dedupes by master URL and emits one card per
-//!    server: the `ReAnime [<server>] | 1080p | <dataType>` name, the
-//!    Japanese (Sub) audio label, `x264`/`WebDL` markers, and the
-//!    `[multi, ja, en]` language flags.
-//!
-//! English-only resolution instead inspects at most 128 KiB of each progressive
-//! file's Matroska tracks and returns a required English audio index. Normal
-//! progressive results say "Multi-audio" because the default track may be Japanese
-//! even when the upstream embed category says DUB.
-//!
-//! Upstream oddities ported faithfully:
-//!
-//! - In the legacy HLS path, the wrapper's `isDub` check reads `s.language`/`s.lang`, which
-//!   the scraper **never sets** — every card is `Japanese (Sub)`,
-//!   even for `dataType: "dub"` servers.
-//! - The wrapper's `serverName` fallback chain (`s.source ||
-//!   s.serverName || s.name || 'ReAnime'`) lands on `s.name`, the
-//!   full `ReAnime [HD-1] | 1080p | sub` string, so the label reads
-//!   `… — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)`.
-//!
-//! Cuts for the library port:
-//!
-//! - The `/reanime-proxy/playlist.m3u8?url=…&key=…` URL scheme is cut
-//!   (no server to host it). Cards ship the **direct master URL**
-//!   with the headers the proxy sent upstream (`Referer`/`Origin:
-//!   flixcloud.cc`), and the per-session 32-byte playlist XOR key
-//!   rides [`Stream::behavior_hints`] as `reanimeXorKey` — the
-//!   playlist body is base64+XOR encrypted and the segments are
-//!   image-disguised MPEG-TS, which
-//!   [`nuvio::decrypt`](crate::nuvio::decrypt) handles client-side.
-//!   The proxy's Node `User-Agent` is dropped (the fetcher's browser
-//!   UA replaces it — the net-layer convention).
-//! - The scraper's transport ladder (curl → got-scraping → child
-//!   Node) collapses onto the shared fetcher, which already
-//!   impersonates Chrome TLS; the 3-attempt/3 s-backoff retry of its
-//!   `fetchJson` stays.
-//! - The scraper's own TMDB fetch and its `video_id`/`video_title`
-//!   passthrough (nothing consumed them) — the shared
-//!   [`TmdbClient`] serves the title; `meta.serverName`/
-//!   `audioLabel`/`isMultiAudio` have no [`StreamMeta`] fields (the
-//!   label carries them).
-//! - The wrapper's 30 s race rides
-//!   `with_deadline`.
-//!
-//! [`Stream::behavior_hints`]: vsources_core::types::Stream::behavior_hints
-//! [`StreamMeta`]: vsources_core::types::StreamMeta
+//! Progressive files retain their playback headers. English-only resolution
+//! inspects bounded Matroska tracks and emits a required English audio index;
+//! server categories and subtitle languages do not verify spoken audio.
+//! Legacy encrypted HLS carries its adapter key in `Stream::behavior_hints` and
+//! requires the corresponding playback adapter.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::sync::{Arc, LazyLock};
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use async_trait::async_trait;
 use fancy_regex::Regex;
@@ -88,7 +36,8 @@ const ID: &str = "reanime";
 const LABEL: &str = "ReAnime";
 /// The site origin, upstream `this.baseUrl` / the scraper's
 /// `REANIME_API`.
-const BASE_URL: &str = "https://reanime.to";
+const BASE_URL: &str = "https://reanime.cz";
+const API_ORIGINS: &[&str] = &[BASE_URL, "https://reanime.to", "https://reanime.wtf"];
 /// The `FlixCloud` embed host.
 const FLIXCLOUD: &str = "https://flixcloud.cc";
 /// The full Chrome UA — reanime.to gates on the UA/Referer pair.
@@ -112,9 +61,8 @@ static ANILIST_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"anilist_id:(\d+)").unwrap_or_else(|e| panic!("valid anilist-id pattern: {e}"))
 });
 
-/// `/nx<anilistId>-<hash>.jpg` — the id encoded in a cover URL.
 static COVER_ID: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"/nx(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
+    Regex::new(r"/[nb]?x(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
 });
 
 /// `(\d{3,4})` — the height inside the quality label.
@@ -133,6 +81,46 @@ static ACCESS_ID: LazyLock<Regex> = LazyLock::new(|| {
 static TRAILING_PARENS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\s*\(.*?\)\s*$").unwrap_or_else(|e| panic!("valid trailing-parens pattern: {e}"))
 });
+
+#[derive(Default)]
+struct ApiState {
+    failure: Option<FetchError>,
+}
+
+fn access_error(url: &Url, status: u16, headers: &BTreeMap<String, String>) -> Option<FetchError> {
+    match status {
+        401 | 403 => Some(FetchError::Http {
+            url: url.clone(),
+            status,
+        }),
+        429 => {
+            let retry_after_ms = headers
+                .iter()
+                .find(|(name, _)| name.eq_ignore_ascii_case("retry-after"))
+                .and_then(|(_, value)| {
+                    value
+                        .parse::<u64>()
+                        .ok()
+                        .map(|seconds| seconds.saturating_mul(1000))
+                        .or_else(|| {
+                            httpdate::parse_http_date(value).ok().and_then(|date| {
+                                u64::try_from(
+                                    date.duration_since(SystemTime::now())
+                                        .unwrap_or_default()
+                                        .as_millis(),
+                                )
+                                .ok()
+                            })
+                        })
+                });
+            Some(FetchError::RateLimited {
+                url: url.clone(),
+                retry_after_ms,
+            })
+        }
+        _ => None,
+    }
+}
 
 /// One reanime search result.
 #[derive(Debug, Clone)]
@@ -235,10 +223,14 @@ impl Source for ReAnime {
         let (name, year) = name_and_year(ctx, &self.tmdb, media, tmdb_id).await?;
         let title = display_title(&name, year, media);
 
-        let sweep = async { self.sweep(ctx, &name, year, media).await };
+        let mut api = ApiState::default();
+        let sweep = async { self.sweep(ctx, &name, year, media, &mut api).await };
         let raw = with_deadline(sweep, SWEEP_DEADLINE)
             .await
             .unwrap_or_default();
+        if let Some(error) = api.failure {
+            return Err(error.into());
+        }
         if raw.is_empty() {
             return Err(SourceError::NotFound);
         }
@@ -262,9 +254,21 @@ impl Source for ReAnime {
                 FetchRequest::get(stream.url.clone()).with_timeout(Duration::from_secs(3));
             request.headers.clone_from(&stream.meta.request_headers);
             request = request.with_header("Range", "bytes=0-131071");
-            let Ok(Some(prefix)) = ctx.fetcher.probe(request, 131_072).await else {
-                continue;
+            let prefix = match ctx.fetcher.probe(request, 131_072).await {
+                Ok(Some(prefix)) => prefix,
+                Err(
+                    error @ (FetchError::RateLimited { .. }
+                    | FetchError::Http {
+                        status: 401 | 403 | 429,
+                        ..
+                    }
+                    | FetchError::Blocked { .. }),
+                ) => return Err(error.into()),
+                _ => continue,
             };
+            if let Some(error) = access_error(&prefix.url, prefix.status, &prefix.headers) {
+                return Err(error.into());
+            }
             if !(200..300).contains(&prefix.status) {
                 continue;
             }
@@ -307,14 +311,20 @@ impl ReAnime {
         name: &str,
         year: Option<u16>,
         media: &MediaRef,
+        api: &mut ApiState,
     ) -> Vec<ReanimeStream> {
         if let Some(ids) = crate::anime_mapping::ids(self.mappings.as_ref(), ctx, media).await {
-            let streams = self.sweep_inner(ctx, name, year, media, Some(ids)).await;
+            let streams = self
+                .sweep_inner(ctx, name, year, media, Some(ids), api)
+                .await;
             if !streams.is_empty() {
                 return streams;
             }
         }
-        self.sweep_inner(ctx, name, year, media, None).await
+        if api.failure.is_some() || media.season.is_some_and(|season| season != 1) {
+            return Vec::new();
+        }
+        self.sweep_inner(ctx, name, year, media, None, api).await
     }
 
     async fn sweep_inner(
@@ -324,17 +334,18 @@ impl ReAnime {
         year: Option<u16>,
         media: &MediaRef,
         mapped: Option<vsources_core::mappings::SeasonIds>,
+        api: &mut ApiState,
     ) -> Vec<ReanimeStream> {
         let is_tv = media.season.is_some();
         let anilist_id = if let Some(ids) = mapped {
             ids.anilist_id
         } else {
-            let Some(anime) = find_anime_by_title(ctx, name, year, is_tv).await else {
+            let Some(anime) = find_anime_by_title(ctx, name, year, is_tv, api).await else {
                 return Vec::new();
             };
             match anime.anilist_id {
                 Some(id) => id,
-                None => match fetch_anime_meta(ctx, &anime.anime_id).await {
+                None => match fetch_anime_meta(ctx, &anime.anime_id, api).await {
                     Some(id) => id,
                     None => return Vec::new(),
                 },
@@ -343,7 +354,7 @@ impl ReAnime {
 
         // Absolute episode numbering; movies watch episode 1.
         let ep_num = if is_tv { media.episode.unwrap_or(1) } else { 1 };
-        let servers = fetch_flix_servers(ctx, anilist_id, ep_num).await;
+        let servers = fetch_flix_servers(ctx, anilist_id, ep_num, api).await;
         if servers.is_empty() {
             return Vec::new();
         }
@@ -367,7 +378,7 @@ impl ReAnime {
             }
             // The current FlixCloud download route is directly playable and
             // avoids the legacy encrypted-playlist adapter requirement.
-            if let Some((url, quality)) = resolve_flix_download(ctx, &access_id).await {
+            if let Some((url, quality)) = resolve_flix_download(ctx, &access_id, api).await {
                 if seen.insert(url.as_str().to_string()) {
                     streams.push(ReanimeStream {
                         name: format!(
@@ -383,7 +394,10 @@ impl ReAnime {
                 }
                 continue;
             }
-            let Some(flix) = resolve_flixcloud(ctx, &access_id).await else {
+            if api.failure.is_some() {
+                return Vec::new();
+            }
+            let Some(flix) = resolve_flixcloud(ctx, &access_id, api).await else {
                 continue;
             };
             if !seen.insert(flix.master_url.clone()) {
@@ -409,30 +423,50 @@ impl ReAnime {
 // Search + match
 // ---------------------------------------------------------------------------
 
-/// One `/api/v1/search` call — the port of `searchReanime` (3
-/// attempts, the reanime.to Referer, the `encodeURIComponent`d
-/// query).
-async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult> {
-    let Ok(mut url) = Url::parse(&format!("{BASE_URL}/api/v1/search")) else {
-        return Vec::new();
-    };
-    url.query_pairs_mut()
-        .append_pair("q", query)
-        .append_pair("limit", "10");
-    let Some(json) = fetch_json_retry(ctx, &url).await else {
-        return Vec::new();
-    };
-    let Some(results) = json.get("results").and_then(Value::as_array) else {
+async fn search_reanime(
+    ctx: &ResolveCtx<'_>,
+    query: &str,
+    api: &mut ApiState,
+) -> Vec<ReanimeResult> {
+    for path in ["/api/v1/search", "/api/search"] {
+        let Ok(mut url) = Url::parse(&format!("{BASE_URL}{path}")) else {
+            continue;
+        };
+        url.query_pairs_mut()
+            .append_pair("q", query)
+            .append_pair("limit", "36");
+        if let Some(json) = fetch_api_json(ctx, &url, api).await {
+            let results = parse_search_results(&json);
+            if !results.is_empty() {
+                return results;
+            }
+        }
+    }
+    Vec::new()
+}
+
+fn parse_search_results(json: &Value) -> Vec<ReanimeResult> {
+    let Some(results) = ["results", "data", "anime"]
+        .into_iter()
+        .find_map(|key| json.get(key).and_then(Value::as_array))
+        .or_else(|| json.as_array())
+    else {
         return Vec::new();
     };
     results
         .iter()
         .filter_map(|result| {
-            let anime_id = result.get("anime_id")?.as_str()?.to_string();
+            let anime_id = result
+                .get("anime_id")
+                .and_then(Value::as_str)
+                .or_else(|| result.get("slug").and_then(Value::as_str))
+                .filter(|slug| !slug.is_empty())?
+                .to_string();
             // Search sometimes answers `anilist_id: 0`; the cover URL
             // carries the id.
             let mut anilist_id = result
                 .get("anilist_id")
+                .or_else(|| result.get("anilistId"))
                 .and_then(Value::as_u64)
                 .filter(|id| *id > 0);
             if anilist_id.is_none() {
@@ -452,6 +486,8 @@ async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult>
             let title = ["/title/english", "/title/romaji", "/title/native"]
                 .iter()
                 .find_map(|pointer| result.pointer(pointer).and_then(Value::as_str))
+                .or_else(|| result.get("title").and_then(Value::as_str))
+                .or_else(|| result.get("name").and_then(Value::as_str))
                 .unwrap_or("Unknown");
             Some(ReanimeResult {
                 anime_id,
@@ -474,12 +510,13 @@ async fn find_anime_by_title(
     title: &str,
     year: Option<u16>,
     is_tv: bool,
+    api: &mut ApiState,
 ) -> Option<ReanimeResult> {
     let normalized = normalize(title);
     let target_year = u32::from(year.unwrap_or(0));
     let tolerance = if is_tv { 3 } else { 1 };
     for query in title_queries(title) {
-        for result in search_reanime(ctx, &query).await {
+        for result in search_reanime(ctx, &query, api).await {
             if normalize(&result.title) != normalized {
                 continue;
             }
@@ -514,9 +551,9 @@ fn title_queries(title: &str) -> Vec<String> {
 
 /// The watch-page anilist id — the port of `fetchAnimeMeta`
 /// (`GET /watch/<animeId>?ep=1`).
-async fn fetch_anime_meta(ctx: &ResolveCtx<'_>, anime_id: &str) -> Option<u64> {
+async fn fetch_anime_meta(ctx: &ResolveCtx<'_>, anime_id: &str, api: &mut ApiState) -> Option<u64> {
     let url = format!("{BASE_URL}/watch/{anime_id}?ep=1");
-    let html = fetch_text_retry(ctx, &url).await?;
+    let html = fetch_text_retry(ctx, &url, api).await?;
     ANILIST_ID
         .captures(&html)
         .ok()
@@ -532,11 +569,16 @@ async fn fetch_anime_meta(ctx: &ResolveCtx<'_>, anime_id: &str) -> Option<u64> {
 /// The flix server list — the port of the `/api/flix/<anilistId>/<ep>`
 /// fetch (a `{success, servers}` answer, `success: false` or an empty
 /// server list both yielding nothing).
-async fn fetch_flix_servers(ctx: &ResolveCtx<'_>, anilist_id: u64, ep: u32) -> Vec<FlixServer> {
+async fn fetch_flix_servers(
+    ctx: &ResolveCtx<'_>,
+    anilist_id: u64,
+    ep: u32,
+    api: &mut ApiState,
+) -> Vec<FlixServer> {
     let Ok(url) = Url::parse(&format!("{BASE_URL}/api/flix/{anilist_id}/{ep}")) else {
         return Vec::new();
     };
-    let Some(json) = fetch_json_retry(ctx, &url).await else {
+    let Some(json) = fetch_api_json(ctx, &url, api).await else {
         return Vec::new();
     };
     if json.get("success").and_then(Value::as_bool) != Some(true) {
@@ -573,18 +615,21 @@ async fn fetch_flix_servers(ctx: &ResolveCtx<'_>, anilist_id: u64, ep: u32) -> V
 /// Resolve the site's current Svelte download metadata (Nuvio's September
 /// 2026 `ReAnime` adapter uses the same endpoint). Values are indexes into the
 /// node's devalue array; parse those references instead of guessing tokens.
-async fn resolve_flix_download(ctx: &ResolveCtx<'_>, access_id: &str) -> Option<(Url, String)> {
+async fn resolve_flix_download(
+    ctx: &ResolveCtx<'_>,
+    access_id: &str,
+    api: &mut ApiState,
+) -> Option<(Url, String)> {
     let url = Url::parse(&format!("{FLIXCLOUD}/d/{access_id}/__data.json")).ok()?;
-    let response = ctx
-        .fetcher
-        .request(
-            FetchRequest::get(url)
-                .with_header("Referer", format!("{FLIXCLOUD}/"))
-                .with_header("User-Agent", UA)
-                .with_timeout(Duration::from_secs(8)),
-        )
-        .await
-        .ok()?;
+    let response = guarded_fetch(
+        ctx,
+        FetchRequest::get(url)
+            .with_header("Referer", format!("{FLIXCLOUD}/"))
+            .with_header("User-Agent", UA)
+            .with_timeout(Duration::from_secs(8)),
+        api,
+    )
+    .await?;
     if !response.is_success() {
         return None;
     }
@@ -635,13 +680,14 @@ fn download_from_data(data: &Value) -> Option<(Url, String)> {
 async fn resolve_flixcloud(
     ctx: &ResolveCtx<'_>,
     access_id: &str,
+    api: &mut ApiState,
 ) -> Option<crate::nuvio::flixcloud::FlixStream> {
     let page_url = format!("{FLIXCLOUD}/e/{access_id}?v=2");
-    let response = flix_get(ctx, &page_url).await?;
+    let response = flix_get(ctx, &page_url, api).await?;
     let page = parse_flix_page(&response.body)?;
 
     let token_url = format!("{FLIXCLOUD}/api/m3u8/{}", page.token_value);
-    let response = flix_get(ctx, &token_url).await?;
+    let response = flix_get(ctx, &token_url, api).await?;
     let json: Value = serde_json::from_str(&response.body).ok()?;
     let (vid_b64, key_b64) = m3u8_token_fields(&json, &page.token_value)?;
     let materials = page.materials(&vid_b64, &key_b64);
@@ -650,13 +696,13 @@ async fn resolve_flixcloud(
 
 /// One flixcloud fetch — `fetchBufNodeChain` (the simple UA, a plain
 /// `Accept`, no retry).
-async fn flix_get(ctx: &ResolveCtx<'_>, url: &str) -> Option<FetchResponse> {
+async fn flix_get(ctx: &ResolveCtx<'_>, url: &str, api: &mut ApiState) -> Option<FetchResponse> {
     let url = Url::parse(url).ok()?;
     let request = FetchRequest::get(url)
         .with_header("User-Agent", UA_SIMPLE)
         .with_header("Accept", "*/*")
         .with_timeout(FETCH_TIMEOUT);
-    let response = ctx.fetcher.request(request).await.ok()?;
+    let response = guarded_fetch(ctx, request, api).await?;
     if !response.is_success() {
         return None;
     }
@@ -667,24 +713,69 @@ async fn flix_get(ctx: &ResolveCtx<'_>, url: &str) -> Option<FetchResponse> {
 // Fetch helpers with retry
 // ---------------------------------------------------------------------------
 
-/// GET a URL as JSON with the 3-attempt retry — the scraper's
-/// `fetchJson` over the curl chain (the reanime.to Referer, the full
-/// Chrome UA).
-async fn fetch_json_retry(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
-    for attempt in 0..RETRIES {
-        let request = FetchRequest::get(url.clone())
+async fn guarded_fetch(
+    ctx: &ResolveCtx<'_>,
+    request: FetchRequest,
+    api: &mut ApiState,
+) -> Option<FetchResponse> {
+    if api.failure.is_some() {
+        return None;
+    }
+    let response = match ctx.fetcher.request(request).await {
+        Ok(response) => response,
+        Err(
+            error @ (FetchError::RateLimited { .. }
+            | FetchError::Http {
+                status: 401 | 403 | 429,
+                ..
+            }
+            | FetchError::Blocked { .. }),
+        ) => {
+            api.failure = Some(error);
+            return None;
+        }
+        Err(_) => return None,
+    };
+    if let Some(error) = access_error(&response.url, response.status, &response.headers) {
+        api.failure = Some(error);
+        return None;
+    }
+    Some(response)
+}
+
+async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url, api: &mut ApiState) -> Option<Value> {
+    if api.failure.is_some() {
+        return None;
+    }
+    let initial = url.origin().ascii_serialization();
+    if !API_ORIGINS.contains(&initial.as_str()) {
+        return None;
+    }
+    let mut origins = vec![initial];
+    for origin in API_ORIGINS {
+        if !origins.iter().any(|known| known.as_str() == *origin) {
+            origins.push((*origin).to_string());
+        }
+    }
+    for origin in origins {
+        let mut target = Url::parse(&origin).ok()?;
+        target.set_path(url.path());
+        target.set_query(url.query());
+        let request = FetchRequest::get(target)
             .with_header("User-Agent", UA)
             .with_header("Accept", "application/json")
-            .with_header("Referer", format!("{BASE_URL}/"))
-            .with_timeout(FETCH_TIMEOUT);
-        if let Ok(response) = ctx.fetcher.request(request).await
-            && response.is_success()
+            .with_header("Referer", format!("{origin}/"))
+            .with_timeout(Duration::from_secs(4));
+        let Some(response) = guarded_fetch(ctx, request, api).await else {
+            if api.failure.is_some() {
+                return None;
+            }
+            continue;
+        };
+        if response.is_success()
             && let Ok(json) = serde_json::from_str::<Value>(&response.body)
         {
             return Some(json);
-        }
-        if attempt + 1 < RETRIES {
-            tokio::time::sleep(retry_backoff(attempt)).await;
         }
     }
     None
@@ -692,7 +783,7 @@ async fn fetch_json_retry(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
 
 /// GET a URL as text with the 3-attempt retry — the scraper's
 /// `fetchText`.
-async fn fetch_text_retry(ctx: &ResolveCtx<'_>, url: &str) -> Option<String> {
+async fn fetch_text_retry(ctx: &ResolveCtx<'_>, url: &str, api: &mut ApiState) -> Option<String> {
     let Ok(url) = Url::parse(url) else {
         return None;
     };
@@ -702,10 +793,13 @@ async fn fetch_text_retry(ctx: &ResolveCtx<'_>, url: &str) -> Option<String> {
             .with_header("Accept", "*/*")
             .with_header("Referer", format!("{BASE_URL}/"))
             .with_timeout(FETCH_TIMEOUT);
-        if let Ok(response) = ctx.fetcher.request(request).await
+        if let Some(response) = guarded_fetch(ctx, request, api).await
             && response.is_success()
         {
             return Some(response.body);
+        }
+        if api.failure.is_some() {
+            return None;
         }
         if attempt + 1 < RETRIES {
             tokio::time::sleep(retry_backoff(attempt)).await;
@@ -945,7 +1039,14 @@ mod tests {
                 .lock()
                 .unwrap_or_else(PoisonError::into_inner)
                 .push(request.clone());
-            let key = key_of(&request.url);
+            let key = {
+                let pages = self.pages.lock().unwrap_or_else(PoisonError::into_inner);
+                if pages.contains_key(request.url.as_str()) {
+                    request.url.as_str().to_string()
+                } else {
+                    key_of(&request.url)
+                }
+            };
             let entry = {
                 let mut pages = self.pages.lock().unwrap_or_else(PoisonError::into_inner);
                 pages.get_mut(&key).map(|bodies| {
@@ -980,6 +1081,236 @@ mod tests {
                 headers: BTreeMap::new(),
                 body,
             })
+        }
+    }
+
+    #[tokio::test]
+    async fn current_api_skips_stale_html_without_backoff() {
+        let mock = Arc::new(
+            ScriptedFetcher::default()
+                .page(
+                    "https://reanime.to/api/flix/154587/2",
+                    200,
+                    "<html>site shell</html>",
+                )
+                .page(
+                    "https://reanime.cz/api/flix/154587/2",
+                    200,
+                    r#"{"success":true,"servers":[]}"#,
+                ),
+        );
+        let url = Url::parse("https://reanime.to/api/flix/154587/2")
+            .unwrap_or_else(|error| panic!("fixture URL: {error}"));
+        let result = tokio::time::timeout(
+            Duration::from_secs(1),
+            fetch_api_json(&ctx_for(&mock), &url, &mut ApiState::default()),
+        )
+        .await
+        .unwrap_or_else(|error| panic!("stale HTML spent retry backoff budget: {error}"))
+        .unwrap_or_else(|| panic!("current JSON origin"));
+        assert_eq!(result["success"], true);
+        let requests = mock.requests();
+        assert_eq!(requests.len(), 2);
+        for request in requests {
+            assert_eq!(
+                request.headers.get("Referer"),
+                Some(&format!("{}/", request.url.origin().ascii_serialization()))
+            );
+            assert_eq!(request.url.path(), "/api/flix/154587/2");
+        }
+    }
+
+    #[tokio::test]
+    async fn current_cover_filenames_recover_only_explicit_identity_prefixes() {
+        for (file, expected) in [
+            ("nx154587-fixture.jpg", Some(154_587)),
+            ("bx154587-fixture.jpg", Some(154_587)),
+            ("x154587-fixture.jpg", Some(154_587)),
+            ("154587-unrelated.jpg", None),
+        ] {
+            let value = serde_json::json!({"results":[{
+                "anime_id":"frieren-fixture","anilist_id":0,"season_year":2023,
+                "title":{"english":"Frieren: Beyond Journey's End"},
+                "cover_image":{"extra_large":format!("https://s4.anilist.co/cover/{file}")}
+            }]});
+            let mock =
+                Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
+            let results =
+                search_reanime(&ctx_for(&mock), "Frieren", &mut ApiState::default()).await;
+            assert_eq!(results.len(), 1);
+            assert_eq!(results[0].anilist_id, expected, "{file}");
+        }
+    }
+
+    #[tokio::test]
+    async fn current_search_payload_keeps_exact_title_year_and_identity() {
+        let value = serde_json::json!({"data":[{
+            "slug":"frieren-fixture","anilistId":154_587,"season_year":2023,
+            "title":"Frieren: Beyond Journey's End"
+        }]});
+        let mock =
+            Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
+        let results = search_reanime(&ctx_for(&mock), "Frieren", &mut ApiState::default()).await;
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].anilist_id, Some(154_587));
+        assert_eq!(results[0].anime_id, "frieren-fixture");
+        assert_eq!(results[0].year, Some(2023));
+        assert_eq!(results[0].title, "Frieren: Beyond Journey's End");
+    }
+
+    #[tokio::test]
+    async fn current_api_search_path_fallback_is_bounded() {
+        let value = serde_json::json!({"results":[{
+            "anime_id":"frieren-fixture","anilist_id":154_587,"season_year":2023,
+            "title":{"english":"Frieren: Beyond Journey's End"}
+        }]});
+        let mock = Arc::new(
+            ScriptedFetcher::default()
+                .page("/api/v1/search", 404, "missing")
+                .page("/api/search", 200, value.to_string()),
+        );
+        let results = search_reanime(&ctx_for(&mock), "Frieren", &mut ApiState::default()).await;
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].anilist_id, Some(154_587));
+        assert_eq!(mock.requests().len(), API_ORIGINS.len() + 1);
+        assert!(mock.requests().iter().all(|request| {
+            request
+                .url
+                .query_pairs()
+                .any(|(key, value)| key == "q" && value == "Frieren")
+        }));
+    }
+
+    #[tokio::test]
+    async fn current_api_auth_and_rate_limits_stop_all_paths_and_origins() {
+        for status in [401, 403, 429] {
+            let mock = Arc::new(
+                ScriptedFetcher::default()
+                    .page("/api/v1/search", status, "denied")
+                    .page("/api/search", 200, r#"{"results":[]}"#)
+                    .page(
+                        "/api/flix/154587/2",
+                        200,
+                        r#"{"success":true,"servers":[]}"#,
+                    ),
+            );
+            let mut api = ApiState::default();
+            assert!(
+                search_reanime(&ctx_for(&mock), "Frieren", &mut api)
+                    .await
+                    .is_empty()
+            );
+            assert!(
+                fetch_flix_servers(&ctx_for(&mock), 154_587, 2, &mut api)
+                    .await
+                    .is_empty()
+            );
+            assert!(api.failure.is_some());
+            assert_eq!(mock.requests().len(), 1);
+        }
+    }
+
+    #[test]
+    fn retry_after_seconds_and_http_date_are_preserved() {
+        let url = Url::parse(BASE_URL).unwrap_or_else(|error| panic!("fixture: {error}"));
+        let headers = BTreeMap::from([("Retry-After".into(), "37".into())]);
+        assert!(matches!(
+            access_error(&url, 429, &headers),
+            Some(FetchError::RateLimited {
+                retry_after_ms: Some(37_000),
+                ..
+            })
+        ));
+        let headers =
+            BTreeMap::from([("retry-after".into(), "Wed, 21 Oct 2015 07:28:00 GMT".into())]);
+        assert!(matches!(
+            access_error(&url, 429, &headers),
+            Some(FetchError::RateLimited {
+                retry_after_ms: Some(0),
+                ..
+            })
+        ));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn denied_watch_lookup_stops_without_retry_or_alternate_title() {
+        for status in [401, 403, 429] {
+            let search = serde_json::json!({"results":[{
+                "anime_id":"fixture-watch","anilist_id":0,"season_year":2014,
+                "title":{"english":"Haikyuu!!"}
+            }]});
+            let mock = Arc::new(
+                ScriptedFetcher::default()
+                    .page(
+                        format!("/3/tv/{TMDB_ID}"),
+                        200,
+                        r#"{"name":"Haikyuu!!","first_air_date":"2014-04-06"}"#,
+                    )
+                    .page("/api/v1/search", 200, search.to_string())
+                    .page("/watch/fixture-watch", status, "denied"),
+            );
+            let result = provider(&mock)
+                .resolve(
+                    &ctx_for(&mock),
+                    &MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 1),
+                )
+                .await;
+            assert!(matches!(
+                result,
+                Err(SourceError::Fetch(
+                    FetchError::Http {
+                        status: 401 | 403,
+                        ..
+                    } | FetchError::RateLimited { .. }
+                ))
+            ));
+            assert_eq!(
+                mock.requests()
+                    .iter()
+                    .filter(|request| request.url.path() == "/watch/fixture-watch")
+                    .count(),
+                1
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn denied_download_stops_before_legacy_and_next_server() {
+        for status in [401, 403, 429] {
+            let servers = serde_json::json!({"success":true,"servers":[
+                {"serverName":"first","dataType":"sub","dataLink":"https://flixcloud.cc/e/vimu1sw5xonj"},
+                {"serverName":"second","dataType":"dub","dataLink":"https://flixcloud.cc/e/next-fixture"}
+            ]});
+            let mock = Arc::new(
+                pages(ScriptedFetcher::default())
+                    .page(
+                        format!("{BASE_URL}/api/flix/11/1"),
+                        200,
+                        servers.to_string(),
+                    )
+                    .page("/d/vimu1sw5xonj/__data.json", status, "denied"),
+            );
+            let result = provider(&mock)
+                .resolve(
+                    &ctx_for(&mock),
+                    &MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 1),
+                )
+                .await;
+            assert!(matches!(
+                result,
+                Err(SourceError::Fetch(
+                    FetchError::Http {
+                        status: 401 | 403,
+                        ..
+                    } | FetchError::RateLimited { .. }
+                ))
+            ));
+            assert!(
+                mock.requests()
+                    .iter()
+                    .all(|request| !request.url.path().starts_with("/e/")
+                        && !request.url.path().contains("next-fixture"))
+            );
         }
     }
 
@@ -1080,7 +1411,7 @@ mod tests {
         );
         assert_eq!(
             info.base_url.as_ref().map(Url::as_str),
-            Some("https://reanime.to/")
+            Some("https://reanime.cz/")
         );
         assert_eq!(info.priority, 0);
         assert_eq!(info.domain_key, None);
@@ -1205,6 +1536,37 @@ mod tests {
                 .any(|r| r.url.path() == "/api/v1/search")
         );
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn non_base_season_requires_usable_canonical_mapping() {
+        for (season, use_mappings) in [(2, true), (2, false), (0, false)] {
+            let mock = Arc::new(pages(ScriptedFetcher::default()).page(
+                "/api/v2/themoviedb",
+                200,
+                r#"[
+                    {"anilist":11,"themoviedb-season":1},
+                    {"anilist":22,"themoviedb-season":2}
+                ]"#,
+            ));
+            let mut provider = provider(&mock);
+            if use_mappings {
+                provider = provider
+                    .with_mappings(vsources_core::mappings::MappingService::new(mock.clone()));
+            }
+            let result = provider
+                .resolve(
+                    &ctx_for(&mock),
+                    &MediaRef::series(MediaId::Tmdb(TMDB_ID), season, 1),
+                )
+                .await;
+            assert!(matches!(result, Err(SourceError::NotFound)));
+            assert!(mock.requests().iter().all(|request| {
+                request.url.path() != "/api/flix/11/1"
+                    && request.url.path() != "/api/v1/search"
+                    && request.url.path() != "/api/search"
+            }));
+        }
     }
 
     #[tokio::test]

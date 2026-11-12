@@ -2698,6 +2698,7 @@ dependencies = [
  "fancy-regex",
  "futures",
  "hmac",
+ "httpdate",
  "md-5",
  "moka",
  "num-bigint",
