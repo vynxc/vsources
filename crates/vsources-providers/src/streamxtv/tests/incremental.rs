@@ -34,6 +34,28 @@ struct DelayedSub {
     peak: AtomicUsize,
 }
 
+struct TwoSlowSubs(DelayedSub);
+
+#[async_trait]
+impl Extractor for TwoSlowSubs {
+    fn id(&self) -> &'static str {
+        "two-slow-subs"
+    }
+    fn label(&self) -> &'static str {
+        "TwoSlowSubs"
+    }
+    fn supports(&self, _ctx: &ResolveCtx<'_>, url: &Url) -> bool {
+        matches!(url.host_str(), Some("megaplay.buzz" | "vidnest.fun"))
+    }
+    async fn extract(
+        &self,
+        ctx: &ResolveCtx<'_>,
+        url: &Url,
+    ) -> Result<Vec<Stream>, ExtractorError> {
+        self.0.extract(ctx, url).await
+    }
+}
+
 #[async_trait]
 impl Extractor for DelayedSub {
     fn id(&self) -> &'static str {
@@ -315,6 +337,60 @@ async fn slow_sub_does_not_block_dub_publication_and_embed_work_is_bounded() {
     assert_eq!(batches[0][0].meta.dubbed, Some(true));
     assert_eq!(extractor.peak.load(Ordering::SeqCst), 2);
     assert_eq!(extractor.active.load(Ordering::SeqCst), 0);
+    assert_eq!(fetcher.active.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test(start_paused = true)]
+async fn two_slow_sub_providers_cannot_occupy_the_ready_dub_lane() {
+    let mock = anime_mock();
+    let fetcher = PendingDirect {
+        inner: mock.clone(),
+        active: AtomicUsize::new(0),
+        peak: AtomicUsize::new(0),
+    };
+    let extractor = Arc::new(TwoSlowSubs(DelayedSub {
+        active: AtomicUsize::new(0),
+        peak: AtomicUsize::new(0),
+    }));
+    let provider = StreamXTV::new(
+        Arc::new(TmdbClient::new("test-key", mock)),
+        Arc::new(ExtractorRegistry::new(vec![extractor.clone()])),
+    );
+    let ctx = ResolveCtx {
+        fetcher: &fetcher,
+        media: Some(resolved()),
+        source_id: None,
+        referer: None,
+    };
+    let batches = Mutex::new(Vec::new());
+    let publish = |batch: Vec<Stream>| {
+        batches
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .push(batch);
+    };
+    let media = MediaRef::series(MediaId::Tmdb(TMDB_ID), 1, 2);
+    assert!(
+        tokio::time::timeout(
+            Duration::from_secs(18),
+            provider.resolve_incremental(&ctx, &media, &publish)
+        )
+        .await
+        .is_err()
+    );
+    let batches = batches.lock().unwrap_or_else(PoisonError::into_inner);
+    assert_eq!(
+        batches.len(),
+        2,
+        "both ready dub providers publish while sub work remains pending"
+    );
+    assert!(
+        batches
+            .iter()
+            .all(|batch| batch[0].meta.dubbed == Some(true))
+    );
+    assert_eq!(extractor.0.peak.load(Ordering::SeqCst), 2);
+    assert_eq!(extractor.0.active.load(Ordering::SeqCst), 0);
     assert_eq!(fetcher.active.load(Ordering::SeqCst), 0);
 }
 

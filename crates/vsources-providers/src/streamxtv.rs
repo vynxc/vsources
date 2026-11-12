@@ -68,7 +68,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use async_trait::async_trait;
-use futures::{StreamExt, stream};
 use serde::Deserialize;
 use serde_json::Value;
 use url::Url;
@@ -379,37 +378,33 @@ impl StreamXTV {
         } else {
             1
         };
-        let mut jobs: Vec<futures::future::BoxFuture<'_, (usize, Vec<Stream>)>> = Vec::new();
-        for (mode_index, sub_dub) in ["sub", "dub"].into_iter().enumerate() {
-            for (provider_index, provider) in ANIME_PROVIDERS.iter().enumerate() {
-                jobs.push(Box::pin(async move {
-                    let embed = provider
-                        .url
-                        .replace("{anilistId}", &anilist_id.to_string())
-                        .replace("{ep}", &episode.to_string())
-                        .replace("{subDub}", sub_dub);
-                    let languages = if sub_dub == "dub" {
-                        vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En]
-                    } else {
-                        vec![CountryCode::Multi, CountryCode::Ja]
-                    };
-                    let label = format!("{title} ({} {})", provider.label, sub_dub.to_uppercase());
-                    let streams = self
-                        .resolve_embed(ctx, &embed, &label, languages, Some(sub_dub == "dub"))
-                        .await;
-                    (mode_index * ANIME_PROVIDERS.len() + provider_index, streams)
-                }));
+        let mode = |sub_dub: &'static str| async move {
+            let mut streams = Vec::new();
+            for provider in ANIME_PROVIDERS {
+                let embed = provider
+                    .url
+                    .replace("{anilistId}", &anilist_id.to_string())
+                    .replace("{ep}", &episode.to_string())
+                    .replace("{subDub}", sub_dub);
+                let languages = if sub_dub == "dub" {
+                    vec![CountryCode::Multi, CountryCode::Ja, CountryCode::En]
+                } else {
+                    vec![CountryCode::Multi, CountryCode::Ja]
+                };
+                let label = format!("{title} ({} {})", provider.label, sub_dub.to_uppercase());
+                let batch = self
+                    .resolve_embed(ctx, &embed, &label, languages, Some(sub_dub == "dub"))
+                    .await;
+                if !batch.is_empty() {
+                    publish(batch.clone());
+                }
+                streams.extend(batch);
             }
-        }
-        let mut pending = stream::iter(jobs).buffer_unordered(2);
-        let mut completed = std::collections::BTreeMap::new();
-        while let Some((index, batch)) = pending.next().await {
-            if !batch.is_empty() {
-                publish(batch.clone());
-            }
-            completed.insert(index, batch);
-        }
-        (true, completed.into_values().flatten().collect())
+            streams
+        };
+        let (mut sub, dub) = tokio::join!(mode("sub"), mode("dub"));
+        sub.extend(dub);
+        (true, sub)
     }
 
     /// The 20-provider batched sweep — the port of the scraper's
