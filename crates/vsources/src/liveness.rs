@@ -295,10 +295,10 @@ fn hls_attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
             quoted = !quoted;
         }
         if ch == ',' && !quoted {
-            if let Some((key, value)) = line[start..index].trim().split_once('=') {
-                if key.trim() == name {
-                    return Some(value.trim().trim_matches('"'));
-                }
+            if let Some((key, value)) = line[start..index].trim().split_once('=')
+                && key.trim() == name
+            {
+                return Some(value.trim().trim_matches('"'));
             }
             start = index + 1;
         }
@@ -339,10 +339,10 @@ impl AudioEvidence {
                 {
                     continue;
                 }
-                if let Some(language) = hls_attribute(line, "LANGUAGE").and_then(audio_code) {
-                    if !self.languages.contains(&language) {
-                        self.languages.push(language);
-                    }
+                if let Some(language) = hls_attribute(line, "LANGUAGE").and_then(audio_code)
+                    && !self.languages.contains(&language)
+                {
+                    self.languages.push(language);
                 }
             }
         } else if self.languages.is_empty() {
