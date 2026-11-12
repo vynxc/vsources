@@ -41,9 +41,8 @@ impl Engine {
             }
         };
         let mut resolving = Some(Box::pin(tokio::time::timeout(policy.timeout, async {
-            if policy.strict_english
-                || (policy.language == Some(CountryCode::En)
-                    && source.supports_english_audio_selection())
+            if source.supports_english_audio_selection()
+                && (policy.strict_english || policy.language == Some(CountryCode::En))
             {
                 source.resolve_english_dub(ctx, media).await
             } else {
@@ -51,7 +50,6 @@ impl Engine {
             }
         })));
         let authoritative = AtomicBool::new(false);
-        let mut final_streams = None;
         let mut failure = None;
         let mut partial = Vec::new();
         let mut partial_keys = HashSet::new();
@@ -92,20 +90,15 @@ impl Engine {
                     }
                 }
                 Some((is_final, streams)) = validating.next(), if !validating.is_empty() => {
-                    if is_final { final_streams = Some(streams); }
-                    else {
-                        for stream in streams {
-                            if partial.len() < limit && partial_keys.insert(stream_key(&stream)) { partial.push(stream); }
-                        }
+                    if is_final { return Ok(streams); }
+                    for stream in streams {
+                        if partial.len() < limit && partial_keys.insert(stream_key(&stream)) { partial.push(stream); }
                     }
                 }
             }
             if resolving.is_none() && raw_rx.is_empty() && validating.is_empty() {
                 break;
             }
-        }
-        if let Some(streams) = final_streams {
-            return Ok(streams);
         }
         if !partial.is_empty() {
             return Ok(partial);

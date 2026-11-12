@@ -404,7 +404,9 @@ async fn caller_cancellation_drops_upstream_after_early_publication() {
     assert!(cancelled.load(Ordering::SeqCst));
 }
 
-struct TimedProbe;
+struct TimedProbe {
+    cancelled: Arc<AtomicBool>,
+}
 #[async_trait]
 impl Fetcher for TimedProbe {
     async fn request(
@@ -419,11 +421,13 @@ impl Fetcher for TimedProbe {
         _: usize,
     ) -> Result<Option<vsources_core::traits::ProbeResponse>, vsources_core::error::FetchError>
     {
+        let _cancelled =
+            (request.url.path() == "/removed.mp4").then(|| Cancelled(self.cancelled.clone()));
         tokio::time::sleep(Duration::from_secs(
             if request.url.path() == "/removed.mp4" {
                 60
             } else {
-                3
+                1
             },
         ))
         .await;
@@ -433,8 +437,11 @@ impl Fetcher for TimedProbe {
 
 #[tokio::test(start_paused = true)]
 async fn final_validation_overlaps_pending_provisional_validation() {
+    let cancelled = Arc::new(AtomicBool::new(false));
     let engine = test_builder()
-        .fetcher(Arc::new(TimedProbe))
+        .fetcher(Arc::new(TimedProbe {
+            cancelled: cancelled.clone(),
+        }))
         .sources(vec![fixture(
             "incremental",
             0,
@@ -452,9 +459,13 @@ async fn final_validation_overlaps_pending_provisional_validation() {
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].url.path(), "/final.mp4");
     assert!(
-        started.elapsed() <= Duration::from_secs(5),
+        started.elapsed() <= Duration::from_secs(3),
         "final validation must not queue behind an unrelated provisional probe: {:?}",
         started.elapsed()
+    );
+    assert!(
+        cancelled.load(Ordering::SeqCst),
+        "unneeded provisional probe must be dropped"
     );
 }
 
@@ -509,4 +520,139 @@ async fn strict_english_filters_before_limit_but_disabled_probe_preference_is_no
         .unwrap_or_else(|error| panic!("fixture: {error}"));
     assert_eq!(preferred.len(), 1);
     assert_eq!(preferred[0].url.path(), "/french.mp4");
+}
+
+#[tokio::test(start_paused = true)]
+async fn default_cached_strict_english_retains_fast_dub_callback_at_timeout() {
+    let cancelled = Arc::new(AtomicBool::new(false));
+    let mut french = item("french", "French");
+    french.meta.languages = vec![CountryCode::Fr];
+    let mut english = item("english", "English dub");
+    english.meta.languages = vec![CountryCode::En];
+    english.meta.dubbed = Some(true);
+    let source = Arc::new(vsources_providers::CachedSource::new(Arc::new(
+        IncrementalFixture {
+            info: info("incremental", 0),
+            early: vec![french, english.clone()],
+            final_streams: vec![english],
+            delay: Duration::from_secs(60),
+            cancelled: cancelled.clone(),
+        },
+    )));
+    let engine = test_builder()
+        .sources(vec![source])
+        .stream_limit(1)
+        .per_source_timeout(Duration::from_secs(18))
+        .probe_config(ProbeConfig {
+            enabled: false,
+            ..ProbeConfig::default()
+        })
+        .build()
+        .unwrap_or_else(|error| panic!("fixture: {error}"));
+    let reference = media();
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let started = tokio::time::Instant::now();
+    let resolving = engine.resolve_progressive_with_audio(&reference, tx, true, &[]);
+    tokio::pin!(resolving);
+    let early = tokio::select! {
+        batch = rx.recv() => batch.unwrap_or_else(|| panic!("strict callback missing")),
+        result = &mut resolving => panic!("strict discovery finished before callback: {result:?}"),
+        () = tokio::time::sleep(Duration::from_secs(1)) => panic!("strict default discovery withheld the fast English callback"),
+    };
+    assert_eq!(early.len(), 1);
+    assert_eq!(early[0].url.path(), "/english.mp4");
+    let result = resolving
+        .await
+        .unwrap_or_else(|error| panic!("strict partial lost: {error}"));
+    assert_eq!(result, early);
+    assert_eq!(started.elapsed(), Duration::from_secs(18));
+    assert!(cancelled.load(Ordering::SeqCst));
+}
+
+struct EmbeddedSelection {
+    info: SourceInfo,
+    calls: std::sync::atomic::AtomicUsize,
+}
+#[async_trait]
+impl Source for EmbeddedSelection {
+    fn info(&self) -> &SourceInfo {
+        &self.info
+    }
+    fn supports_english_audio_selection(&self) -> bool {
+        true
+    }
+    async fn resolve(&self, _: &ResolveCtx<'_>, _: &MediaRef) -> Result<Vec<Stream>, SourceError> {
+        panic!("English selection must use its specialized source path")
+    }
+    async fn resolve_english_dub(
+        &self,
+        _: &ResolveCtx<'_>,
+        _: &MediaRef,
+    ) -> Result<Vec<Stream>, SourceError> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        let mut english = item("embedded", "selected English");
+        english.meta.languages = vec![CountryCode::En];
+        english.meta.dubbed = Some(true);
+        english.meta.audio_selection = Some(vsources_core::types::AudioSelection {
+            language: CountryCode::En,
+            audio_index: 3,
+        });
+        Ok(vec![english])
+    }
+}
+
+#[tokio::test]
+async fn advertised_english_selection_keeps_specialized_path_for_strict_and_preferred() {
+    let source = Arc::new(EmbeddedSelection {
+        info: info("incremental", 0),
+        calls: std::sync::atomic::AtomicUsize::new(0),
+    });
+    let engine = without_probes(vec![source.clone()]);
+    let strict = engine
+        .resolve_english_dub(&media())
+        .await
+        .unwrap_or_else(|error| panic!("fixture: {error}"));
+    let (tx, _) = mpsc::unbounded_channel();
+    let preferred = engine
+        .resolve_provider_progressive(&media(), "incremental", Some("en"), None, tx)
+        .await
+        .unwrap_or_else(|error| panic!("fixture: {error}"));
+    assert_eq!(source.calls.load(Ordering::SeqCst), 1);
+    assert_eq!(strict, preferred);
+    assert_eq!(
+        strict[0]
+            .meta
+            .audio_selection
+            .as_ref()
+            .map(|selection| selection.audio_index),
+        Some(3)
+    );
+}
+
+#[tokio::test(start_paused = true)]
+async fn final_result_still_waits_for_its_own_required_validation() {
+    let cancelled = Arc::new(AtomicBool::new(false));
+    let engine = test_builder()
+        .fetcher(Arc::new(TimedProbe {
+            cancelled: cancelled.clone(),
+        }))
+        .sources(vec![fixture(
+            "incremental",
+            0,
+            vec![item("removed", "early")],
+            vec![item("removed", "final")],
+            1,
+        )])
+        .build()
+        .unwrap_or_else(|error| panic!("fixture: {error}"));
+    let started = tokio::time::Instant::now();
+    let result = engine
+        .resolve(&media())
+        .await
+        .unwrap_or_else(|error| panic!("fixture: {error}"));
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].label.as_deref(), Some("final"));
+    assert!(started.elapsed() >= Duration::from_secs(4));
+    assert!(started.elapsed() <= Duration::from_secs(5));
+    assert!(cancelled.load(Ordering::SeqCst));
 }
