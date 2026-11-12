@@ -602,7 +602,7 @@ impl Engine {
                             .unwrap_or_else(|| release_name_of(&stream.url));
                         enrich_stream(&mut stream, &release_name);
                         match claimed.get(&stream.url) {
-                            None if entries.len() >= self.stream_limit => continue,
+                            None if entries.len() >= self.stream_limit => {}
                             None => {
                                 claimed.insert(stream.url.clone(), entries.len());
                                 entries.push((index, sequence, stream));
@@ -671,7 +671,7 @@ impl Engine {
         }
         tracing::info!(
             provider = provider_id,
-            metadata_ms = started.elapsed().as_millis() as u64,
+            metadata_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
             "Preferred supplier request started"
         );
         let ctx = ResolveCtx {
@@ -725,7 +725,7 @@ impl Engine {
                         seen.len() < self.stream_limit && seen.insert(stream.url.as_str().to_owned())
                     }).map(stamp).collect::<Vec<_>>();
                     if !streams.is_empty() {
-                        tracing::info!(provider=provider_id, elapsed_ms=started.elapsed().as_millis() as u64, streams=streams.len(), "Preferred supplier response received");
+                        tracing::info!(provider=provider_id, elapsed_ms=u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX), streams=streams.len(), "Preferred supplier response received");
                         let progress = progress.clone();
                         validating.push(Box::pin(self.probes.filter_progressive(self.fetcher.as_ref(),streams,language,move |batch|{let _=progress.send(batch);})));
                     }
@@ -1260,7 +1260,7 @@ mod tests {
                 &["https://cdn.example/ready.mp4"],
             )])
             .build()
-            .unwrap();
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         let (tx, _) = mpsc::unbounded_channel();
         let metadata = ResolvedMedia {
             tmdb_id: Some(27205),
@@ -1273,7 +1273,7 @@ mod tests {
         let result = engine
             .resolve_provider_progressive(&media(), "preferred", None, Some(metadata), tx)
             .await
-            .unwrap();
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         assert_eq!(result.len(), 1);
     }
 
@@ -1298,18 +1298,23 @@ mod tests {
             .sources(sources)
             .concurrency(1)
             .build()
-            .unwrap();
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         let (tx, mut rx) = mpsc::unbounded_channel();
         let result = tokio::time::timeout(
             Duration::from_secs(1),
             engine.resolve_provider_progressive(&media(), "preferred", None, None, tx),
         )
         .await
-        .unwrap()
-        .unwrap();
+        .unwrap_or_else(|error| panic!("fixture failed: {error}"))
+        .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         assert_eq!(result.len(), 1);
         assert_eq!(
-            rx.recv().await.unwrap()[0].meta.source_id.as_deref(),
+            rx.recv()
+                .await
+                .unwrap_or_else(|| panic!("expected provider batch"))[0]
+                .meta
+                .source_id
+                .as_deref(),
             Some("preferred")
         );
     }
@@ -1382,7 +1387,7 @@ mod tests {
             .fetcher(Arc::new(SlowProbe))
             .sources(vec![source])
             .build()
-            .unwrap();
+            .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         let (tx, mut rx) = mpsc::unbounded_channel();
         let reference = media();
         let resolving =
@@ -1390,12 +1395,12 @@ mod tests {
         tokio::pin!(resolving);
         let batch = tokio::time::timeout(Duration::from_secs(1), async {
             tokio::select! {
-                batch = rx.recv() => batch.unwrap(),
+                batch = rx.recv() => batch.unwrap_or_else(|| panic!("expected provider batch")),
                 _ = &mut resolving => panic!("remaining lookup should still be pending"),
             }
         })
         .await
-        .unwrap();
+        .unwrap_or_else(|error| panic!("fixture failed: {error}"));
         assert_eq!(batch[0].url.as_str(), "https://cdn.example/early.mp4");
         assert_eq!(batch[0].meta.source_id.as_deref(), Some("preferred"));
     }

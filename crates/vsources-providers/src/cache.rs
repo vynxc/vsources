@@ -256,14 +256,25 @@ mod tests {
     async fn incremental_resolution_reuses_the_completed_cache() -> Result<(), SourceError> {
         let (calls, cached) = cached(Outcome::OneStream);
         let batches = std::sync::Mutex::new(Vec::new());
-        let publish = |streams| batches.lock().unwrap().push(streams);
+        let publish = |streams| {
+            batches
+                .lock()
+                .unwrap_or_else(|error| panic!("fixture failed: {error}"))
+                .push(streams);
+        };
         let ctx = stub_ctx();
         let media = stub_media();
         let first = cached.resolve_incremental(&ctx, &media, &publish).await?;
         let second = cached.resolve_incremental(&ctx, &media, &publish).await?;
         assert_eq!(first, second);
         assert_eq!(calls.calls.load(Ordering::SeqCst), 1);
-        assert_eq!(batches.lock().unwrap().len(), 2);
+        assert_eq!(
+            batches
+                .lock()
+                .unwrap_or_else(|error| panic!("fixture failed: {error}"))
+                .len(),
+            2
+        );
         Ok(())
     }
 

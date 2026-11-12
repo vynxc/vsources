@@ -135,7 +135,7 @@ impl Extractor for HBLinks {
         .await;
 
         let mut streams = Vec::new();
-        for (link, result) in unique_links.iter().zip(resolved) {
+        for result in resolved {
             match result {
                 Ok(found) => streams.extend(found),
                 Err(_error) => {

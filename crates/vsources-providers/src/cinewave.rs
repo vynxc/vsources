@@ -1121,7 +1121,8 @@ mod tests {
             ) -> Result<Vec<Stream>, ExtractorError> {
                 if url.host_str() == Some("vidsrc-embed.ru") {
                     Ok(vec![Stream::new(
-                        Url::parse("https://cdn.example/early.mp4").unwrap(),
+                        Url::parse("https://cdn.example/early.mp4")
+                            .unwrap_or_else(|error| panic!("fixture failed: {error}")),
                         Format::Mp4,
                     )])
                 } else {
@@ -1148,8 +1149,8 @@ mod tests {
         let resolving = provider.resolve_incremental(&ctx, &media, &publish);
         tokio::pin!(resolving);
         let batch = tokio::time::timeout(Duration::from_secs(1), async {
-            tokio::select! { batch = rx.recv() => batch.unwrap(), _ = &mut resolving => panic!("stalled extractions must remain pending") }
-        }).await.unwrap();
+            tokio::select! { batch = rx.recv() => batch.unwrap_or_else(|| panic!("expected provider batch")), _ = &mut resolving => panic!("stalled extractions must remain pending") }
+        }).await.unwrap_or_else(|error| panic!("fixture failed: {error}"));
         assert_eq!(batch[0].url.as_str(), "https://cdn.example/early.mp4");
     }
 

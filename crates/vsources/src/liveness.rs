@@ -312,10 +312,9 @@ async fn inspect_audio(fetcher: &dyn Fetcher, source: &mut Stream, timeout: Dura
                     .split(',')
                     .find_map(|field| field.strip_prefix("LANGUAGE="))
                     .and_then(audio_code)
+                    && !source.meta.languages.contains(&language)
                 {
-                    if !source.meta.languages.contains(&language) {
-                        source.meta.languages.push(language);
-                    }
+                    source.meta.languages.push(language);
                 }
             }
             if source
