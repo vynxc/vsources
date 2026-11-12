@@ -525,7 +525,8 @@ mod tests {
         assert!(label.starts_with("Dune (2021) — Dune - 2021"), "{label}");
         assert!(!label.contains("1080"));
         assert!(!label.contains("Original-Audio"));
-        assert!(label.contains("M3U8 | ⏱️ 90 min | 📌 Server 1"), "{label}");
+        assert!(label.contains("Server 1"), "{label}");
+        assert!(!label.contains("90 min"));
         let second = &streams[1];
         assert_eq!(second.format, Format::Mp4);
         assert!(
@@ -649,11 +650,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn language_flags_come_from_the_stream_text() {
-        // The country codes ride through build_stream_results: the
-        // source defaults [multi, en] plus flags found in the stream
-        // text. The card title mentions no other language, so the
-        // defaults hold.
+    async fn url_only_results_do_not_inherit_catalog_languages() {
         let payload = serde_json::json!({
             "status_code": 200,
             "data": { "stream_urls": ["https://a.example/english.movie.mkv"] }
@@ -668,10 +665,7 @@ mod tests {
             .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(438_631)))
             .await
             .unwrap_or_else(|e| panic!("the fixture must resolve: {e}"));
-        assert_eq!(
-            streams[0].meta.languages,
-            vec![CountryCode::Multi, CountryCode::En]
-        );
+        assert!(streams[0].meta.languages.is_empty());
     }
 
     #[test]

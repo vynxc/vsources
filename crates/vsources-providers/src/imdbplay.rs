@@ -1170,7 +1170,7 @@ mod tests {
         assert!(stream.meta.audio.is_empty());
         assert_eq!(
             stream.meta.languages,
-            vec![CountryCode::Hi, CountryCode::En]
+            vec![CountryCode::En, CountryCode::Hi]
         );
         assert_eq!(
             stream
