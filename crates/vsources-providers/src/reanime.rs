@@ -1,67 +1,15 @@
-//! `ReAnime`: reanime.to — direct downloads and legacy HLS through `FlixCloud`
-//! CDN.
+//! `ReAnime` progressive files and legacy `FlixCloud` HLS.
 //!
-//! Ports `src/source/ReAnime.js` + `src/nuvio/reanime.cjs`:
+//! Protocol references: `src/source/ReAnime.js` and `src/nuvio/reanime.cjs`.
+//! Canonical season ids take priority; non-base seasons require a usable mapping.
+//! Base-season title fallback retains exact-title and year checks. Site metadata
+//! uses the published JSON API paths/origins with a matching Referer per request.
 //!
-//! 1. TMDB → title/year → `GET /api/v1/search?q=<title>&limit=36`
-//!    (the reanime.to Referer, a 3-attempt retry ladder) → anime
-//!    entries with `anilist_id` (falling back to the id encoded in
-//!    the cover URL, `/nx<id>-<hash>.jpg`) and `season_year`.
-//! 2. An **exact-title + year gate** picks the match: normalized title
-//!    equality plus `|season_year − tmdb_year| ≤ 3` for TV (± 1 for
-//!    movies) — the blind first-result fallback served the wrong
-//!    anime upstream (Task 37). A missing anilist id is recovered
-//!    from the watch page's `anilist_id:<N>` payload.
-//! 3. `GET /api/flix/<anilistId>/<ep>` gives the server embeds. Prefer
-//!    `/d/<accessId>/__data.json`, resolving its indexed download metadata
-//!    into a signed progressive file. Older deployments fall back to the
-//!    shared encrypted HLS chain in [`crate::nuvio::flixcloud`].
-//! 4. The wrapper dedupes by master URL and emits one card per
-//!    server: the `ReAnime [<server>] | 1080p | <dataType>` name, the
-//!    Japanese (Sub) audio label, `x264`/`WebDL` markers, and the
-//!    `[multi, ja, en]` language flags.
-//!
-//! English-only resolution instead inspects at most 128 KiB of each progressive
-//! file's Matroska tracks and returns a required English audio index. Normal
-//! progressive results say "Multi-audio" because the default track may be Japanese
-//! even when the upstream embed category says DUB.
-//!
-//! Upstream oddities ported faithfully:
-//!
-//! - In the legacy HLS path, the wrapper's `isDub` check reads `s.language`/`s.lang`, which
-//!   the scraper **never sets** — every card is `Japanese (Sub)`,
-//!   even for `dataType: "dub"` servers.
-//! - The wrapper's `serverName` fallback chain (`s.source ||
-//!   s.serverName || s.name || 'ReAnime'`) lands on `s.name`, the
-//!   full `ReAnime [HD-1] | 1080p | sub` string, so the label reads
-//!   `… — [ReAnime ReAnime [HD-1] | 1080p | sub] Japanese (Sub)`.
-//!
-//! Cuts for the library port:
-//!
-//! - The `/reanime-proxy/playlist.m3u8?url=…&key=…` URL scheme is cut
-//!   (no server to host it). Cards ship the **direct master URL**
-//!   with the headers the proxy sent upstream (`Referer`/`Origin:
-//!   flixcloud.cc`), and the per-session 32-byte playlist XOR key
-//!   rides [`Stream::behavior_hints`] as `reanimeXorKey` — the
-//!   playlist body is base64+XOR encrypted and the segments are
-//!   image-disguised MPEG-TS, which
-//!   [`nuvio::decrypt`](crate::nuvio::decrypt) handles client-side.
-//!   The proxy's Node `User-Agent` is dropped (the fetcher's browser
-//!   UA replaces it — the net-layer convention).
-//! - The scraper's transport ladder (curl → got-scraping → child
-//!   Node) collapses onto the shared fetcher, which already
-//!   impersonates Chrome TLS; the 3-attempt/3 s-backoff retry of its
-//!   `fetchJson` stays.
-//! - The scraper's own TMDB fetch and its `video_id`/`video_title`
-//!   passthrough (nothing consumed them) — the shared
-//!   [`TmdbClient`] serves the title; `meta.serverName`/
-//!   `audioLabel`/`isMultiAudio` have no [`StreamMeta`] fields (the
-//!   label carries them).
-//! - The wrapper's 30 s race rides
-//!   `with_deadline`.
-//!
-//! [`Stream::behavior_hints`]: vsources_core::types::Stream::behavior_hints
-//! [`StreamMeta`]: vsources_core::types::StreamMeta
+//! Progressive files retain their playback headers. English-only resolution
+//! inspects bounded Matroska tracks and emits a required English audio index;
+//! server categories and subtitle languages do not verify spoken audio.
+//! Legacy encrypted HLS carries its adapter key in `Stream::behavior_hints` and
+//! requires the corresponding playback adapter.
 
 use std::collections::HashSet;
 use std::sync::{Arc, LazyLock};
@@ -113,7 +61,6 @@ static ANILIST_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"anilist_id:(\d+)").unwrap_or_else(|e| panic!("valid anilist-id pattern: {e}"))
 });
 
-/// The canonical id encoded in an `AniList` cover filename.
 static COVER_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"/[nb]?x(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
 });
@@ -413,9 +360,6 @@ impl ReAnime {
 // Search + match
 // ---------------------------------------------------------------------------
 
-/// One `/api/v1/search` call — the port of `searchReanime` (3
-/// attempts, the reanime.to Referer, the `encodeURIComponent`d
-/// query).
 async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult> {
     for path in ["/api/v1/search", "/api/search"] {
         let Ok(mut url) = Url::parse(&format!("{BASE_URL}{path}")) else {
@@ -715,9 +659,6 @@ async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
         let Ok(response) = ctx.fetcher.request(request).await else {
             continue;
         };
-        if matches!(response.status, 401 | 403 | 429) {
-            return None;
-        }
         if response.is_success()
             && let Ok(json) = serde_json::from_str::<Value>(&response.body)
         {
@@ -1124,20 +1065,38 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn current_api_access_denial_does_not_probe_other_origins() {
-        let mock = Arc::new(
-            ScriptedFetcher::default()
-                .page("https://reanime.cz/api/flix/154587/2", 403, "denied")
-                .page(
-                    "https://reanime.to/api/flix/154587/2",
-                    200,
-                    r#"{"success":true,"servers":[]}"#,
-                ),
-        );
-        let url = Url::parse("https://reanime.cz/api/flix/154587/2")
-            .unwrap_or_else(|error| panic!("fixture URL: {error}"));
-        assert!(fetch_api_json(&ctx_for(&mock), &url).await.is_none());
-        assert_eq!(mock.requests().len(), 1);
+    async fn current_api_uses_only_published_anonymous_fallbacks_after_http_failure() {
+        for status in [401, 403, 429] {
+            let mock = Arc::new(
+                ScriptedFetcher::default()
+                    .page(
+                        "https://reanime.cz/api/flix/154587/2",
+                        status,
+                        "unavailable",
+                    )
+                    .page(
+                        "https://reanime.to/api/flix/154587/2",
+                        200,
+                        r#"{"success":true,"servers":[]}"#,
+                    ),
+            );
+            let url = Url::parse("https://reanime.cz/api/flix/154587/2")
+                .unwrap_or_else(|error| panic!("fixture URL: {error}"));
+            assert_eq!(
+                fetch_api_json(&ctx_for(&mock), &url)
+                    .await
+                    .map(|value| value["success"].clone()),
+                Some(Value::Bool(true))
+            );
+            let requests = mock.requests();
+            assert_eq!(requests.len(), 2);
+            assert!(requests.iter().all(|request| {
+                request
+                    .headers
+                    .keys()
+                    .all(|name| ["User-Agent", "Accept", "Referer"].contains(&name.as_str()))
+            }));
+        }
     }
 
     // -- fixtures ------------------------------------------------------------
