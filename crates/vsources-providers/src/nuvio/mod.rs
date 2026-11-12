@@ -350,7 +350,7 @@ pub struct BuildParams<'a> {
     pub source_id: &'a str,
     /// The consuming provider's display label.
     pub source_label: &'a str,
-    /// The provider's default country codes.
+    /// Catalog language support; individual streams require their own audio evidence.
     pub country_codes: &'a [CountryCode],
     /// Result lifetime — the JS source's `this.ttl`.
     pub ttl: Duration,
