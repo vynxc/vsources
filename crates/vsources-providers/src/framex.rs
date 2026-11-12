@@ -49,7 +49,7 @@ use std::time::{Duration, Instant};
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::Deserialize;
-use serde_json::{Value, json};
+use serde_json::Value;
 use url::Url;
 use vsources_core::error::{FetchError, SourceError};
 use vsources_core::tmdb::TmdbClient;
@@ -684,16 +684,11 @@ fn normalize_quality(raw: Option<&str>) -> String {
 
 /// The wrapper's title enrichment — FrameX.js's markers: `WEB-DL`,
 /// `HEVC HDR`/`x264` by height, and the audio label (the API's own
-/// `audioTracks` when present, else the injected `English` — the
-/// anime/original-language probe is cut).
+/// `audioTracks` when present; absent audio remains unknown).
 fn enrich(streams: &mut [NuvioStream]) {
     for stream in streams {
         let height = parse_height(stream.quality.as_deref());
-        let mut tracks = normalize_audio_tracks(stream.audio_tracks.as_ref());
-        if tracks.is_empty() {
-            tracks = vec!["English".to_string()];
-            stream.audio_tracks = Some(json!(tracks));
-        }
+        let tracks = normalize_audio_tracks(stream.audio_tracks.as_ref());
         let mut markers = vec![
             "WEB-DL".to_string(),
             match height {
@@ -701,9 +696,9 @@ fn enrich(streams: &mut [NuvioStream]) {
                 _ => "x264".to_string(),
             },
         ];
-        let audio = build_audio_label(&tracks, stream.has_multiple_audio)
-            .unwrap_or_else(|| "English".to_string());
-        markers.push(audio);
+        if let Some(audio) = build_audio_label(&tracks, stream.has_multiple_audio) {
+            markers.push(audio);
+        }
         let title = stream.title.clone().unwrap_or_default();
         stream.title = Some(format!("{title} {}", markers.join(" ")));
     }
@@ -762,6 +757,7 @@ fn soften<T>(error: Result<T, SourceError>) -> Result<T, SourceError> {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
     use std::collections::{BTreeMap, HashMap};
     use std::sync::{Arc, Mutex, PoisonError};
 
@@ -980,12 +976,11 @@ mod tests {
                 .map(String::as_str),
             Some("https://player.videasy.to/")
         );
-        // The injected English audio track when the API omits one.
         assert!(
             streams[1]
                 .label
                 .as_deref()
-                .is_some_and(|label| label.contains("WEB-DL x264 English"))
+                .is_some_and(|label| label.contains("WEB-DL x264") && !label.contains("English"))
         );
         assert!(
             streams
@@ -1262,5 +1257,26 @@ mod tests {
                 assert!(selected.is_none());
             }
         }
+    }
+    #[test]
+    fn enrichment_does_not_invent_missing_audio_tracks() {
+        let mut streams = vec![
+            NuvioStream::new("https://cdn.example/opaque.m3u8"),
+            NuvioStream::new("https://cdn.example/declared.m3u8"),
+        ];
+        streams[1].audio_tracks = Some(json!(["Hindi"]));
+        enrich(&mut streams);
+        assert!(streams[0].audio_tracks.is_none());
+        assert!(
+            !streams[0]
+                .title
+                .as_deref()
+                .unwrap_or_default()
+                .contains("English")
+        );
+        assert_eq!(
+            normalize_audio_tracks(streams[1].audio_tracks.as_ref()),
+            vec!["Hindi"]
+        );
     }
 }

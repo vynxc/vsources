@@ -246,13 +246,16 @@ fn enriched_stream(source: &VidRockSource) -> NuvioStream {
     let codec = if quality == "2160p" { "HEVC" } else { "x264" };
 
     let audio_lang = detect_audio_lang(server);
-    let audio_label = audio_lang.map_or_else(|| "English".to_string(), title_case);
+    let audio_label = audio_lang.map(title_case).unwrap_or_default();
 
     let title = format!("[CinebyRocks {server_label}] {quality} WEB-DL {codec} {audio_label}");
     let mut stream = NuvioStream::new(source.url.clone())
         .with_quality(quality)
         .with_name(format!("CinebyRocks - {server_label}"))
         .with_title(title);
+    if let Some(language) = audio_lang {
+        stream.audio_tracks = Some(serde_json::json!([language]));
+    }
     // The source's hotlink headers — UA defaulted like the scraper.
     for (header, value) in &source.headers {
         stream = stream.with_header(header.clone(), value.clone());
@@ -710,5 +713,24 @@ mod tests {
         assert_eq!(detect_audio_lang("VidRock • Tamil"), Some("tamil"));
         assert_eq!(detect_audio_lang("VidRock • Lyra"), None);
         assert_eq!(title_case("hindi"), "Hindi".to_string());
+    }
+    #[test]
+    fn missing_server_audio_is_not_declared_english() {
+        let mut source: VidRockSource = serde_json::from_value(serde_json::json!({"url":"https://cdn.example/opaque.m3u8","name":"Cipher","quality":"720p"})).unwrap_or_else(|error| panic!("fixture source: {error}"));
+        let unknown = enriched_stream(&source);
+        assert!(unknown.audio_tracks.is_none());
+        assert!(
+            !unknown
+                .title
+                .as_deref()
+                .unwrap_or_default()
+                .contains("English")
+        );
+        source.name = Some("Cipher Hindi".into());
+        let declared = enriched_stream(&source);
+        assert_eq!(
+            crate::nuvio::normalize_audio_tracks(declared.audio_tracks.as_ref()),
+            vec!["Hindi"]
+        );
     }
 }

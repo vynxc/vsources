@@ -508,6 +508,9 @@ fn push(
         .with_header("User-Agent", UA)
         .with_header("Origin", VIDKING_ORIGIN)
         .with_header("Referer", VIDKING_REFERER);
+    if matches!(source.quality.as_str(), "English" | "Hindi") {
+        stream.audio_tracks = Some(serde_json::json!([source.quality]));
+    }
     for subtitle in subtitles {
         stream = stream.with_subtitle(subtitle.clone());
     }
@@ -893,7 +896,7 @@ mod tests {
             "https://subs.example.com/cineby-en.vtt"
         );
         // The hdmovie split: exact-quality tabs carry language flags
-        // via the title scan.
+        // through explicit per-stream declarations.
         let fade = streams
             .iter()
             .find(|stream| stream.url.as_str() == "https://fade.example.com/hls/hindi.m3u8")

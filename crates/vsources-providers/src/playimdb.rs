@@ -117,7 +117,7 @@ impl PlayImdb {
         let raw: Vec<NuvioStream> = urls
             .iter()
             .enumerate()
-            .map(|(index, url)| card(url, name, year, media, index + 1))
+            .map(|(index, url)| card(url, index + 1))
             .collect();
         let params = BuildParams {
             streams: &raw,
@@ -214,31 +214,14 @@ fn api_url(media: &MediaRef) -> Result<Url, url::ParseError> {
 }
 
 /// The API returns URLs and playback headers without quality or audio metadata.
-fn card(url: &str, name: &str, year: Option<u16>, media: &MediaRef, server: usize) -> NuvioStream {
+fn card(url: &str, server: usize) -> NuvioStream {
     NuvioStream::new(url)
         .with_name("PlayIMDb")
-        .with_title(format!(
-            "{} | Server {server}",
-            media_line(name, year, media)
-        ))
+        .with_title(format!("Server {server}"))
         .with_kind("direct")
         .with_header("Origin", ORIGIN)
         .with_header("Referer", REFERER)
         .with_header("User-Agent", USER_AGENT)
-}
-
-/// `🎬 Name - S1E2 (2008)` for series, `🎬 Name - 2008` for movies —
-/// the scraper's two label shapes (series pads the year, movies do
-/// not).
-fn media_line(name: &str, year: Option<u16>, media: &MediaRef) -> String {
-    match (media.season, media.episode, year) {
-        (Some(season), Some(episode), Some(year)) => {
-            format!("{name} - S{season}E{episode} ({year})")
-        }
-        (Some(season), Some(episode), None) => format!("{name} - S{season}E{episode}"),
-        (_, _, Some(year)) => format!("{name} - {year}"),
-        (_, _, None) => name.to_string(),
-    }
 }
 
 /// The base display title for
@@ -520,9 +503,8 @@ mod tests {
                 .get("User-Agent")
                 .is_some_and(|ua| ua.contains("Chrome/124"))
         );
-        // The label: base title — emoji card.
         let label = first.label.as_deref().unwrap_or_default();
-        assert!(label.starts_with("Dune (2021) — Dune - 2021"), "{label}");
+        assert!(label.starts_with("Dune (2021) — Server 1"), "{label}");
         assert!(!label.contains("1080"));
         assert!(!label.contains("Original-Audio"));
         assert!(label.contains("Server 1"), "{label}");
@@ -587,10 +569,9 @@ mod tests {
         assert!(query.contains("type=tv"), "{query}");
         assert!(query.contains("season=1"), "{query}");
         assert!(query.contains("episode=2"), "{query}");
-        // The series label carries S1E2 in both title lines.
         let label = streams[0].label.as_deref().unwrap_or_default();
         assert!(label.contains("S01E02"), "{label}");
-        assert!(label.contains("S1E2 (2008)"), "{label}");
+        assert!(label.contains("Server 1"), "{label}");
         Ok(())
     }
 
@@ -650,6 +631,44 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn catalog_titles_are_not_stream_audio_or_quality_evidence() {
+        for title in [
+            "Johnny English",
+            "French Kiss",
+            "Hindi Medium",
+            "The 1080p Story",
+            "BluRay",
+            "HEVC",
+        ] {
+            let fetcher = Arc::new(MockFetcher::new().serve("streamdata.vaplayer.ru/api.php", 200, serde_json::json!({"status_code":200,"data":{"stream_urls":["https://cdn.example/opaque.m3u8"]}}).to_string()));
+            let mut metadata = dune_media();
+            metadata.name = title.to_owned();
+            let ctx = ctx_for(&fetcher, Some(metadata));
+            let streams = provider(&fetcher)
+                .resolve(&ctx, &MediaRef::movie(MediaId::Tmdb(438_631)))
+                .await
+                .unwrap_or_else(|error| panic!("fixture resolve: {error}"));
+            assert_eq!(streams.len(), 1);
+            assert!(
+                streams[0]
+                    .label
+                    .as_deref()
+                    .is_some_and(|label| label.contains(title))
+            );
+            assert!(
+                streams[0].meta.languages.is_empty(),
+                "catalog title: {title}"
+            );
+            assert!(
+                streams[0].meta.resolution.is_none(),
+                "catalog title: {title}"
+            );
+            assert!(streams[0].meta.quality.is_none());
+            assert!(streams[0].meta.codec.is_none());
+        }
+    }
+
+    #[tokio::test]
     async fn url_only_results_do_not_inherit_catalog_languages() {
         let payload = serde_json::json!({
             "status_code": 200,
@@ -672,12 +691,7 @@ mod tests {
     fn stream_construction_is_silent_on_url_shape() {
         // The helper functions must not panic on odd inputs (the
         // scraper emits entries like "not-a-url" verbatim).
-        let media = MediaRef::series(MediaId::Tmdb(1), 2, 3);
-        assert_eq!(media_line("A", Some(1999), &media), "A - S2E3 (1999)");
-        assert_eq!(media_line("A", None, &media), "A - S2E3");
-        let movie = MediaRef::movie(MediaId::Tmdb(1));
-        assert_eq!(media_line("A", Some(1999), &movie), "A - 1999");
-        let card = card("weird://host", "A", None, &movie, 7);
+        let card = card("weird://host", 7);
         assert_eq!(card.url, "weird://host");
     }
     #[test]

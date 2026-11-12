@@ -383,18 +383,16 @@ pub fn build_stream_results(params: &BuildParams<'_>) -> Vec<Stream> {
     results
 }
 
-/// Per-stream audio declarations and release labels; catalog language support is not track evidence.
+/// Per-stream audio declarations, server labels and filenames exclude catalog display text.
 fn stream_languages(
     stream: &NuvioStream,
-    stream_title: &str,
     filename: &str,
     _country_codes: &[CountryCode],
 ) -> Vec<CountryCode> {
     let audio_tracks = normalize_audio_tracks(stream.audio_tracks.as_ref());
     if audio_tracks.is_empty() {
         let haystack = format!(
-            "{} {} {}",
-            stream_title,
+            "{} {}",
             stream.name.as_deref().unwrap_or_default(),
             filename
         );
@@ -457,11 +455,15 @@ fn build_card(
     }
     let label = label_parts.join(" — ");
 
-    let languages = stream_languages(stream, &stream_title, &filename, country_codes);
+    let fact_filename = url
+        .path_segments()
+        .and_then(|mut segments| segments.next_back())
+        .unwrap_or_default();
+    let languages = stream_languages(stream, fact_filename, country_codes);
 
     let height = parse_height(stream.quality.as_deref())
-        .or_else(|| parse_height(stream.title.as_deref()))
-        .or_else(|| parse_height(Some(&filename)));
+        .or_else(|| parse_height(stream.name.as_deref()))
+        .or_else(|| parse_height(Some(fact_filename)));
 
     let mut meta = StreamMeta {
         dubbed: stream.category().map(|category| category == "dub"),
@@ -1218,5 +1220,36 @@ mod tests {
             card.meta.request_headers.get("Referer").map(String::as_str),
             Some("https://megaplay.buzz/")
         );
+    }
+    #[test]
+    fn catalog_rich_titles_do_not_supply_stream_facts() {
+        for title in [
+            "Johnny English",
+            "French Kiss",
+            "Hindi Medium",
+            "The 1080p Story",
+        ] {
+            let streams = vec![
+                NuvioStream::new("https://cdn.example/opaque.m3u8")
+                    .with_title(title)
+                    .with_name("Fixture"),
+            ];
+            let output = build_stream_results(&BuildParams {
+                streams: &streams,
+                title,
+                source_id: "fixture",
+                source_label: "Fixture",
+                country_codes: &[CountryCode::En],
+                ttl: Duration::from_mins(1),
+            });
+            assert!(
+                output[0].meta.languages.is_empty(),
+                "catalog title: {title}"
+            );
+            assert!(
+                output[0].meta.resolution.is_none(),
+                "catalog title: {title}"
+            );
+        }
     }
 }

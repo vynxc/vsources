@@ -753,7 +753,7 @@ fn normalize_quality(raw: Option<&str>) -> String {
 /// API's own `audioTracks` when present, else the anime-aware
 /// default — unlike `FrameX`, the wrapper leaves `audioTracks`
 /// untouched).
-fn enrich(streams: &mut [NuvioStream], is_anime: bool) {
+fn enrich(streams: &mut [NuvioStream], _is_anime: bool) {
     for stream in streams {
         let height = parse_height(stream.quality.as_deref());
         let tracks = normalize_audio_tracks(stream.audio_tracks.as_ref());
@@ -764,9 +764,9 @@ fn enrich(streams: &mut [NuvioStream], is_anime: bool) {
                 _ => "x264".to_string(),
             },
         ];
-        let audio = build_audio_label(&tracks, stream.has_multiple_audio)
-            .unwrap_or_else(|| if is_anime { "Japanese" } else { "English" }.to_string());
-        markers.push(audio);
+        if let Some(audio) = build_audio_label(&tracks, stream.has_multiple_audio) {
+            markers.push(audio);
+        }
         let title = stream.title.clone().unwrap_or_default();
         stream.title = Some(format!("{title} {}", markers.join(" ")));
     }
@@ -1314,13 +1314,11 @@ mod tests {
                 .map(String::as_str),
             Some("https://player.videasy.to/")
         );
-        // The English default audio marker when the API omits tracks
-        // (the anime search found nothing).
         assert!(
             streams[1]
                 .label
                 .as_deref()
-                .is_some_and(|label| label.contains("WEB-DL x264 English"))
+                .is_some_and(|label| label.contains("WEB-DL x264") && !label.contains("English"))
         );
         assert!(
             streams
@@ -1343,7 +1341,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn an_anime_match_adds_japanese_markers_and_embeds() -> Result<(), SourceError> {
+    async fn an_anime_match_keeps_unknown_direct_audio_and_adds_embeds() -> Result<(), SourceError>
+    {
         let body = r#"{"success":true,"sources":[{"url":"https://moon.peakstorm.top/hls/tv/master.m3u8","quality":"1080p"}]}"#;
         let mut mock = ScriptedFetcher::default();
         for name in ALL_PROVIDERS {
@@ -1398,12 +1397,11 @@ mod tests {
                 .label
                 .as_deref()
                 .is_some_and(|label| label.contains("Solo Leveling S01E02"))
-                && direct
-                    .label
-                    .as_deref()
-                    .is_some_and(|label| label.contains("WEB-DL x264 Japanese"))
+                && direct.label.as_deref().is_some_and(
+                    |label| label.contains("WEB-DL x264") && !label.contains("Japanese")
+                )
         );
-        assert!(direct.meta.languages.contains(&CountryCode::Ja));
+        assert!(direct.meta.languages.is_empty());
 
         let sub = &streams[1];
         assert_eq!(
@@ -1487,7 +1485,7 @@ mod tests {
             streams[0]
                 .label
                 .as_deref()
-                .is_some_and(|label| label.contains("WEB-DL x264 English"))
+                .is_some_and(|label| label.contains("WEB-DL x264") && !label.contains("English"))
         );
         assert!(
             mock.requests()
@@ -1680,5 +1678,16 @@ mod tests {
                 "Frieren Beyond Journey s End"
             ]
         );
+    }
+    #[test]
+    fn content_type_is_not_audio_language_evidence() {
+        for anime in [true, false] {
+            let mut streams = vec![NuvioStream::new("https://cdn.example/opaque.m3u8")];
+            enrich(&mut streams, anime);
+            assert!(streams[0].audio_tracks.is_none());
+            let label = streams[0].title.as_deref().unwrap_or_default();
+            assert!(!label.contains("English"));
+            assert!(!label.contains("Japanese"));
+        }
     }
 }

@@ -205,7 +205,8 @@ HTML pages, archives, images and missing files are filtered. Network failures,
 Cloudflare/IP blocks, rate limits and unsupported formats remain inconclusive.
 
 Audio labels use per-stream declarations and bounded manifest/container evidence.
-A provider's catalog languages do not label every URL. Shared media probes cache
+A provider's catalog languages do not label every URL. Catalog titles and combined
+display labels do not supply audio or quality facts. Shared media probes cache
 explicit HLS audio renditions and available transport-stream/Matroska tags without
 extra requests. Subtitle languages are excluded; unmarked audio stays unknown.
 These tags describe available tracks, not speech recognition or a playback guarantee.
