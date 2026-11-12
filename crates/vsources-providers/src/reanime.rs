@@ -3,7 +3,7 @@
 //!
 //! Ports `src/source/ReAnime.js` + `src/nuvio/reanime.cjs`:
 //!
-//! 1. TMDB → title/year → `GET /api/v1/search?q=<title>&limit=10`
+//! 1. TMDB → title/year → `GET /api/v1/search?q=<title>&limit=36`
 //!    (the reanime.to Referer, a 3-attempt retry ladder) → anime
 //!    entries with `anilist_id` (falling back to the id encoded in
 //!    the cover URL, `/nx<id>-<hash>.jpg`) and `season_year`.
@@ -88,7 +88,8 @@ const ID: &str = "reanime";
 const LABEL: &str = "ReAnime";
 /// The site origin, upstream `this.baseUrl` / the scraper's
 /// `REANIME_API`.
-const BASE_URL: &str = "https://reanime.to";
+const BASE_URL: &str = "https://reanime.cz";
+const API_ORIGINS: &[&str] = &[BASE_URL, "https://reanime.to", "https://reanime.wtf"];
 /// The `FlixCloud` embed host.
 const FLIXCLOUD: &str = "https://flixcloud.cc";
 /// The full Chrome UA — reanime.to gates on the UA/Referer pair.
@@ -112,9 +113,9 @@ static ANILIST_ID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"anilist_id:(\d+)").unwrap_or_else(|e| panic!("valid anilist-id pattern: {e}"))
 });
 
-/// `/nx<anilistId>-<hash>.jpg` — the id encoded in a cover URL.
+/// The canonical id encoded in an AniList cover filename.
 static COVER_ID: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"/nx(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
+    Regex::new(r"/[nb]?x(\d+)-").unwrap_or_else(|e| panic!("valid cover-id pattern: {e}"))
 });
 
 /// `(\d{3,4})` — the height inside the quality label.
@@ -413,26 +414,45 @@ impl ReAnime {
 /// attempts, the reanime.to Referer, the `encodeURIComponent`d
 /// query).
 async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult> {
-    let Ok(mut url) = Url::parse(&format!("{BASE_URL}/api/v1/search")) else {
-        return Vec::new();
-    };
-    url.query_pairs_mut()
-        .append_pair("q", query)
-        .append_pair("limit", "10");
-    let Some(json) = fetch_json_retry(ctx, &url).await else {
-        return Vec::new();
-    };
-    let Some(results) = json.get("results").and_then(Value::as_array) else {
+    for path in ["/api/v1/search", "/api/search"] {
+        let Ok(mut url) = Url::parse(&format!("{BASE_URL}{path}")) else {
+            continue;
+        };
+        url.query_pairs_mut()
+            .append_pair("q", query)
+            .append_pair("limit", "36");
+        if let Some(json) = fetch_api_json(ctx, &url).await {
+            let results = parse_search_results(&json);
+            if !results.is_empty() {
+                return results;
+            }
+        }
+    }
+    Vec::new()
+}
+
+fn parse_search_results(json: &Value) -> Vec<ReanimeResult> {
+    let Some(results) = ["results", "data", "anime"]
+        .into_iter()
+        .find_map(|key| json.get(key).and_then(Value::as_array))
+        .or_else(|| json.as_array())
+    else {
         return Vec::new();
     };
     results
         .iter()
         .filter_map(|result| {
-            let anime_id = result.get("anime_id")?.as_str()?.to_string();
+            let anime_id = result
+                .get("anime_id")
+                .and_then(Value::as_str)
+                .or_else(|| result.get("slug").and_then(Value::as_str))
+                .filter(|slug| !slug.is_empty())?
+                .to_string();
             // Search sometimes answers `anilist_id: 0`; the cover URL
             // carries the id.
             let mut anilist_id = result
                 .get("anilist_id")
+                .or_else(|| result.get("anilistId"))
                 .and_then(Value::as_u64)
                 .filter(|id| *id > 0);
             if anilist_id.is_none() {
@@ -452,6 +472,8 @@ async fn search_reanime(ctx: &ResolveCtx<'_>, query: &str) -> Vec<ReanimeResult>
             let title = ["/title/english", "/title/romaji", "/title/native"]
                 .iter()
                 .find_map(|pointer| result.pointer(pointer).and_then(Value::as_str))
+                .or_else(|| result.get("title").and_then(Value::as_str))
+                .or_else(|| result.get("name").and_then(Value::as_str))
                 .unwrap_or("Unknown");
             Some(ReanimeResult {
                 anime_id,
@@ -536,7 +558,7 @@ async fn fetch_flix_servers(ctx: &ResolveCtx<'_>, anilist_id: u64, ep: u32) -> V
     let Ok(url) = Url::parse(&format!("{BASE_URL}/api/flix/{anilist_id}/{ep}")) else {
         return Vec::new();
     };
-    let Some(json) = fetch_json_retry(ctx, &url).await else {
+    let Some(json) = fetch_api_json(ctx, &url).await else {
         return Vec::new();
     };
     if json.get("success").and_then(Value::as_bool) != Some(true) {
@@ -667,24 +689,36 @@ async fn flix_get(ctx: &ResolveCtx<'_>, url: &str) -> Option<FetchResponse> {
 // Fetch helpers with retry
 // ---------------------------------------------------------------------------
 
-/// GET a URL as JSON with the 3-attempt retry — the scraper's
-/// `fetchJson` over the curl chain (the reanime.to Referer, the full
-/// Chrome UA).
-async fn fetch_json_retry(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
-    for attempt in 0..RETRIES {
-        let request = FetchRequest::get(url.clone())
+async fn fetch_api_json(ctx: &ResolveCtx<'_>, url: &Url) -> Option<Value> {
+    let initial = url.origin().ascii_serialization();
+    if !API_ORIGINS.contains(&initial.as_str()) {
+        return None;
+    }
+    let mut origins = vec![initial];
+    for origin in API_ORIGINS {
+        if !origins.iter().any(|known| known.as_str() == *origin) {
+            origins.push((*origin).to_string());
+        }
+    }
+    for origin in origins {
+        let mut target = Url::parse(&origin).ok()?;
+        target.set_path(url.path());
+        target.set_query(url.query());
+        let request = FetchRequest::get(target)
             .with_header("User-Agent", UA)
             .with_header("Accept", "application/json")
-            .with_header("Referer", format!("{BASE_URL}/"))
-            .with_timeout(FETCH_TIMEOUT);
-        if let Ok(response) = ctx.fetcher.request(request).await
-            && response.is_success()
+            .with_header("Referer", format!("{origin}/"))
+            .with_timeout(Duration::from_secs(4));
+        let Ok(response) = ctx.fetcher.request(request).await else {
+            continue;
+        };
+        if matches!(response.status, 401 | 403 | 429) {
+            return None;
+        }
+        if response.is_success()
             && let Ok(json) = serde_json::from_str::<Value>(&response.body)
         {
             return Some(json);
-        }
-        if attempt + 1 < RETRIES {
-            tokio::time::sleep(retry_backoff(attempt)).await;
         }
     }
     None
@@ -945,7 +979,14 @@ mod tests {
                 .lock()
                 .unwrap_or_else(PoisonError::into_inner)
                 .push(request.clone());
-            let key = key_of(&request.url);
+            let key = {
+                let pages = self.pages.lock().unwrap_or_else(PoisonError::into_inner);
+                if pages.contains_key(request.url.as_str()) {
+                    request.url.as_str().to_string()
+                } else {
+                    key_of(&request.url)
+                }
+            };
             let entry = {
                 let mut pages = self.pages.lock().unwrap_or_else(PoisonError::into_inner);
                 pages.get_mut(&key).map(|bodies| {
@@ -981,6 +1022,119 @@ mod tests {
                 body,
             })
         }
+    }
+
+    #[tokio::test]
+    async fn current_api_skips_stale_html_without_backoff() {
+        let mock = Arc::new(
+            ScriptedFetcher::default()
+                .page(
+                    "https://reanime.to/api/flix/154587/2",
+                    200,
+                    "<html>site shell</html>",
+                )
+                .page(
+                    "https://reanime.cz/api/flix/154587/2",
+                    200,
+                    r#"{"success":true,"servers":[]}"#,
+                ),
+        );
+        let url = Url::parse("https://reanime.to/api/flix/154587/2")
+            .unwrap_or_else(|error| panic!("fixture URL: {error}"));
+        let result = tokio::time::timeout(
+            Duration::from_secs(1),
+            fetch_api_json(&ctx_for(&mock), &url),
+        )
+        .await
+        .unwrap_or_else(|error| panic!("stale HTML spent retry backoff budget: {error}"))
+        .unwrap_or_else(|| panic!("current JSON origin"));
+        assert_eq!(result["success"], true);
+        let requests = mock.requests();
+        assert_eq!(requests.len(), 2);
+        for request in requests {
+            assert_eq!(
+                request.headers.get("Referer"),
+                Some(&format!("{}/", request.url.origin().ascii_serialization()))
+            );
+            assert_eq!(request.url.path(), "/api/flix/154587/2");
+        }
+    }
+
+    #[tokio::test]
+    async fn current_cover_filenames_recover_only_explicit_identity_prefixes() {
+        for (file, expected) in [
+            ("nx154587-fixture.jpg", Some(154587)),
+            ("bx154587-fixture.jpg", Some(154587)),
+            ("x154587-fixture.jpg", Some(154587)),
+            ("154587-unrelated.jpg", None),
+        ] {
+            let value = serde_json::json!({"results":[{
+                "anime_id":"frieren-fixture","anilist_id":0,"season_year":2023,
+                "title":{"english":"Frieren: Beyond Journey's End"},
+                "cover_image":{"extra_large":format!("https://s4.anilist.co/cover/{file}")}
+            }]});
+            let mock =
+                Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
+            let results = search_reanime(&ctx_for(&mock), "Frieren").await;
+            assert_eq!(results.len(), 1);
+            assert_eq!(results[0].anilist_id, expected, "{file}");
+        }
+    }
+
+    #[tokio::test]
+    async fn current_search_payload_keeps_exact_title_year_and_identity() {
+        let value = serde_json::json!({"data":[{
+            "slug":"frieren-fixture","anilistId":154587,"season_year":2023,
+            "title":"Frieren: Beyond Journey's End"
+        }]});
+        let mock =
+            Arc::new(ScriptedFetcher::default().page("/api/v1/search", 200, value.to_string()));
+        let results = search_reanime(&ctx_for(&mock), "Frieren").await;
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].anilist_id, Some(154587));
+        assert_eq!(results[0].anime_id, "frieren-fixture");
+        assert_eq!(results[0].year, Some(2023));
+        assert_eq!(results[0].title, "Frieren: Beyond Journey's End");
+    }
+
+    #[tokio::test]
+    async fn current_api_search_path_fallback_is_bounded() {
+        let value = serde_json::json!({"results":[{
+            "anime_id":"frieren-fixture","anilist_id":154587,"season_year":2023,
+            "title":{"english":"Frieren: Beyond Journey's End"}
+        }]});
+        let mock = Arc::new(
+            ScriptedFetcher::default()
+                .page("/api/v1/search", 404, "missing")
+                .page("/api/search", 200, value.to_string()),
+        );
+        let results = search_reanime(&ctx_for(&mock), "Frieren").await;
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].anilist_id, Some(154587));
+        assert_eq!(mock.requests().len(), API_ORIGINS.len() + 1);
+        assert!(mock.requests().iter().all(|request| {
+            request
+                .url
+                .query_pairs()
+                .any(|(key, value)| key == "q" && value == "Frieren")
+        }));
+    }
+
+    #[tokio::test]
+    async fn current_api_access_denial_does_not_probe_other_origins() {
+        let mock = Arc::new(
+            ScriptedFetcher::default()
+                .page("https://reanime.cz/api/flix/154587/2", 403, "denied")
+                .page(
+                    "https://reanime.to/api/flix/154587/2",
+                    200,
+                    r#"{"success":true,"servers":[]}"#,
+                ),
+        );
+        let url = Url::parse("https://reanime.cz/api/flix/154587/2")
+            .unwrap_or_else(|error| panic!("fixture URL: {error}"));
+        assert!(fetch_api_json(&ctx_for(&mock), &url).await.is_none());
+        assert_eq!(mock.requests().len(), 1);
     }
 
     // -- fixtures ------------------------------------------------------------
@@ -1080,7 +1234,7 @@ mod tests {
         );
         assert_eq!(
             info.base_url.as_ref().map(Url::as_str),
-            Some("https://reanime.to/")
+            Some("https://reanime.cz/")
         );
         assert_eq!(info.priority, 0);
         assert_eq!(info.domain_key, None);
