@@ -92,28 +92,44 @@ fn english_track(tracks: &[u8]) -> Option<u32> {
             let mut track_type = None;
             let mut language = None;
             let mut ietf = None;
+            let mut ietf_present = false;
             let mut enabled = true;
             while field_position < body.len() {
                 let field = element(body, field_position)?;
                 let raw = body.get(field.start..field.end)?;
                 match field.id {
                     0x83 if raw.len() == 1 => track_type = raw.first().copied(),
-                    0xb9 if raw.len() == 1 => enabled = raw[0] != 0,
+                    0xb9 => {
+                        if raw.len() != 1 {
+                            return None;
+                        }
+                        enabled = raw[0] != 0;
+                    }
                     0x0022_b59c => language = std::str::from_utf8(raw).ok(),
-                    0x0022_b59d => ietf = std::str::from_utf8(raw).ok(),
+                    0x0022_b59d => {
+                        ietf_present = true;
+                        ietf = std::str::from_utf8(raw).ok();
+                    }
                     _ => {}
                 }
                 field_position = field.end;
             }
             if track_type? == 2 {
                 if enabled
-                    && ietf.or(language).is_some_and(|language| {
+                    && (if ietf_present { ietf } else { language }).is_some_and(|language| {
                         let language = language.trim_matches('\0');
                         language.eq_ignore_ascii_case("eng")
                             || language.eq_ignore_ascii_case("en")
-                            || language
-                                .get(..3)
-                                .is_some_and(|s| s.eq_ignore_ascii_case("en-"))
+                            || language.split_once('-').is_some_and(|(primary, rest)| {
+                                primary.eq_ignore_ascii_case("en")
+                                    && rest.split('-').all(|subtag| {
+                                        !subtag.is_empty()
+                                            && subtag.len() <= 8
+                                            && subtag
+                                                .bytes()
+                                                .all(|byte| byte.is_ascii_alphanumeric())
+                                    })
+                            })
                     })
                 {
                     return Some(audio_index);
@@ -228,6 +244,30 @@ mod tests {
             &[disabled, track(2, Some("eng"), Some("ja"))].concat(),
         );
         assert_eq!(matroska_english_audio_index(&prefix), None);
+        for invalid in [b"\xff".as_slice(), b"en-", b"en--US", b"en-\xff"] {
+            let audio = node(
+                &[0xae],
+                &[
+                    node(&[0x83], &[2]),
+                    node(&[0x22, 0xb5, 0x9c], b"eng"),
+                    node(&[0x22, 0xb5, 0x9d], invalid),
+                ]
+                .concat(),
+            );
+            assert_eq!(matroska_english_audio_index(&file(&audio)), None);
+        }
+        for unsupported in [vec![], vec![0, 1]] {
+            let audio = node(
+                &[0xae],
+                &[
+                    node(&[0x83], &[2]),
+                    node(&[0xb9], &unsupported),
+                    node(&[0x22, 0xb5, 0x9c], b"eng"),
+                ]
+                .concat(),
+            );
+            assert_eq!(matroska_english_audio_index(&file(&audio)), None);
+        }
     }
 
     #[test]
